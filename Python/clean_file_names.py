@@ -1,4 +1,3 @@
-
 import os, re
 import phylo_tools as pt
 import pandas as pd
@@ -8,7 +7,6 @@ import pandas as pd
 #os.system("cat ~/Phylo_Evol_Timeseries/data/illumina_runs/170721/*/SampleSheet.csv > SampleSheets_170721.csv")
 
 # keep: run name, original sample name, new sample name, treatment, strain, replicate, day, index1, index2
-
 # clean HCGS sheets
 runs = ['SampleSheets_HCGB_161213', 'SampleSheets_HCGB_170303',
         'SampleSheets_HCGB_170623', 'SampleSheets_HCGB_170721',
@@ -17,10 +15,6 @@ runs = ['SampleSheets_HCGB_161213', 'SampleSheets_HCGB_170303',
         'SampleSheet-GSF2124-run3-plates1-2',
         'GSF2124 Lennon Run 3 Plates 3-4 Run Summary Sorted',
         'GSF2124-run5-plates5-6-demultiplexing-summay']
-
-#library_folders = ['161213', '170303', '170623', '170721','GSF2056_run1',
-#                    'GSF2056_run2', 'GSF2124_run3', 'GSF2124_run4',
-#                    'GSF2124_run5', ]
 
 
 def get_sample_names():
@@ -47,10 +41,6 @@ def get_sample_names():
     sample_names_path.close()
 
 
-#def clean_metadata_runs():
-#    for run in runs:
-
-
 def merge_metadata():
     # first get dictionary for barcodes one and two for GSF2124, GSF2056
     GSF_files = ['GSF2056-run1-plates1-2-demultiplexing-summary',
@@ -66,6 +56,8 @@ def merge_metadata():
                     'GSF2056-run1-plates1-2 Lennon/Shoemaker Summary']
 
     GSF_bc_dict = {}
+    df_out = open(pt.get_path() + '/data/library_metadata/' + 'new_sample_names.txt', 'w')
+    meta_path = open(pt.get_path() + '/data/library_metadata/' + 'sample_names.txt', 'r')
     for GSF_file in GSF_files:
         GSF_file_ = open(pt.get_path() + '/data/library_metadata/' + GSF_file + '.csv', 'r')
         for GSF_line in GSF_file_:
@@ -80,61 +72,65 @@ def merge_metadata():
             if GSF_line[0] == '1':
                 GSF_line = GSF_line[2:]
 
-            #GSF_bc_dict[GSF_line[0]] = {}
-            #GSF_bc_dict[GSF_line[0]]['BC1'] = {}
+            GSF_bc_dict[GSF_line[0]] = {}
+            if '+' in GSF_line[1]:
+                BC_split = GSF_line[1].split('+')
+                GSF_BC1 = BC_split[0]
+                GSF_BC2 = BC_split[1]
+            else:
+                GSF_BC1 = GSF_line[5]
+                GSF_BC2 = GSF_line[7]
+            GSF_bc_dict[GSF_line[0]]['BC1'] = GSF_BC1
+            GSF_bc_dict[GSF_line[0]]['BC2'] = GSF_BC2
 
-            #split the barcodes
-
-
-    meta_dict = {}
-    meta_path = open(pt.get_path() + '/data/library_metadata/' + 'sample_names.txt', 'r')
-    lengthsss =[]
-    ressssss = []
     for line in meta_path:
         line = line.strip()
         line_dash = line.split('/')
         run = line_dash[0]
-
         if 'GSF' not in run:
             run = 'HCGS' + run
         if '_' in run:
             run = run.replace('_', '-')
-        # line
         file_name = line_dash[-1]
         file_name_spl = re.split('-|_',file_name)
-
         if file_name_spl[0] == 'GSF2124':
+            gsf_bc_key = file_name.rsplit('_', 3)[0]
+            BC1 = GSF_bc_dict[gsf_bc_key]['BC1']
+            BC2 = GSF_bc_dict[gsf_bc_key]['BC2']
             if len(file_name_spl) == 9:
-                line = file_name_spl[4]
+                pop = file_name_spl[4]
                 day = file_name_spl[5][1:]
                 R = file_name_spl[-2]
 
             elif len(file_name_spl) == 10:
-                line = file_name_spl[3] + file_name_spl[4] + file_name_spl[5]
+                pop = file_name_spl[3] + file_name_spl[4] + file_name_spl[5]
                 day = file_name_spl[6]
                 R = file_name_spl[-2]
 
             elif len(file_name_spl) == 11:
-                line = file_name_spl[4] + file_name_spl[5] + file_name_spl[6]
+                pop = file_name_spl[4] + file_name_spl[5] + file_name_spl[6]
                 day = file_name_spl[7]
                 R = file_name_spl[-2]
 
         elif file_name_spl[0] == 'GSF2056':
+            gsf_bc_key = file_name.rsplit('_', 3)[0]
+            BC1 = GSF_bc_dict[gsf_bc_key]['BC1']
+            BC2 = GSF_bc_dict[gsf_bc_key]['BC2']
             if len(file_name_spl) == 13:
-                line = file_name_spl[3] + file_name_spl[7] + file_name_spl[8]
+                pop = file_name_spl[3] + file_name_spl[7] + file_name_spl[8]
                 day = file_name_spl[9]
                 R = file_name_spl[-2]
                 end = file_name_spl[-1]
 
             elif len(file_name_spl) == 14:
-                line = file_name_spl[4] + file_name_spl[8] + file_name_spl[9]
+                pop = file_name_spl[4] + file_name_spl[8] + file_name_spl[9]
                 day = file_name_spl[10]
                 R = file_name_spl[-2]
                 end = file_name_spl[-1]
 
         elif 'HCGS' in run:
             if len(file_name_spl) == 8:
-                line = file_name_spl[0]
+                pop = file_name_spl[0]
                 day = file_name_spl[1]
                 BC1 = file_name_spl[3]
                 BC2 = file_name_spl[4]
@@ -142,7 +138,7 @@ def merge_metadata():
                 end = file_name_spl[-1]
 
             elif len(file_name_spl) == 9:
-                line = file_name_spl[1] + file_name_spl[2]
+                pop = file_name_spl[1] + file_name_spl[2]
                 day = file_name_spl[3][1:]
                 BC1 = file_name_spl[4]
                 BC2 = file_name_spl[5]
@@ -150,7 +146,7 @@ def merge_metadata():
                 end = file_name_spl[-1]
 
             elif len(file_name_spl) == 6:
-                line = file_name_spl[0][1:]
+                pop = file_name_spl[0][1:]
                 day = '100'
                 BC1 = file_name_spl[1]
                 BC2 = file_name_spl[2]
@@ -158,45 +154,14 @@ def merge_metadata():
                 end = file_name_spl[-1]
 
             elif len(file_name_spl) == 7:
-                line = file_name_spl[0]
+                pop = file_name_spl[0]
                 day = file_name_spl[1]
                 BC1 = file_name_spl[2]
                 BC2 = file_name_spl[3]
                 R = file_name_spl[5]
                 end = file_name_spl[-1]
 
-        #ressssss.append(run)
-
-
-        #meta_dict[line] = [run, line, day, BC1, BC2, R, rep]
-    #print(set(lengthsss))
-    #print(set(ressssss))
-
-    #print(meta_dict)
-
-
-    #df_paths['A'] = df_paths['file_path'].str.split('/', 1).str
-    #df['First_Name'] = df.file_path.str.split('/', expand = True)[0]
-
-
-    #run = runs[0]
-    #if 'SampleSheets_HCGB_' in run:
-    #    df = pd.read_csv(pt.get_path() + '/data/libraries/' + run + '.csv', sep = ',')
-    #    df = df.iloc[::2, :]
-    #    df_new = df["Index"].str.split("-", n = 1, expand = True)
-    #    df["Index1"]= df_new[0]
-    #    df["Index2"]= df_new[1]
-    #    #df.drop(columns =["Index"], inplace = True)
-    #    #out_name = pt.get_path() + '/data/libraries/' + run + '_clean.csv'
-    #    #df.to_csv(out_name, sep = ',', index = True)
-    #    if '161213' in run:
-    #        df["New_sample_name"] = df['SampleID'] + '-' 'D100'
-    #    print(df)
-
-    #df = pd.read_csv(pt.get_path() + '/data/libraries/' + run + '.csv', sep = ',')
-
-merge_metadata()
-
-# create summary file of all data
-
-#clean_hcgs_sheets()
+        new_name = '_'.join([run, pop, day, BC1, BC2, R, end])
+        df_out.write('\t'.join([line, new_name]) + '\n')
+        
+    df_out.close()
