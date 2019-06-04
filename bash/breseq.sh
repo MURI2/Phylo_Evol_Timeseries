@@ -12,13 +12,11 @@ mkdir -p $data_breseq_err
 
 ref=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
 
-declare -a strains=("B")
-declare -a treats=("0")
-declare -a reps=("2")
+declare -a strains=("S")
+declare -a treats=("2")
+declare -a reps=("1" "2" "3" "4" "5")
 
-#declare -a times=("200")
-
-declare -a times=("100" "300" "400" "500" "600" "700" "800" "900" "1000")
+declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
 
 
 declare -a samples=()
@@ -38,9 +36,10 @@ do
 done
 
 
+
 for sample in "${samples[@]}"
 do
-  reads="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt/"*"${sample}"*"_clean.fastq.gz"
+  reads="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt/"*"_${sample}_"*"_clean.fastq.gz"
   if (( ${#reads[@]} )); then
     bash_out="${bin_breseq_scripts}/${sample}_breseq.sh"
     if [ -f $bash_out ]; then
@@ -59,8 +58,8 @@ do
 
     echo '#!/bin/bash' >> $bash_out
     echo '#PBS -k o' >> $bash_out
-    echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=30:00:00' >> $bash_out
-    echo '#PBS -M wrshoema@iu.edu' >> $bash_out
+    echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=7:00:00' >> $bash_out
+    #echo '#PBS -M wrshoema@iu.edu' >> $bash_out
     echo '#PBS -m abe' >> $bash_out
     echo '#PBS -j oe' >> $bash_out
     echo '' >> $bash_out

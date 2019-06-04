@@ -16,9 +16,8 @@ declare -a strains=("B")
 declare -a treats=("0")
 declare -a reps=("2")
 
-declare -a times=("200")
 
-#declare -a times=("100" "300" "400" "500" "600" "700" "800" "900" "1000")
+declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
 
 
 declare -a samples=()
@@ -41,7 +40,7 @@ done
 
 for sample in "${samples[@]}"
 do
-  reads="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt/"*"${sample}"*"_clean.fastq.gz"
+  reads="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt/"*"_${sample}_"*"_clean.fastq.gz"
   if (( ${#reads[@]} )); then
     pop="$(echo "$sample" | cut -d "_" -f1-1)"
     pop_gd="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq_jc/merged/${pop}.gd"

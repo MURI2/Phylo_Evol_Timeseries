@@ -128,19 +128,6 @@ def clean_GBK():
     df_out.close()
 
 
-def get_bPTR():
-    directory = os.fsencode(bt.get_path() + '/data/bwa_sam_merged')
-    fasta = bt.get_path() + '/data/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna'
-    for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        if filename.endswith('-100.sam'):
-            print(filename)
-            out_file = bt.get_path() + '/data/bPTR/' + filename.split('.')[0]
-            sam = os.path.join(str(directory, 'utf-8'), filename)
-            #plot = bt.get_path() + '/data/bPTR/' + filename.split('.')[0]
-            #subprocess.call(['irep', '-f', fasta, '-s', sam, '-o', out_file, '--sort'])
-            subprocess.call(['bPTR', '-m', 'gc_skew', '-f', fasta, '-s', sam, '-o', str(out_file) + '.txt', '-plot', str(out_file)])
-
 
 def clean_bPTR():
     directory = os.fsencode(bt.get_path() + '/data/bPTR')
@@ -149,18 +136,20 @@ def clean_bPTR():
     df_out.write('\t'.join(header) + '\n')
     for file in os.listdir(directory):
         filename = os.fsdecode(file)
-        if filename.endswith('-100.txt'):
-            bPTR_path = sam = os.path.join(str(directory, 'utf-8'), filename)
-            for i, line in enumerate(open(bPTR_path, 'r')):
-                if i == 0:
-                    continue
-                f_clean = filename.split('.')[0]
-                f_clean_split = re.split(r'[-_]+', f_clean)
-                out_line = [f_clean, f_clean_split[1][2],  f_clean_split[1][1],
-                            f_clean_split[1][3], f_clean_split[2],  line.split()[-1]]
-                df_out.write('\t'.join(out_line) + '\n')
-                print(f_clean)
+        if filename.endswith('.tsv') == False:
+            continue
+        bPTR_path = os.path.join(str(directory, 'utf-8'), filename)
+        for i, line in enumerate(open(bPTR_path, 'r')):
+            if i == 0:
+                continue
+            f_clean = filename.split('.')[0]
+            f_clean_split = re.split(r'[-_]+', f_clean)
+            out_line = [f_clean, f_clean_split[1][1],  f_clean_split[1][0],
+                        f_clean_split[1][2], f_clean_split[2],  line.split()[-1]]
+            df_out.write('\t'.join(out_line) + '\n')
     df_out.close()
+
+
 
 def get_pop_by_gene_matrix():
     # just bother with day 100 for now
@@ -203,4 +192,4 @@ def get_pop_by_gene_matrix():
 
 #clean_GBK()
 #get_pop_by_gene_matrix()
-#clean_bPTR()
+clean_bPTR()

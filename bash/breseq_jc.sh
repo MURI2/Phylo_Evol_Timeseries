@@ -35,7 +35,7 @@ do
   do
     evidence_time="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq/${pop}/output/evidence/evidence.gd"
     if [ -f $evidence_time ] ; then
-      junction_output="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq_jc/all/${pop}-${time}.gd"
+      junction_output="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq_jc/all/${pop}_${time}.gd"
       cat $evidence_time | grep 'JC\|#' > $junction_output
     fi
   done
