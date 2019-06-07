@@ -5,10 +5,15 @@ module load breseq
 #declare -a strains=("B" "C" "D" "F" "J" "P" "S")
 #declare -a treats=("0" "1" "2")
 #declare -a reps=("1" "2" "3" "4" "5")
-declare -a strains=("B" "S")
-declare -a treats=("0" "1" "2")
+
+# still need to do 0S4
+
+declare -a strains=("D")
+declare -a treats=("2")
 declare -a reps=("1" "2" "3" "4" "5")
-declare -a times=("100" "200" "300")
+declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
+
+
 
 declare -a pops=()
 
@@ -33,7 +38,7 @@ for pop in "${pops[@]}"
 do
   for time in "${times[@]}"
   do
-    evidence_time="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq/${pop}/output/evidence/evidence.gd"
+    evidence_time="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq/${pop}_${time}/output/evidence/evidence.gd"
     if [ -f $evidence_time ] ; then
       junction_output="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq_jc/all/${pop}_${time}.gd"
       cat $evidence_time | grep 'JC\|#' > $junction_output

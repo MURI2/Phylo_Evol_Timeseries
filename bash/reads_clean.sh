@@ -10,12 +10,14 @@ module load cutadapt
 declare -a days=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
 #declare -a days=("1000")
 
+#A, F, J, P
+
 # trim data and remove adaptors.
 mkdir -p "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt"
 
 for day in "${days[@]}"
 do
-  for R1 in "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/illumina_runs_rename/"*"_"*"S"*"_${day}_"*"_R1_"*".fastq.gz";
+  for R1 in "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/illumina_runs_rename/"*"_"*"P"*"_${day}_"*"_R1_"*".fastq.gz";
   do
     if [ ! -f $R1 ]; then
       continue

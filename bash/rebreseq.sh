@@ -10,12 +10,15 @@ mkdir -p $data_rebreseq
 mkdir -p $data_rebreseq_out
 mkdir -p $data_rebreseq_err
 
-ref=/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
+B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
+C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff
+D_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff
 
-declare -a strains=("B")
-declare -a treats=("0")
-declare -a reps=("2")
 
+
+declare -a strains=("D")
+declare -a treats=("2")
+declare -a reps=("1" "2" "3" "4" "5")
 
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
 
@@ -37,13 +40,23 @@ do
 done
 
 
-
 for sample in "${samples[@]}"
 do
   reads="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt/"*"_${sample}_"*"_clean.fastq.gz"
   if (( ${#reads[@]} )); then
     pop="$(echo "$sample" | cut -d "_" -f1-1)"
     pop_gd="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq_jc/merged/${pop}.gd"
+    # get reference
+    if [[ $pop == *"B"* ]]; then
+      gbk=$B_gbk
+    elif [[ $pop == *"C"* ]]; then
+      gbk=$C_gbk
+    elif [[ $pop == *"D"* ]]; then
+      gbk=$D_gbk
+    else
+      continue
+    fi
+
     bash_out="${bash_rebreseq_scripts}/${sample}_rebreseq.sh"
     if [ -f $bash_out ]; then
       rm $bash_out
@@ -61,18 +74,16 @@ do
 
     echo '#!/bin/bash' >> $bash_out
     echo '#PBS -k o' >> $bash_out
-    echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=10:00:00' >> $bash_out
-    echo '#PBS -M wrshoema@iu.edu' >> $bash_out
+    echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=20:00:00' >> $bash_out
+    #echo '#PBS -M wrshoema@iu.edu' >> $bash_out
     echo '#PBS -m abe' >> $bash_out
     echo '#PBS -j oe' >> $bash_out
     echo '' >> $bash_out
     echo 'module load breseq' >> $bash_out
-    # > data/breseq_output/${sample_name}.out 2> data/breseq_output/${sample_name}.err
-    echo "breseq -j 8 -p --user-evidence-gd ${pop_gd} -o ${OUT_rebreseq} -r ${ref} ${reads} > ${OUT_rebreseq_out} 2> ${OUT_rebreseq_err}" >> $bash_out
+    echo "breseq -j 8 -p --user-evidence-gd ${pop_gd} -o ${OUT_rebreseq} -r ${gbk} ${reads} > ${OUT_rebreseq_out} 2> ${OUT_rebreseq_err}" >> $bash_out
     echo '' >> $bash_out
 
     qsub $bash_out
-
 
   else
     continue

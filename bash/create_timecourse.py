@@ -1,11 +1,3 @@
-'''
-This script was originally written by B.H. Good for the publication
-The dynamics of molecular evolution over 60,000 generations
-Nature volume 551, pages 45-50, doi:10.1038/nature24287
-This script has been modified with permission and is free for use
-under a GNU General Public License v2.0
-'''
-
 # This script takes the output from an mpileup of our
 # second breseq run (the "rebreseq" step") and calculates
 # a timecourse for mutations at each site in the genome.
@@ -15,28 +7,36 @@ under a GNU General Public License v2.0
 
 import numpy
 import sys
-import os
+#import population_parameters
 
 reference_strs = set(['.', ','])
 snp_strs = set(['A','C','T','G', 'N','*'])
 indel_strs = set(['+','-'])
 refskip_strs = ['<','>']
 
-times = ['D100', 'D200', 'D300']
-
 mpileup_file = sys.stdin
+
+#first_position = long(sys.argv[1])
+#last_position = long(sys.argv[2])
+#population = sys.argv[3]
+#sample_names = sys.argv[4:]
+
 population = sys.argv[1]
+sample_times = sys.argv[2:]
 
-sample_times = []
+sample_times = [int(sample_time) for sample_time in sample_times]
 
-for time in times:
-    time_path = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/rebreseq/' \
-        + population + '-' + time[1:] + '/data/reference.bam'
-    if os.path.isfile(time_path):
-        sample_times.append(time)
+#sample_list = []
+#sample_times = []
+
+#for sample_name, sample_time in zip(population_parameters.sample_names[population], population_parameters.sample_times[population]):
+#    if sample_name in sample_names:
+#        sample_list.append(sample_name)
+#        sample_times.append(sample_time)
 
 num_lines = 0
 num_printed_lines = 0
+
 
 for line in mpileup_file:
     num_lines += 1
