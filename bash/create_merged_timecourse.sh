@@ -8,7 +8,7 @@
 
 module load python
 
-declare -a strains=("C")
+declare -a strains=("D")
 declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 

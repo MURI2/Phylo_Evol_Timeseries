@@ -6,10 +6,8 @@ module load breseq
 #declare -a treats=("0" "1" "2")
 #declare -a reps=("1" "2" "3" "4" "5")
 
-# still need to do 0S4
-
-declare -a strains=("D")
-declare -a treats=("2")
+declare -a strains=("F" "J" "P")
+declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
 

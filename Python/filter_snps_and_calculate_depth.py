@@ -7,10 +7,11 @@ import parse_file
 input_filename = sys.argv[1]
 depth_filename = sys.argv[2]
 snp_filename = sys.argv[3]
+strain = sys.argv[4]
 
-input_file = bz2.BZ2File(input_filename,"r")
-snp_file = bz2.BZ2File(snp_filename,"w")
-depth_file = bz2.BZ2File(depth_filename,"w")
+input_file = bz2.open(input_filename,"rt")
+snp_file = bz2.open(snp_filename,"wt")
+depth_file = bz2.open(depth_filename,"wt")
 
 taxon = input_filename.split('/')[-1].split('_')[0][1]
 
@@ -22,16 +23,14 @@ alts = None
 
 depth_records = []
 
+
 for line in input_file:
     items = line.split(",")
-    position = long(items[1])
+    position = int(items[1])
     allele = items[2].strip()
 
     if allele[1:3]!='->':
         continue # not a snp!
-
-    if parse_file.is_repeat_masked(position,position_gene_map):
-        continue # repeat masked!
 
     snp_file.write(line)
 
@@ -49,7 +48,8 @@ avg_depths = numpy.median(depths, axis=0)
 
 alts = numpy.array([0 for t in times])
 
-depth_line = ", ".join(["REL606", "0", "Depth", " ".join([str(t) for t in times]), " ".join([str(alt) for alt in alts]), " ".join([str(avg_depth) for avg_depth in avg_depths])])
+depth_line = ", ".join([strain, "0", "Depth", " ".join([str(t) for t in times]), " ".join([str(alt) for alt in alts]), " ".join([str(avg_depth) for avg_depth in avg_depths])])
+
 depth_file.write(depth_line)
 depth_file.write("\n")
 

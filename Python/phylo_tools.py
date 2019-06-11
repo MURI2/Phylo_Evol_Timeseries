@@ -3,10 +3,28 @@ import os
 from collections import Counter
 
 
+def get_path():
+    return os.path.expanduser("~/GitHub/Phylo_Evol_Timeseries")
+
+def get_genome_size(taxon):
+    genome_size_dict = {"B": 4299822,
+                        "S": 4299822,
+                        "C": 4042929,
+                        "D": 3284156,
+                        "F": 6337316,
+                        "J": 6118925,
+                        "P": 6639537}
+
+    return genome_size_dict[taxon]
+
+
+
+
+
 def get_ref_gbff_dict():
 
-    ref_dict = {"B": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff",
-                "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff",
+    ref_dict = {"B": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.gbff",
+                "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.gbff",
                 "C": "data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff",
                 "D": "data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff",
                 "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.gbff",
@@ -18,8 +36,8 @@ def get_ref_gbff_dict():
 
 def get_ref_fna_dict():
 
-    ref_dict = {"B": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna",
-                "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna",
+    ref_dict = {"B": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.fna",
+                "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.fna",
                 "C": "data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.fna",
                 "D": "data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.fna",
                 "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.fna",
@@ -41,8 +59,6 @@ def get_ref_bresq_fna_dict():
 
 
 
-def get_path():
-    return os.path.expanduser("~/GitHub/Phylo_Evol_Timeseries")
 
 def get_to_keep():
     return ['SNP', 'INS', 'DEL']

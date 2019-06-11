@@ -13,11 +13,15 @@ mkdir -p $data_rebreseq_err
 B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
 C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff
 D_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff
+F_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.gbff
+J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.gbff
+P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff
 
 
 
-declare -a strains=("D")
-declare -a treats=("2")
+declare -a strains=("F")
+declare -a treats=("1" "2")
+# "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
@@ -46,13 +50,20 @@ do
   if (( ${#reads[@]} )); then
     pop="$(echo "$sample" | cut -d "_" -f1-1)"
     pop_gd="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq_jc/merged/${pop}.gd"
+
     # get reference
-    if [[ $pop == *"B"* ]]; then
+    if [[ $sample == *"B"* ]]; then
       gbk=$B_gbk
-    elif [[ $pop == *"C"* ]]; then
+    elif [[ $sample == *"C"* ]]; then
       gbk=$C_gbk
-    elif [[ $pop == *"D"* ]]; then
+    elif [[ $sample == *"D"* ]]; then
       gbk=$D_gbk
+    elif [[ $sample == *"F"* ]]; then
+      gbk=$F_gbk
+    elif [[ $sample == *"J"* ]]; then
+      gbk=$J_gbk
+    elif [[ $sample == *"P"* ]]; then
+      gbk=$P_gbk
     else
       continue
     fi

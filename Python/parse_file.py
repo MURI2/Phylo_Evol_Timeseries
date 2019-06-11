@@ -82,14 +82,14 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
         gene_data = parse_gene_list(taxon)
 
     gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features = gene_data
-
     position_gene_map = {}
     gene_position_map = {}
     # new
     gene_feature_map = {}
 
     # then greedily annotate genes at remaining sites
-    for gene_name,start,end in zip(gene_names,gene_start_positions,gene_end_positions):
+    for gene_name, feature, start, end in zip(gene_names, features, gene_start_positions, gene_end_positions):
+        gene_feature_map[gene_name] = feature
         for position in range(start,end+1):
             if position not in position_gene_map:
                 position_gene_map[position] = gene_name
@@ -111,7 +111,7 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
     substitution_specific_synonymous_sites = {substitution: 0 for substitution in substitutions}
     substitution_specific_nonsynonymous_sites = {substitution: 0 for substitution in substitutions}
 
-    for gene_name,start,end,gene_sequence,strand in zip(gene_names, gene_start_positions, gene_end_positions, gene_sequences, strands):
+    for gene_name, start, end, gene_sequence, strand in zip(gene_names, gene_start_positions, gene_end_positions, gene_sequences, strands):
 
         if gene_name not in gene_position_map:
             continue
@@ -127,8 +127,8 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
                 effective_gene_synonymous_sites[gene_name]=0
                 effective_gene_nonsynonymous_sites[gene_name]=0
 
-            if gene_name.startswith('tRNA') or gene_name.startswith('rRNA'):
-                pass
+            if 'CDS' not in gene_feature_map[gene_name]:
+                continue
 
             else:
 
@@ -140,11 +140,10 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
 
                 # calculate codon start
                 codon_start = int(position_in_gene/3)*3
+                if codon_start+3 > len(gene_sequence):
+                    continue
                 codon = gene_sequence[codon_start:codon_start+3]
                 position_in_codon = position_in_gene%3
-
-                #print gene_name, start, end, position, codon,position_in_codon
-
 
                 effective_gene_synonymous_sites[gene_name] += codon_synonymous_opportunity_table[codon][position_in_codon]/3.0
                 effective_gene_nonsynonymous_sites[gene_name] += 1-codon_synonymous_opportunity_table[codon][position_in_codon]/3.0
@@ -156,7 +155,6 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
                     substitution_specific_nonsynonymous_sites[substitution] += 1
 
     substitution_specific_synonymous_fraction = {substitution: substitution_specific_synonymous_sites[substitution]*1.0/(substitution_specific_synonymous_sites[substitution]+substitution_specific_nonsynonymous_sites[substitution]) for substitution in substitution_specific_synonymous_sites.keys()}
-
     # then annotate promoter regions at remaining sites
     for gene_name,start,end in zip(gene_names,promoter_start_positions,promoter_end_positions):
         for position in range(start,end+1):
@@ -166,7 +164,7 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
                 if gene_name not in gene_position_map:
                     # the gene itself has not been annotated
                     # so don't annotate the promoter
-                    pass
+                    continue
                 else:
                     position_gene_map[position] = gene_name
                     gene_position_map[gene_name].append(position)
@@ -175,8 +173,8 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
     effective_gene_lengths = {gene_name: len(gene_position_map[gene_name])-effective_gene_synonymous_sites[gene_name] for gene_name in gene_position_map.keys()}
     effective_gene_lengths['synonymous'] = sum([effective_gene_synonymous_sites[gene_name] for gene_name in gene_position_map.keys()])
     effective_gene_lengths['nonsynonymous'] = sum([effective_gene_nonsynonymous_sites[gene_name] for gene_name in gene_position_map.keys()])
-    effective_gene_lengths['masked'] = num_masked_sites
-    effective_gene_lengths['noncoding'] = calculate_genome_length()-effective_gene_lengths['synonymous']-effective_gene_lengths['nonsynonymous']-effective_gene_lengths['masked']
+    effective_gene_lengths['noncoding'] = pt.get_genome_size(taxon=taxon)-effective_gene_lengths['synonymous']-effective_gene_lengths['nonsynonymous']
+
 
     return position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction
 
@@ -425,10 +423,9 @@ def parse_reference_genome(taxon=None):
     reference_sequence = "".join(reference_sequences).upper()
     return reference_sequence
 
-def calculate_genome_length(reference_sequence=None):
-    if reference_sequence==None:
-        reference_sequence=parse_reference_genome()
-    return len(reference_sequence)
+def calculate_genome_length(taxon=None):
+    reference_sequence = pt.classFASTA(pt.get_path() +'/'+ pt.get_ref_fna_dict()[taxon]).readFASTA()
+    return sum([len(contig[1]) for contig in reference_sequence])
 
 def print_reference_fasta(reference_sequence):
     print(">chr1")
@@ -612,61 +609,104 @@ def parse_gene_list(taxon='B', reference_sequence=None):
                 continue
 
             locations = re.findall(r"[\w']+", str(feat.location))
-            strand_symbol = str(feat.location)[-2]
-            start = int(locations[0])
-            stop = int(locations[1])
-
-            if feat.type == 'CDS':
-                #  why was a -1 there originally?
-                #gene_sequence = reference_sequence[start-1:stop]
-                gene_sequence = str(reference_sequence[start:stop])
-            else:
-                gene_sequence = ""
-
-            if 'gene' in list((feat.qualifiers.keys())):
-                gene = feat.qualifiers['gene'][0]
-            else:
-                gene = ""
-
-
-
             if feat.type in gene_features:
                 locus_tag = feat.qualifiers['locus_tag'][0]
-
             elif (feat.type=="regulatory"):
                 locus_tag = feat.qualifiers["regulatory_class"][0] + '_' + str(count_riboswitch)
                 count_riboswitch += 1
-
             else:
                 continue
+            # for frameshifts, split each CDS seperately and merge later
+            # Fix this for Deinococcus, it has a frameshift in three pieces
+            split_list = []
+            if 'join' in locations:
+                location_str = str(feat.location)
+                minus_position = []
+                if '-' in location_str:
+                    minus_position = [r.start() for r in re.finditer('-', location_str)]
+                pos_position = []
+                if '+' in location_str:
+                    pos_position = [r.start() for r in re.finditer('+', location_str)]
 
+                if len(minus_position) == 2:
+                    strand_symbol_one = '-'
+                    strand_symbol_two = '-'
+                elif len(pos_position) == 2:
+                    strand_symbol_one = '+'
+                    strand_symbol_two = '+'
+                else:
+                    # I don't think this is possible, but might as well code it up
+                    if minus_position[0] < pos_position[0]:
+                        strand_symbol_one = '-'
+                        strand_symbol_two = '+'
+                    else:
+                        strand_symbol_one = '+'
+                        strand_symbol_two = '-'
 
-            if strand_symbol == '+':
-                promoter_start = start - 100 # by arbitrary definition, we treat the 100bp upstream as promoters
-                promoter_end = start - 1
-                strand = 'forward'
+                start_one = int(locations[1])
+                stop_one = int(locations[2])
+                start_two = int(locations[3])
+                stop_two = int(locations[4])
+
+                locus_tag1 = locus_tag + '_1'
+                locus_tag2 = locus_tag + '_2'
+
+                split_list.append([locus_tag1, start_one, stop_one, strand_symbol_one])
+                split_list.append([locus_tag2, start_two, stop_two, strand_symbol_two])
+
             else:
-                promoter_start = stop+1
-                promoter_end = stop+100
-                strand = 'reverse'
+                strand_symbol = str(feat.location)[-2]
+                start = int(locations[0])
+                stop = int(locations[1])
+                split_list.append([locus_tag, start, stop, strand_symbol])
+
+            for split_item in split_list:
+                locus_tag = split_item[0]
+                start = split_item[1]
+                stop = split_item[2]
+                strand_symbol = split_item[3]
 
 
-            if gene_sequence!="" and (not len(gene_sequence)%3==0):
-                print(locus_tag, start, "Not a multiple of 3")
-                continue
+                if feat.type == 'CDS':
+                    #  why was a -1 there originally?
+                    #gene_sequence = reference_sequence[start-1:stop]
+                    gene_sequence = str(reference_sequence[start:stop])
+                else:
+                    gene_sequence = ""
 
-            # dont need to check if gene names are unique because we're using
-            # locus tags
 
-            start_positions.append(start)
-            end_positions.append(stop)
-            promoter_start_positions.append(promoter_start)
-            promoter_end_positions.append(promoter_end)
-            gene_names.append(locus_tag)
-            gene_sequences.append(gene_sequence)
-            strands.append(strand)
-            genes.append(gene)
-            features.append(feat.type)
+                if 'gene' in list((feat.qualifiers.keys())):
+                    gene = feat.qualifiers['gene'][0]
+                else:
+                    gene = ""
+
+
+                if strand_symbol == '+':
+                    promoter_start = start - 100 # by arbitrary definition, we treat the 100bp upstream as promoters
+                    promoter_end = start - 1
+                    strand = 'forward'
+                else:
+                    promoter_start = stop+1
+                    promoter_end = stop+100
+                    strand = 'reverse'
+
+
+                if gene_sequence!="" and (not len(gene_sequence)%3==0):
+                    print(locus_tag, start, "Not a multiple of 3")
+                    continue
+
+                # dont need to check if gene names are unique because we're using
+                # locus tags
+
+                start_positions.append(start)
+                end_positions.append(stop)
+                promoter_start_positions.append(promoter_start)
+                promoter_end_positions.append(promoter_end)
+                gene_names.append(locus_tag)
+                gene_sequences.append(gene_sequence)
+                strands.append(strand)
+                genes.append(gene)
+                features.append(feat.type)
 
     gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features = (list(x) for x in zip(*sorted(zip(gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features), key=lambda pair: pair[1])))
 
@@ -905,9 +945,6 @@ def parse_coverage(coverage_filename):
 
 
 
-all_lines = ['m5','p2','p4','p1','m6','p5','m1','m2','m3','m4','p3','p6']
-
-all_old_lines = ['%s_old' % population for population in all_lines]
 
 all_line_colors = ['#5DA5DA', '#FAA43A', '#60BD68', '#B276B2', '#F15854', '#4D4D4D']*2
 
@@ -1059,32 +1096,6 @@ def count_differences(mutation_list_1, mutation_list_2):
     return 2*len(unique_mutations)-len(mutation_list_1)-len(mutation_list_2)
 
 
-
-def get_mutation_trajectory(allowed_lines = all_lines):
-    muts =  {}
-    wielgoss_data = parse_wielgoss_data()
-    barrick_data = parse_barrick_data()
-
-    for population,t in wielgoss_data.keys():
-        if population in allowed_lines:
-            if not t in muts:
-                muts[t] = []
-            for i in range(0,len(wielgoss_data[(population,t)])):
-                clone_mutations = wielgoss_data[(population,t)][i]
-                muts[t].append(len(clone_mutations))
-
-    for population,t in barrick_data.keys():
-        if population in allowed_lines:
-            if not t in muts:
-                muts[t] = []
-            for i in range(0,len(barrick_data[(population,t)])):
-                clone_mutations = barrick_data[(population,t)][i]
-                muts[t].append(len(clone_mutations))
-
-    mut_ts = numpy.array(sorted(muts.keys()))
-    avg_muts = numpy.array([numpy.array(muts[t]).mean() for t in mut_ts])
-    stderr_muts = numpy.array([numpy.array(muts[t]).std()/(1.0*len(muts[t]))**0.5 for t in mut_ts])
-    return mut_ts, avg_muts, stderr_muts
 
 
 

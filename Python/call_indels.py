@@ -8,7 +8,7 @@
 import sys
 import numpy
 #import pylab
-from operator import itemgetter, attrgetter, methodcaller
+from operator import itemgetter
 from math import fabs
 import bz2
 
@@ -16,15 +16,13 @@ input_filename = sys.argv[1]
 indel_filename = sys.argv[2]
 
 # where to read the input junctions from
-file = bz2.BZ2File(input_filename,"r")
+file = bz2.open(input_filename,"rt")
 
 # where to write the output indels to
-indel_file = bz2.BZ2File(indel_filename,"w")
+indel_file = bz2.open(indel_filename,"wt")
 
 # list of junctions to use to call indels
 mutations = []
-
-times_to_change = ['D100', 'D200', 'D300']
 
 # how far away two JC evidences are before they are combined into one?
 match_distance_threshold = 50000
@@ -32,7 +30,7 @@ match_distance_threshold = 50000
 for line in file:
     items = line.split(",")
     chromosome = items[0]
-    location = long(items[1])
+    location = int(items[1])
     allele = items[2].strip()
 
     if '->' in allele:
@@ -42,8 +40,7 @@ for line in file:
     if not allele.startswith('junction'):
         # not a junction
         # write, but don't process further
-        for t in times_to_change:
-            line = line.replace(t, t[1:])
+
         indel_file.write(line)
         continue
 
@@ -76,8 +73,8 @@ for mutation in mutations:
     # parse junction string in alt_allele
     items = allele.split("_")
     if items[3].startswith("IS"): # an IS mutation
-        position = long(items[1])
-        strand = long(items[2])
+        position = int(items[1])
+        strand = int(items[2])
         repeat = items[3]
         if items[4]=='start':
             side = 1
@@ -87,22 +84,22 @@ for mutation in mutations:
         junction_list.append((True,position,strand,repeat,side))
 
     else: # not an IS mutation
-        position_1 = long(items[1])
-        strand_1 = long(items[2])
-        position_2 = long(items[3])
-        strand_2 = long(items[4])
+        position_1 = int(items[1])
+        strand_1 = int(items[2])
+        position_2 = int(items[3])
+        strand_2 = int(items[4])
         junction_list.append((False,position_1,strand_1,position_2,strand_2))
 
 # try to identify best matches between IS pairs
 match_matrix = numpy.zeros((len(junction_list),len(junction_list)))
-for i in xrange(0,len(junction_list)):
+for i in range(0,len(junction_list)):
     junction_1 = junction_list[i]
 
     if junction_1[0]:
         # it involves a repeat element
 
         distances = []
-        for j in xrange(0,len(junction_list)):
+        for j in range(0,len(junction_list)):
             junction_2 = junction_list[j]
             if junction_1[0] == junction_2[0] and junction_1[2]==-1*junction_2[2] and junction_1[3]==junction_2[3] and junction_1[4]==-1*junction_2[4]:
                 distances.append(fabs(junction_2[1]-junction_1[1]))
@@ -124,7 +121,7 @@ matched = numpy.zeros(len(junction_list))
 
 already_processed = [False]*len(junction_list)
 
-for i in xrange(0,len(junction_list)):
+for i in range(0,len(junction_list)):
 
     chromosome, location, allele, times, alts, depths = mutations[i]
 
