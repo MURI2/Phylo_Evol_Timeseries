@@ -1,20 +1,25 @@
 #!/bin/bash
 #PBS -k o
-#PBS -l nodes=2:ppn=8,vmem=100gb,walltime=8:00:00
-#PBS -M wrshoema@indiana.edu
+#PBS -l nodes=1:ppn=8,vmem=10gb,walltime=4:00:00
+#PBS -M wrshoema@iu.edu
 #PBS -m abe
 #PBS -j oe
 
-module load raxml/8.0.26
+# version 8.2.11
+module load raxml
 
-cd /N/dc2/projects/muri2/Task2/PoolPopSeq/data/tree/
+raxmlHPC-PTHREADS -T 4 -f a -m GTRGAMMA -p 12345 -x 12345 -o NC_005042.1.353331-354795 -# autoMRE \
+    -s /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/tree/arb-silva.de_2019-06-07_id664129.fasta \
+    -n Task2 -w /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/tree
 
-#raxmlHPC-PTHREADS -T 4 -f a -m GTRGAMMA -p 12345 -x 12345 -# autoMRE \
-#        -o Methanosarcina \
-#        -s /N/dc2/projects/muri2/Task2/PoolPopSeq/data/tree/Task2_16S_rRNA.afa -n T20 \
-#        -w /N/dc2/projects/muri2/Task2/PoolPopSeq/data/tree/
 
-raxmlHPC-PTHREADS -T 4 -f a -m GTRGAMMA -p 12345 -x 12345 -# autoMRE \
-        -o Methanosarcina -n T20 \
-        -s /Users/WRShoemaker/GitHub/Task2/PoolPopSeq/data/tree/Task2_16S_rRNA.afa \
-        -w /Users/WRShoemaker/GitHub/Task2/PoolPopSeq/data/tree
+
+# -T = number of threads
+# -f = specifies bootstrapping algorithm with ML generating tree at same time
+# -m = substitution model, generalized time reversible gamma
+# -p = starts tree randomly
+# -x = starts tree randomly
+# -o = outgroup (name after fasta entry)
+# -#  = determines number of bootstrap replicates
+# -s = aligned fasta file to be analyzed
+# -n = name of output file

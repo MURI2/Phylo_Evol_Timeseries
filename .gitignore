@@ -3,3 +3,6 @@ data/Bacillus_subtilis_NCIB_3610/
 data/Bacillus_subtilis_NCIB_3610/
 data/old/
 data/reference_assemblies_task2/
+.RData
+.Rhistory
+.gitignore

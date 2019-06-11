@@ -24,13 +24,13 @@ from operator import itemgetter, attrgetter, methodcaller
 from math import fabs
 
 # File containing the reference fasta file
-reference_filename = sys.argv[1]
+#reference_filename = sys.argv[1]
 # File containing the reference gbk/gbff file
 #reference_gbk_filename = sys.argv[2]
 # The population to compile timecourses for
-population = sys.argv[2]
+population = sys.argv[1]
 # The output (gd) files from breseq
-gd_filenames = sys.argv[3:]
+gd_filenames = sys.argv[2:]
 
 
 # How far can two simple indels be before they are merged
@@ -67,13 +67,13 @@ sample_list.sort(key=int)
 
 
 # Load reference fasta
-fasta_file = open(reference_filename,"r")
-fasta_file.readline() # header
-reference_sequence = []
-for line in fasta_file:
-    reference_sequence.append(line.strip())
-fasta_file.close()
-reference_sequence = "".join(reference_sequence)
+#fasta_file = open(reference_filename,"r")
+#fasta_file.readline() # header
+#reference_sequence = []
+#for line in fasta_file:
+#    reference_sequence.append(line.strip())
+#fasta_file.close()
+#reference_sequence = "".join(reference_sequence)
 
 mutation_map = {}
 #repeat_data = parse_repeat_list(reference_gbk_filename)

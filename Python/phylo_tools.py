@@ -2,6 +2,45 @@ from __future__ import division
 import os
 from collections import Counter
 
+
+def get_ref_gbff_dict():
+
+    ref_dict = {"B": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff",
+                "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff",
+                "C": "data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff",
+                "D": "data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff",
+                "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.gbff",
+                "J": "data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.gbff",
+                "P": "data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff"}
+    return ref_dict
+
+
+
+def get_ref_fna_dict():
+
+    ref_dict = {"B": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna",
+                "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna",
+                "C": "data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.fna",
+                "D": "data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.fna",
+                "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.fna",
+                "J": "data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.fna",
+                "P": "data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.fna"}
+    return ref_dict
+
+
+def get_ref_bresq_fna_dict():
+
+    ref_dict = {"B": "data/reference_assemblies_task2/breseq_refs/0B1_100.fasta",
+                "S": "data/reference_assemblies_task2/breseq_refs/0B1_100.fasta",
+                "C": "data/reference_assemblies_task2/breseq_refs/GCA_000022005.1_ASM2200v1_genomic.fna",
+                "D": "data/reference_assemblies_task2/breseq_refs/0D1_100.fasta",
+                "F": "data/reference_assemblies_task2/breseq_refs/GCA_005938645.1_ASM593864v1_genomic.fna",
+                "J": "data/reference_assemblies_task2/breseq_refs/GCA_005937955.1_ASM593795v1_genomic.fna",
+                "P": "data/reference_assemblies_task2/breseq_refs/GCA_005938045.1_ASM593804v1_genomic.fna"}
+    return ref_dict
+
+
+
 def get_path():
     return os.path.expanduser("~/GitHub/Phylo_Evol_Timeseries")
 
@@ -77,3 +116,41 @@ def mutations_to_exclude():
                     list_muts.append(line_split[3] + '_' + line_split[4])
     dict_muts = Counter(list_muts)
     return [i for i in dict_muts if dict_muts[i] >= 10]
+
+
+
+class classFASTA:
+
+    def __init__(self, fileFASTA):
+        self.fileFASTA = fileFASTA
+
+    def readFASTA(self):
+        '''Checks for fasta by file extension'''
+        file_lower = self.fileFASTA.lower()
+        '''Check for three most common fasta file extensions'''
+        if file_lower.endswith('.txt') or file_lower.endswith('.fa') or \
+        file_lower.endswith('.fasta') or file_lower.endswith('.fna') or \
+        file_lower.endswith('.faa') or file_lower.endswith('.ffn'):
+            with open(self.fileFASTA, "r") as f:
+                return self.ParseFASTA(f)
+        else:
+            print("Not in FASTA format.")
+
+    def ParseFASTA(self, fileFASTA):
+        '''Gets the sequence name and sequence from a FASTA formatted file'''
+        fasta_list=[]
+        for line in fileFASTA:
+            if line[0] == '>':
+                try:
+                    fasta_list.append(current_dna)
+            	#pass if an error comes up
+                except UnboundLocalError:
+                    #print "Inproper file format."
+                    pass
+                current_dna = [line.lstrip('>').rstrip('\n'),'']
+            else:
+                current_dna[1] += "".join(line.split())
+        fasta_list.append(current_dna)
+        '''Returns fasa as nested list, containing line identifier \
+            and sequence'''
+        return fasta_list

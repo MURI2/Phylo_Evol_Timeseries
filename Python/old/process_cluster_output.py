@@ -8,10 +8,9 @@
 import os, imp, sys
 from datetime import date
 
-mydir = os.path.expanduser("~/GitHub/Task2/PoolPopSeq/")
-parse_file = imp.load_source('parse_file', mydir + 'bin/samtools/parse_file.py')
+mydir = os.path.expanduser("~/GitHub/Phylo_Evol_Timeseries/")
 
-storage_directory='cluster_output_files/'
+storage_directory = 'cluster_output_files/'
 final_directory = mydir + 'data/final_directory'
 
 #treatments = ['0', '1', '2']
@@ -26,13 +25,13 @@ def process_output():
         for treatment in treatments:
             for rep in reps:
                 sys.stdout.write("\nProcessing Sample_L%s%s%s...\n" % (treatment, strain, rep))
-                merged_timecourse_filename = 'Sample_L%s%s%s_merged_timecourse.bz2' % (treatment, strain, rep)
-                depth_timecourse_filename = 'Sample_L%s%s%s_depth_timecourse.bz2' % (treatment, strain, rep)
-                snp_timecourse_filename = 'Sample_L%s%s%s_snp_timecourse.bz2' % (treatment, strain, rep)
-                indel_timecourse_filename = 'Sample_L%s%s%s_indel_timecourse.bz2' % (treatment, strain, rep)
-                likelihood_timecourse_filename = 'Sample_L%s%s%s_likelihood_timecourse.txt' % (treatment, strain, rep)
+                merged_timecourse_filename = '%s%s%s_merged_timecourse.bz' % (treatment, strain, rep)
+                depth_timecourse_filename = '%s%s%s_depth_timecourse.bz' % (treatment, strain, rep)
+                snp_timecourse_filename = '%s%s%s_snp_timecourse.bz' % (treatment, strain, rep)
+                indel_timecourse_filename = '%s%s%s_indel_timecourse.bz' % (treatment, strain, rep)
+                likelihood_timecourse_filename = '%s%s%s_likelihood_timecourse.txt' % (treatment, strain, rep)
 
-                merged_timecourse_path = mydir + 'data/timecourse_merged_fa/' + merged_timecourse_filename
+                merged_timecourse_path = mydir + 'data/timecourse_merged/' + merged_timecourse_filename
                 depth_timecourse_path = mydir + 'data/timecourse_depth/' + depth_timecourse_filename
                 snp_timecourse_path = mydir + 'data/timecourse_snp/' + snp_timecourse_filename
                 indel_timecourse_path = mydir + 'data/timecourse_indel/' + indel_timecourse_filename
@@ -46,6 +45,8 @@ def process_output():
                     sys.stdout.write('Done!\n')
                 else:
                     sys.stdout.write("Error!\n")
+
+                continue
 
                 # Call indels
                 sys.stdout.write("Calling indels...\n")

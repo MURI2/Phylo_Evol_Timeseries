@@ -7,9 +7,9 @@ create_timecourse=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/create_
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_files
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/timecourse_scripts
 
-declare -a strains=("B")
-declare -a treats=("0")
-declare -a reps=("2")
+declare -a strains=("D")
+declare -a treats=("0" "1" "2")
+declare -a reps=("1" "2" "3" "4" "5")
 
 declare -a pops=()
 
