@@ -29,7 +29,7 @@ do
     R2_clean="${R2/.fastq.gz/_clean.fastq.gz}"
     R2_clean="${R2_clean/illumina_runs_rename/reads_clean_cutadapt}"
 
-    cutadapt -q 30,30 -u 20 \
+    cutadapt -q 15,15 -u 20 \
               -a file:/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/transposase.fa \
               --minimum-length 20 \
               -o $R1_clean \

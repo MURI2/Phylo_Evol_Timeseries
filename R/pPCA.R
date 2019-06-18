@@ -19,6 +19,8 @@ is.ultrametric(ml.rooted)
 ml.rooted.um  <- chronos(ml.rooted)
 is.ultrametric(ml.rooted.um)
 
+plot(ml.rooted.um)
+
 prop.part(ml.rooted.um)
 phy <- reorder(ml.rooted.um, "postorder")
 phy$tip.label <- c("B", "D", "F", "P", "J", "C")

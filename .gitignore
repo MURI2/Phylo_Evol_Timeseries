@@ -6,3 +6,5 @@ data/reference_assemblies_task2/
 .RData
 .Rhistory
 .gitignore
+data/timecourse_merged/
+data/rebreseq_json/

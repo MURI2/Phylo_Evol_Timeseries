@@ -4,10 +4,10 @@
 create_timecourse=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/create_timecourse.py
 
 
-mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_files
+mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/timecourse_scripts
 
-declare -a strains=("D")
+declare -a strains=("S" "F" "J" "P")
 declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 
@@ -41,15 +41,15 @@ do
 
   bam_files="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq/${pop}_"*"/data/reference.bam"
   ref="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq/${pop}_100/data/reference.fasta"
-  out="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_files/${pop}.pileup"
+  out="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}.pileup"
   if [ -f $out ]; then
     rm $out
   fi
-  out_timecourse="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_files/${pop}_timecourse.txt"
+  out_timecourse="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}_timecourse.txt"
 
   echo '#!/bin/bash' >> $bash_out
   echo '#PBS -k o' >> $bash_out
-  echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=6:00:00' >> $bash_out
+  echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=12:00:00' >> $bash_out
   echo '#PBS -M wrshoema@iu.edu' >> $bash_out
   echo '#PBS -m abe' >> $bash_out
   echo '#PBS -j oe' >> $bash_out

@@ -1,5 +1,5 @@
 from __future__ import division
-import os, subprocess, re
+import os, subprocess, re, json
 import numpy as np
 import pandas as pd
 from Bio import SeqIO
@@ -9,6 +9,32 @@ import bacillus_tools as bt
 ####
 # add line to check whethe a gene is annotated as spore-related or not
 ####
+
+def get_json_coverage():
+    #strains =
+    df_out = open(bt.get_path() + '/data/bacillus_coverage.txt', 'w')
+    directory = bt.get_path() + '/data/rebreseq_json/'
+    header = ['Sample', 'Strain', 'Treatment', 'Replicate', 'Time', 'CP020102', 'CP020103']
+
+    df_out.write('\t'.join(header) + '\n')
+    for filename in os.listdir(directory):
+        if filename.endswith(".json") == False:
+            continue
+        sample = filename.split('.')[0]
+        pop = sample.split('_')[0]
+        strain = pop[1]
+        treat = pop[0]
+        rep = pop[2]
+        time = sample.split('_')[1]
+
+        with open(directory + filename) as f:
+            data = json.load(f)
+            CP020102_cov = data['references']['reference']['CP020102']['coverage_average']
+            CP020103_cov = data['references']['reference']['CP020103']['coverage_average']
+            df_out.write('\t'.join([sample, strain, treat, rep, time, str(CP020102_cov), str(CP020103_cov)]) + '\n')
+
+    df_out.close()
+
 
 def clean_GBK():
     IN_path = bt.get_path() + '/data/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff'
@@ -192,4 +218,5 @@ def get_pop_by_gene_matrix():
 
 #clean_GBK()
 #get_pop_by_gene_matrix()
-clean_bPTR()
+#clean_bPTR()
+get_json_coverage()

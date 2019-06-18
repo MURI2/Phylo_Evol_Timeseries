@@ -10,6 +10,8 @@ mkdir -p $data_breseq
 mkdir -p $data_breseq_out
 mkdir -p $data_breseq_err
 
+A_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/KBS0703/FCE86-Genome.gbk
+
 B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
 C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff
 D_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff
@@ -17,13 +19,11 @@ F_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblie
 J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.gbff
 P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff
 
-declare -a strains=("P")
-declare -a treats=("0")
-declare -a reps=("1")
-# "2" "3" "4" "5")
+declare -a strains=("A")
+declare -a treats=("0" "1" "2")
+declare -a reps=("1" "2" "3" "4" "5")
 
-declare -a times=("100")
-# "200" "300" "400" "500" "600" "700" "800" "900" "1000")
+declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
 
 
 declare -a samples=()
@@ -76,6 +76,8 @@ do
       gbk=$J_gbk
     elif [[ $sample == *"P"* ]]; then
       gbk=$P_gbk
+    elif [[ $sample == *"A"* ]]; then
+      gbk=$A_gbk
     else
       continue
     fi
@@ -91,7 +93,7 @@ do
     echo "breseq -j 8 -p --brief-html-output --polymorphism-reject-indel-homopolymer-length 0 --polymorphism-reject-surrounding-homopolymer-length 0 --polymorphism-score-cutoff 2 -o ${OUT_breseq} -r ${gbk} ${reads} > ${OUT_breseq_out} 2> ${OUT_breseq_err}" >> $bash_out
     echo '' >> $bash_out
 
-    #qsub $bash_out
+    qsub $bash_out
 
   else
     continue
