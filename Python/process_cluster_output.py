@@ -12,6 +12,8 @@ import phylo_tools as pt
 
 storage_directory = 'cluster_output_files/'
 final_directory = pt.get_path() + '/data/final_directory'
+filter_snps_path = pt.get_path() + '/Python/filter_snps_and_calculate_depth.py'
+pvals_python_path = pt.get_path() + '/Python/annotate_pvalues.py'
 
 #treatments = ['0', '1', '2']
 #reps = ['1', '2', '3', '4', '5']
@@ -38,37 +40,40 @@ def process_output():
                 likelihood_timecourse_path = pt.get_path() + '/data/timecourse_likelihood/' + likelihood_timecourse_filename
 
                 # Filter SNPs and calculate avg depth per sample
-                sys.stdout.write('Filtering SNPS and calculating depth...\n')
-                filter_snps_path = pt.get_path() + '/Python/filter_snps_and_calculate_depth.py'
-                return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
-                if return_val==0:
-                    sys.stdout.write('Done!\n')
-                else:
-                    sys.stdout.write("Error!\n")
+                #sys.stdout.write('Filtering SNPS and calculating depth...\n')
+                #return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
+                #if return_val==0:
+                #    sys.stdout.write('Done!\n')
+                #else:
+                #    sys.stdout.write("Error!\n")
 
 
                 # Call indels
-                sys.stdout.write("Calling indels...\n")
-                call_indels_path = pt.get_path() + '/Python/call_indels.py'
-                return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
+                #sys.stdout.write("Calling indels...\n")
+                #call_indels_path = pt.get_path() + '/Python/call_indels.py'
+                #return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
+                #if return_val==0:
+                #    sys.stdout.write('Done!\n')
+                #else:
+                #    sys.stdout.write("Error!\n")
+
+                # Annotate pvalues
+                sys.stdout.write("Calculating pvalues...\n")
+                return_val = os.system('python %s %s %s %s %s' % \
+                    (pvals_python_path, depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, likelihood_timecourse_path))
                 if return_val==0:
                     sys.stdout.write('Done!\n')
                 else:
                     sys.stdout.write("Error!\n")
 
-                # Annotate pvalues
-                #sys.stdout.write("Calculating pvalues...\n")
-                pvals_path = pt.get_path() + '/cpp/annotate_pvalues'
-                print('bzcat %s %s %s | %s > %s' % \
-                    (depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, \
-                    pvals_path, likelihood_timecourse_path))
-                return_val = os.system('bzcat %s %s %s | %s > %s' % \
-                    (depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, \
-                    pvals_path, likelihood_timecourse_path))
-                if return_val==0:
-                    sys.stdout.write('Done!\n')
-                else:
-                    sys.stdout.write("Error!\n")
+                #pvals_path = pt.get_path() + '/cpp/annotate_pvalues'
+                #return_val = os.system('bzcat %s %s %s | %s > %s' % \
+                #    (depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, \
+                #    pvals_path, likelihood_timecourse_path))
+                #if return_val==0:
+                #    sys.stdout.write('Done!\n')
+                #else:
+                #    sys.stdout.write("Error!\n")
 
                 #sys.stdout.write("\n\nTrajectory post-processing output for LTEE metagenomic sequencing project\n")
                 #sys.stdout.write("Date: %s\n\n" % str(date.today()))

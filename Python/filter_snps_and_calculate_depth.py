@@ -40,8 +40,8 @@ for line in input_file:
 
     depth_records.append(depths)
 
-depths = numpy.array(depth_records)
 
+depths = numpy.array(depth_records)
 # Could do median or mean
 #avg_depths = depths.mean(axis=0)
 avg_depths = numpy.median(depths, axis=0)
