@@ -17,10 +17,10 @@ pvals_python_path = pt.get_path() + '/Python/annotate_pvalues.py'
 
 #treatments = ['0', '1', '2']
 #reps = ['1', '2', '3', '4', '5']
-treatments = ['0']
-reps = ['1']
+treatments = ['0', '1', '2']
+reps = ['1', '2', '3', '4', '5']
 #strains = ['B', 'C', 'D', 'F', 'J', 'P', 'S']
-strains = ['B']
+strains = ['B', 'S', 'C', 'D']
 
 def process_output():
     for strain in strains:
@@ -40,31 +40,34 @@ def process_output():
                 likelihood_timecourse_path = pt.get_path() + '/data/timecourse_likelihood/' + likelihood_timecourse_filename
 
                 # Filter SNPs and calculate avg depth per sample
-                #sys.stdout.write('Filtering SNPS and calculating depth...\n')
-                #return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
-                #if return_val==0:
-                #    sys.stdout.write('Done!\n')
-                #else:
-                #    sys.stdout.write("Error!\n")
-
-
-                # Call indels
-                #sys.stdout.write("Calling indels...\n")
-                #call_indels_path = pt.get_path() + '/Python/call_indels.py'
-                #return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
-                #if return_val==0:
-                #    sys.stdout.write('Done!\n')
-                #else:
-                #    sys.stdout.write("Error!\n")
-
-                # Annotate pvalues
-                sys.stdout.write("Calculating pvalues...\n")
-                return_val = os.system('python %s %s %s %s %s' % \
-                    (pvals_python_path, depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, likelihood_timecourse_path))
+                sys.stdout.write('Filtering SNPS and calculating depth...\n')
+                return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
                 if return_val==0:
                     sys.stdout.write('Done!\n')
                 else:
                     sys.stdout.write("Error!\n")
+
+
+                # Call indels
+                sys.stdout.write("Calling indels...\n")
+                call_indels_path = pt.get_path() + '/Python/call_indels.py'
+                return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
+                if return_val==0:
+                    sys.stdout.write('Done!\n')
+                else:
+                    sys.stdout.write("Error!\n")
+
+
+                # Get pvalues
+                #sys.stdout.write("Calculating pvalues...\n")
+                #return_val = os.system('python %s %s %s %s %s' % \
+                #    (pvals_python_path, depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, likelihood_timecourse_path))
+                #if return_val==0:
+                #    sys.stdout.write('Done!\n')
+                #else:
+                #    sys.stdout.write("Error!\n")
+
+
 
                 #pvals_path = pt.get_path() + '/cpp/annotate_pvalues'
                 #return_val = os.system('bzcat %s %s %s | %s > %s' % \
@@ -74,6 +77,7 @@ def process_output():
                 #    sys.stdout.write('Done!\n')
                 #else:
                 #    sys.stdout.write("Error!\n")
+
 
                 #sys.stdout.write("\n\nTrajectory post-processing output for LTEE metagenomic sequencing project\n")
                 #sys.stdout.write("Date: %s\n\n" % str(date.today()))
@@ -97,9 +101,11 @@ def process_output():
 
 
 
-process_output()
+#process_output()
 
-
+# Position, Gene, Allele, Annotation, Test statistic, P-value,
+# Deletion index, Fold reduction, Deletion P-value, Duplication index,
+# Fold increase, Duplication pvalue, Passed?, AC:0, D
 
 # Infer trajectory states in clade HMM
 #sys.stdout.write('Inferring trajectory states in clade HMM...\n')

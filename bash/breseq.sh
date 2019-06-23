@@ -10,7 +10,7 @@ mkdir -p $data_breseq
 mkdir -p $data_breseq_out
 mkdir -p $data_breseq_err
 
-A_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/KBS0703/FCE86-Genome.gbk
+A_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/KBS0703_new/FCE86-Genome.gbk
 
 B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
 C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff
@@ -20,7 +20,8 @@ J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblie
 P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff
 
 declare -a strains=("A")
-declare -a treats=("0" "1" "2")
+declare -a treats=("0")
+# "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")

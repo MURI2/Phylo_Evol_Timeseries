@@ -61,6 +61,7 @@ def get_test_statistics(t_pm, A_pm, D_pm):
 
     # derived allele sojourn weight
     n_0 = len(np.where(A_pm == 0)[0])
+    n = len(t_pm)
     if n_0 > 0.3*n:
         f_star = f_bar / (1+ np.exp( (n_0 - 0.3*n)/5 ))
     else:
@@ -103,6 +104,7 @@ for depth in depth_file:
     D_pt_median = np.asarray([float(x) for x in D_pt_median])
 
 
+
 for snp in snp_file:
     snp_split = [x.strip() for x in snp.split(',')]
     t_pm = snp_split[3].split(' ')
@@ -130,13 +132,15 @@ for snp in snp_file:
     l_list = [get_likelihood(t_, t=t_pm, d_pm=d_pm) for t_ in t_pm[1:-2] ]
     l_list = sorted(l_list, key=lambda x: x[-1])
     max_l = l_list[-1]
-    if max_l[-2] >= 0.5:
-        continue
+    # r threshold of 0.5 too conservative
+    #if max_l[-2] >= 0.5:
+    #    continue
     n = len(t_pm)
     sigma = np.sqrt( (1/n)*sum(d_pm**2) - ( ((1/n)*sum(d_pm ))**2 ) )
     if (max_l[4] == 0) or (max_l[2] == 0):
         continue
     delta_l = max_l[3] * np.log(sigma/max_l[4]) + max_l[1]*np.log(sigma/max_l[2])
+    # try permutation test for log likelihood?
     # need upper threshold for delta_l, chose 20 for now
     if delta_l > 20:
         continue
@@ -204,6 +208,7 @@ for snp in snp_file:
 
     P_comp_stat = len([x for x in comp_stat_null if x > comp_stat]) / len(comp_stat_null)
     print(P_comp_stat)
+
 
 
 # add indels !!

@@ -8,3 +8,8 @@ data/reference_assemblies_task2/
 .gitignore
 data/timecourse_merged/
 data/rebreseq_json/
+data/timecourse_snp/
+data/timecourse_prelim_fixed/
+data/timecourse_prelim_poly/
+data/timecourse_depth/
+data/timecourse_indel/

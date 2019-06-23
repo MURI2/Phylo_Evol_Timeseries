@@ -37,11 +37,23 @@ def get_json_coverage():
 
 
 def clean_GBK():
-    IN_path = bt.get_path() + '/data/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff'
+    IN_path = bt.get_path() + '/data/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.gbff'
     genome = SeqIO.parse(IN_path, "genbank")
     # protein_id
     df_out = open(bt.get_path() + '/data/gene_table.txt', 'w')
-    header = ['LocusTag', 'protein_id' , 'Gene', 'Type', 'Size', 'GC', 'Sequence', 'Fold_1', \
+    header = ['LocusTag', 'protein_id' , 'Gene', 'Type', 'Size', 'Start', 'Stop', 'GC', 'Sequence', 'Fold_1', \
+            'Fold_2', 'Fold_2_S', 'Fold_2_V', 'Fold_3', 'Fold_4', 'N', 'S', 'Spore_associated']
+    df_out.write('\t'.join(header) + '\n')
+    gene_features = ['CDS', 'tRNA', 'rRNA', 'ncRNA', 'tmRNA']
+
+
+
+def clean_GBK_old():
+    IN_path = bt.get_path() + '/data/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.gbff'
+    genome = SeqIO.parse(IN_path, "genbank")
+    # protein_id
+    df_out = open(bt.get_path() + '/data/gene_table.txt', 'w')
+    header = ['LocusTag', 'protein_id' , 'Gene', 'Type', 'Size', 'Start', 'Stop', 'GC', 'Sequence', 'Fold_1', \
             'Fold_2', 'Fold_2_S', 'Fold_2_V', 'Fold_3', 'Fold_4', 'N', 'S', 'Spore_associated']
     df_out.write('\t'.join(header) + '\n')
     types_keep = ['CDS', 'rRNA', 'tRNA', 'tmRNA']
@@ -214,9 +226,82 @@ def get_pop_by_gene_matrix():
 
 
 
+def module_to_KO(strain):
+    kaas_directory = bt.get_path() + '/data/reference_assemblies_task2/MAPLE/' + strain + '_MAPLE_result/KAAS'
+    data = [['KEGG_Orthology', 'Pathway_ID']]
+    bad_chars = '()-+,-'
+    rgx = re.compile('[%s]' % bad_chars)
+    for filename in os.listdir(kaas_directory):
+        if filename.endswith("_matrix.txt"):
+            for line in open((os.path.join(kaas_directory, filename)), 'r'):
+                line_strip_split = line.strip().split()
+                if len(line_strip_split) > 2 and 'M' in line_strip_split[0]:
+                    if '_' in line_strip_split[0]:
+                        pathway = line_strip_split[0].split('_')[0]
+                    else:
+                        pathway = line_strip_split[0]
+                    ko_genes = line_strip_split[2:]
+                    for ko_gene in ko_genes:
+                        test_set_member = [bad_char for bad_char in bad_chars if bad_char in ko_gene]
+                        if len(test_set_member) > 0:
+                            ko_gene_clean = rgx.sub('', ko_gene)
+                            ko_gene_clean_split =  ['K' + e for e in ko_gene_clean.split('K') if e]
+                            for split_gene in ko_gene_clean_split:
+                                if 'M' in split_gene:
+                                    continue
+                                data.append([split_gene, pathway])
+                        else:
+                            if 'K' in ko_gene:
+                                data.append([ko_gene, pathway])
+
+    df = pd.DataFrame(data[1:],columns=data[0])
+    OUT_path = bt.get_path() + '/data/reference_assemblies_task2/MAPLE/MAPLE_modules/' + strain + '_KO_to_M.txt'
+    df.to_csv(OUT_path, sep = '\t', index = False)
 
 
-#clean_GBK()
+
+def clean_kaas(strain):
+    IN_kaas_path = bt.get_path() + '/data/reference_assemblies_task2/KAAS/' + strain + '_KAAS_result_ko'
+    IN_kaas = pd.read_csv(IN_kaas_path, sep = '\t',
+        names = ['protein_id', 'KO', 'species', 'phylum_genus', 'num'])
+    IN_kaas_subset = IN_kaas.loc[IN_kaas['KO'] != 'K_NA']
+    OUT_path = bt.get_path() + '/data/reference_assemblies_task2/KAAS/' + strain + '_KAAS_clean.txt'
+    OUT = open(OUT_path, 'w')
+    header = ['protein_id', 'KEGG_Orthology', 'species', 'phylum', 'genus', 'num']
+    OUT.write('\t'.join(header) + '\n')
+    count = 0
+    for index, row in IN_kaas_subset.iterrows():
+        KO_split =  row['KO'].split(',')
+        phylum_genus_split =  row['phylum_genus'].strip().split('-')
+        for KO in KO_split:
+            if len(phylum_genus_split) == 1:
+                # KEGG used 'Others' to for unknown genus
+                genus = 'Others'
+                if 'Other 'in phylum_genus_split[0]:
+                    phylum = phylum_genus_split[0].replace(' ', '-')
+                else:
+                    phylum = phylum_genus_split[0].strip()
+                    row_out = [row['protein_id'], KO, row['species'], \
+                            phylum_genus_split[0].strip(), 'Others', str(int(row['num']))]
+                    OUT.write('\t'.join(row_out) + '\n')
+            else:
+                genus = phylum_genus_split[1].strip()
+                phylum = phylum_genus_split[0].strip()
+            row_out = [row['protein_id'], KO, row['species'], \
+                    phylum, genus, str(int(row['num']))]
+            OUT.write('\t'.join(row_out) + '\n')
+            count += 1
+    OUT.close()
+
+
+
+
+
+
+#strainssss = ['B', 'C', 'D']
+#for s in strainssss:
+#    clean_kaas(s)
+#module_to_KO()
 #get_pop_by_gene_matrix()
 #clean_bPTR()
-get_json_coverage()
+#get_json_coverage()

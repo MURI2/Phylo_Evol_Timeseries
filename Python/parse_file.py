@@ -12,11 +12,24 @@ figure_directory='manuscript/figures/'
 
 default_min_depth = 5
 
-
-base_table = {'A':'T','T':'A','G':'C','C':'G'}
+#Y = pYrimidines
+#R = puRines
+#S = strong ineractions, C or G
+#W = weak interactions, A or T
+#K = Ketones, G or T
+#M = aMino groups, C or A
+bases_to_skip = ['K', 'S', 'R', 'N', 'Y', 'M', 'W']
+base_table = {'A':'T','T':'A','G':'C','C':'G',
+            'Y':'R', 'R':'Y', 'S':'W', 'W':'S', 'K':'M', 'M':'K', 'N':'N'}
 
 codon_table = { 'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A', 'CGT': 'R', 'CGC': 'R', 'CGA':'R',
-'CGG':'R', 'AGA':'R', 'AGG':'R', 'AAT':'N', 'AAC':'N', 'GAT':'D', 'GAC':'D', 'TGT':'C', 'TGC':'D', 'CAA':'Q', 'CAG':'Q', 'GAA':'E', 'GAG':'E', 'GGT':'G', 'GGC':'G', 'GGA':'G', 'GGG':'G', 'CAT':'H', 'CAC':'H', 'ATT':'I', 'ATC':'I', 'ATA':'I', 'TTA':'L', 'TTG':'L', 'CTT':'L', 'CTC':'L', 'CTA':'L', 'CTG':'L', 'AAA':'K', 'AAG':'K', 'ATG':'M', 'TTT':'F', 'TTC':'F', 'CCT':'P', 'CCC':'P', 'CCA':'P', 'CCG':'P', 'TCT':'S', 'TCC':'S', 'TCA':'S', 'TCG':'S', 'AGT':'S', 'AGC':'S', 'ACT':'T', 'ACC':'T', 'ACA':'T', 'ACG':'T', 'TGG':'W', 'TAT':'Y', 'TAC':'Y', 'GTT':'V', 'GTC':'V', 'GTA':'V', 'GTG':'V', 'TAA':'!', 'TGA':'!', 'TAG':'!' }
+'CGG':'R', 'AGA':'R', 'AGG':'R', 'AAT':'N', 'AAC':'N', 'GAT':'D', 'GAC':'D', 'TGT':'C', 'TGC':'D',
+'CAA':'Q', 'CAG':'Q', 'GAA':'E', 'GAG':'E', 'GGT':'G', 'GGC':'G', 'GGA':'G', 'GGG':'G', 'CAT':'H',
+'CAC':'H', 'ATT':'I', 'ATC':'I', 'ATA':'I', 'TTA':'L', 'TTG':'L', 'CTT':'L', 'CTC':'L', 'CTA':'L',
+'CTG':'L', 'AAA':'K', 'AAG':'K', 'ATG':'M', 'TTT':'F', 'TTC':'F', 'CCT':'P', 'CCC':'P', 'CCA':'P',
+'CCG':'P', 'TCT':'S', 'TCC':'S', 'TCA':'S', 'TCG':'S', 'AGT':'S', 'AGC':'S', 'ACT':'T', 'ACC':'T',
+'ACA':'T', 'ACG':'T', 'TGG':'W', 'TAT':'Y', 'TAC':'Y', 'GTT':'V', 'GTC':'V', 'GTA':'V', 'GTG':'V',
+'TAA':'!', 'TGA':'!', 'TAG':'!'}#, 'KTC':'F', 'KAC':'Y', 'KCC':'A', 'KGC':'D'}
 
 # calculate number of synonymous opportunities for each codon
 codon_synonymous_opportunity_table = {}
@@ -28,6 +41,8 @@ for codon in codon_table.keys():
         for base in ['A','C','T','G']:
             codon_list[i]=base
             new_codon = "".join(codon_list)
+            if 'K' in new_codon:
+                continue
             if codon_table[codon]==codon_table[new_codon]:
                 # synonymous!
                 codon_synonymous_opportunity_table[codon][i]+=1
@@ -143,6 +158,8 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
                 if codon_start+3 > len(gene_sequence):
                     continue
                 codon = gene_sequence[codon_start:codon_start+3]
+                if any(codon_i in codon for codon_i in bases_to_skip):
+                    continue
                 position_in_codon = position_in_gene%3
 
                 effective_gene_synonymous_sites[gene_name] += codon_synonymous_opportunity_table[codon][position_in_codon]/3.0
@@ -625,34 +642,61 @@ def parse_gene_list(taxon='B', reference_sequence=None):
                 if '-' in location_str:
                     minus_position = [r.start() for r in re.finditer('-', location_str)]
                 pos_position = []
-                if '+' in location_str:
-                    pos_position = [r.start() for r in re.finditer('+', location_str)]
 
-                if len(minus_position) == 2:
-                    strand_symbol_one = '-'
-                    strand_symbol_two = '-'
-                elif len(pos_position) == 2:
-                    strand_symbol_one = '+'
-                    strand_symbol_two = '+'
-                else:
-                    # I don't think this is possible, but might as well code it up
-                    if minus_position[0] < pos_position[0]:
+                if '+' in location_str:
+                    if taxon == 'D':
+                        pos_position = [pos for pos, char in enumerate(location_str) if char == '+']
+                    else:
+                        pos_position = [r.start() for r in re.finditer('+', location_str)]
+
+
+                if len(minus_position) + len(pos_position) == 2:
+                    if len(minus_position) == 2:
                         strand_symbol_one = '-'
+                        strand_symbol_two = '-'
+                    elif len(pos_position) == 2:
+                        strand_symbol_one = '+'
                         strand_symbol_two = '+'
                     else:
+                        # I don't think this is possible, but might as well code it up
+                        if minus_position[0] < pos_position[0]:
+                            strand_symbol_one = '-'
+                            strand_symbol_two = '+'
+                        else:
+                            strand_symbol_one = '+'
+                            strand_symbol_two = '-'
+
+                    start_one = int(locations[1])
+                    stop_one = int(locations[2])
+                    start_two = int(locations[3])
+                    stop_two = int(locations[4])
+
+                    locus_tag1 = locus_tag + '_1'
+                    locus_tag2 = locus_tag + '_2'
+
+                    split_list.append([locus_tag1, start_one, stop_one, strand_symbol_one])
+                    split_list.append([locus_tag2, start_two, stop_two, strand_symbol_two])
+
+                else:
+                    if len(pos_position) == 3:
                         strand_symbol_one = '+'
-                        strand_symbol_two = '-'
+                        strand_symbol_two = '+'
+                        strand_symbol_three = '+'
+                    start_one = int(locations[1])
+                    stop_one = int(locations[2])
+                    start_two = int(locations[3])
+                    stop_two = int(locations[4])
+                    start_three = int(locations[5])
+                    stop_three = int(locations[6])
 
-                start_one = int(locations[1])
-                stop_one = int(locations[2])
-                start_two = int(locations[3])
-                stop_two = int(locations[4])
+                    locus_tag1 = locus_tag + '_1'
+                    locus_tag2 = locus_tag + '_2'
+                    locus_tag3 = locus_tag + '_3'
 
-                locus_tag1 = locus_tag + '_1'
-                locus_tag2 = locus_tag + '_2'
+                    split_list.append([locus_tag1, start_one, stop_one, strand_symbol_one])
+                    split_list.append([locus_tag2, start_two, stop_two, strand_symbol_two])
+                    split_list.append([locus_tag3, start_three, stop_three, strand_symbol_three])
 
-                split_list.append([locus_tag1, start_one, stop_one, strand_symbol_one])
-                split_list.append([locus_tag2, start_two, stop_two, strand_symbol_two])
 
             else:
                 strand_symbol = str(feat.location)[-2]

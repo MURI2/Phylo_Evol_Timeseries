@@ -51,6 +51,17 @@ for (row_i in rownames(C.new))
 }
 
 
+# function to compute phylogenetic VCV using joint Pagel's lambda
+# written by Liam Revell 2011
+phyl.vcv<-function(X,phy,lambda){
+  C<-vcv.phylo(phy)
+  C<-lambda.transform(lambda,C)
+  invC<-solve(C)
+  a<-matrix(colSums(invC%*%X)/sum(invC),ncol(X),1)
+  A<-matrix(rep(a,nrow(X)),nrow(X),ncol(X),byrow=T)
+  V<-t(X-A)%*%invC%*%(X-A)/(nrow(C)-1)
+  return(list(C=C,R=V,alpha=a))
+}
 
 
 
