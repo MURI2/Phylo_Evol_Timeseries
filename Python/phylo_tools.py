@@ -1,6 +1,7 @@
 from __future__ import division
 import os
 from collections import Counter
+import matplotlib.colors as clr
 
 
 def get_path():
@@ -17,6 +18,18 @@ def get_genome_size(taxon):
 
     return genome_size_dict[taxon]
 
+
+def mut_freq_colormap():
+    cmap = clr.LinearSegmentedColormap.from_list('Zissou1', ["#3B9AB2", "#78B7C5", "#EBCC2A", "#E1AF00", "#F21A00"], N=256)
+    return cmap
+    # sample from cmap using uniform dist b/w 0 and 1
+    # cmap(0.5)
+    # remove last item
+    # list([:-1])
+    tuple([int(x * 100) for x in list(cmap(0.3))[:-1]])
+
+    # RGB six digit code
+    # '#%02x%02x%02x' % tuple([int(x * 100) for x in list(cmap(0.3))[:-1]])
 
 
 

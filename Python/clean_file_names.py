@@ -160,8 +160,13 @@ def merge_metadata():
                 BC2 = file_name_spl[3]
                 R = file_name_spl[5]
                 end = file_name_spl[-1]
-
+        if 'L' in pop:
+            pop = pop.replace('L', '')
         new_name = '_'.join([run, pop, day, BC1, BC2, R, end])
+
         df_out.write('\t'.join([line, new_name]) + '\n')
-        
+
     df_out.close()
+
+#get_sample_names()
+#merge_metadata()

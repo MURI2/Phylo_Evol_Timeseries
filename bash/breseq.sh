@@ -19,14 +19,19 @@ F_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblie
 J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.gbff
 P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff
 
-declare -a strains=("A")
-declare -a treats=("0")
+#declare -a strains=("A" "B" "C" "D" "F" "J" "P" "S")
+declare -a strains=("S")
+declare -a treats=("0" "1" "2")
+#declare -a treats=("0")
 # "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
+#declare -a reps=("4")
 
-declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
+
+declare -a times=("200")
 
 
+#declare -a samples=("1C4_100" "1D3_100" "1F2_100" "1F3_100" "1F5_100" "1P3_100" "2B3_100" "2C4_100" "2C5_100" "2D4_100" "2F5_100" "2P5_100")
 declare -a samples=()
 
 for treat in "${treats[@]}"
@@ -42,7 +47,6 @@ do
     done
   done
 done
-
 
 
 for sample in "${samples[@]}"
@@ -66,6 +70,8 @@ do
 
     # get reference
     if [[ $sample == *"B"* ]]; then
+      gbk=$B_gbk
+    elif [[ $sample == *"S"* ]]; then
       gbk=$B_gbk
     elif [[ $sample == *"C"* ]]; then
       gbk=$C_gbk

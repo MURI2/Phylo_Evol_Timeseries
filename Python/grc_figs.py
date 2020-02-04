@@ -10,6 +10,7 @@ import collections
 from sklearn.decomposition import PCA
 from Bio import SeqIO
 import scipy.stats as stats
+from collections import Counter
 
 
 def fixed_fig():
@@ -31,15 +32,46 @@ def fixed_fig():
                 y_list.append(int(muts.shape[0]) +1)
 
         ax = fig.add_subplot(2, 2, count+1)
+        #plt.scatter(x_list, y_list)
+
+        x_y_zip = list(zip(x_list, y_list))
+        x_y_0 = [x for x in x_y_zip if x[0] == 1]
+        x_y_1 = [x for x in x_y_zip if x[0] == 10]
+        x_y_2 = [x for x in x_y_zip if x[0] == 100]
+        print(x_y_2)
+
+
+        x_0 = [x[0] for x in x_y_0]
+        y_0 = [x[1] for x in x_y_0]
+        x_1 = [x[0] for x in x_y_1]
+        y_1 = [x[1] for x in x_y_1]
+        x_2 = [x[0] for x in x_y_2]
+        y_2 = [x[1] for x in x_y_2]
+
+
         if i == 0:
             ax.set_title(r'$B. \, subtilis$')
+            plt.scatter(x_0, y_0, marker = "o", edgecolors='#87CEEB', c = '#87CEEB', alpha = 0.9, s = 40)
+            plt.scatter(x_1, y_1, marker = "o", edgecolors='#FFA500', c = '#FFA500', alpha = 0.9, s = 40)
+            plt.scatter(x_2, y_2, marker = "o", edgecolors='#FF6347', c = '#FF6347', alpha = 0.9, s = 40)
         elif i == 1:
             ax.set_title(r'$B. \, subtilis\; \Delta spo0A$')
+            plt.scatter(x_0, y_0, marker = "o", edgecolors='#87CEEB', alpha = 0.9, s = 40, linewidth=3, facecolors='none')
+            plt.scatter(x_1, y_1, marker = "o", edgecolors='#FFA500', alpha = 0.9, s = 40, linewidth=3, facecolors='none')
+            plt.scatter(x_2, y_2, marker = "o", edgecolors='#FF6347', alpha = 0.9, s = 40, linewidth=3, facecolors='none')
+
         elif i == 2:
             ax.set_title(r'$C. \, crescentus$')
+            plt.scatter(x_0, y_0, marker = "P", edgecolors='#87CEEB', c = '#87CEEB', alpha = 0.9, s = 40)
+            plt.scatter(x_1, y_1, marker = "P", edgecolors='#FFA500', c = '#FFA500', alpha = 0.9, s = 40)
+            plt.scatter(x_2, y_2, marker = "P", edgecolors='#FF6347', c = '#FF6347', alpha = 0.9, s = 40)
         elif i == 3:
             ax.set_title(r'$D. \, radiodurans$')
-        plt.scatter(x_list, y_list)
+            plt.scatter(x_0, y_0, marker = "^", edgecolors='#87CEEB', c = '#87CEEB', alpha = 0.9, s = 40)
+            plt.scatter(x_1, y_1, marker = "^", edgecolors='#FFA500', c = '#FFA500', alpha = 0.9, s = 40)
+            plt.scatter(x_2, y_2, marker = "^", edgecolors='#FF6347', c = '#FF6347', alpha = 0.9, s = 40)
+
+
         ax.set_xscale('log', basex=10)
         ax.set_yscale('log', basey=10)
         ax.set_xlim([0.6,150])
@@ -142,7 +174,8 @@ def module_pca():
     sites = []
     module_count_dict = {}
     kegg_count_dict = {}
-    kegg_module_dict = {}
+
+    modules_list = []
     # create kegg to module dict for all taxa before moving on
     for strain in strains:
         if strain == 'S':
@@ -150,9 +183,20 @@ def module_pca():
         else:
             kegg_path = pt.get_path() + '/data/reference_assemblies_task2/MAPLE/MAPLE_modules/' + strain + '_KO_to_M.txt'
         kegg_df = pd.read_csv(kegg_path, sep = '\t', header = 'infer')
-        for index, row in kegg_df.iterrows():
-            kegg_module_dict[row['KEGG_Orthology']] = row['Pathway_ID']
+        modules_list.extend(list(set(kegg_df.Pathway_ID.to_list())))
+
+    modules_list_all = [k for k, v in Counter(modules_list).items() if v == 4]
+
     for strain in strains:
+        kegg_module_dict = {}
+        if strain == 'S':
+            kegg_module_path = pt.get_path() + '/data/reference_assemblies_task2/MAPLE/MAPLE_modules/' + 'B' + '_KO_to_M.txt'
+        else:
+            kegg_module_path = pt.get_path() + '/data/reference_assemblies_task2/MAPLE/MAPLE_modules/' + strain + '_KO_to_M.txt'
+        kegg_module_df = pd.read_csv(kegg_module_path, sep = '\t', header = 'infer')
+        for index, row in kegg_module_df.iterrows():
+            kegg_module_dict[row.KEGG_Orthology] = row.Pathway_ID
+
         protein_id_kegg_dict = {}
         locustag_protein_id_dict = {}
         if strain == 'S':
@@ -221,6 +265,9 @@ def module_pca():
 
     count_df = (count_df.T / count_df.T.sum()).T
     count_df = count_df.drop('1B5')
+    modules_list_all_intersect = list(set(modules_list_all).intersection(set(count_df.columns.to_list())))
+    count_df = count_df[modules_list_all_intersect]
+    #modules_list_all
 
 
     pca = PCA()

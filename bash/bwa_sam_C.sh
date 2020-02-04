@@ -14,7 +14,11 @@ module load samtools
 module unload python
 module load python/3.6.1
 
-ref=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna
+#ref=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna
+
+ref=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.fna
+#ref=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.fna
+
 
 bwa index $ref
 samtools faidx $ref
@@ -29,7 +33,7 @@ mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bPTR
 #declare -a times=("100")
 
 #declare -a strains=("S")
-declare -a strains=("C" "D")
+declare -a strains=("C")
 declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")

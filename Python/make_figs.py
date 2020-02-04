@@ -11,32 +11,38 @@ def temporal_coverage():
     df = pd.read_csv(pt.get_path() + '/data/bacillus_coverage.txt', sep = '\t', header = 'infer')#, index_col = 0)
     df['cov_ratio'] = df['CP020103'] / df['CP020102']
     df = df.sort_values('Time')
-
-
-    df_0B1 = df.loc[(df['Strain'] == 'B') & (df['Treatment'] == 0) & (df['Replicate'] == 1)]
-    df_0B2 = df.loc[(df['Strain'] == 'B') & (df['Treatment'] == 0) & (df['Replicate'] == 2)]
-    df_0B3 = df.loc[(df['Strain'] == 'B') & (df['Treatment'] == 0) & (df['Replicate'] == 3)]
-    df_0B4 = df.loc[(df['Strain'] == 'B') & (df['Treatment'] == 0) & (df['Replicate'] == 4)]
-    df_0B5 = df.loc[(df['Strain'] == 'B') & (df['Treatment'] == 0) & (df['Replicate'] == 5)]
-
-    df_0S1 = df.loc[(df['Strain'] == 'S') & (df['Treatment'] == 0) & (df['Replicate'] == 1)]
-    df_0S2 = df.loc[(df['Strain'] == 'S') & (df['Treatment'] == 0) & (df['Replicate'] == 2)]
-    df_0S3 = df.loc[(df['Strain'] == 'S') & (df['Treatment'] == 0) & (df['Replicate'] == 3)]
-    df_0S4 = df.loc[(df['Strain'] == 'S') & (df['Treatment'] == 0) & (df['Replicate'] == 4)]
-    df_0S5 = df.loc[(df['Strain'] == 'S') & (df['Treatment'] == 0) & (df['Replicate'] == 5)]
+    strains = ['B', 'S']
+    treatments = [0,1,2]
 
     fig = plt.figure()
+    count = 0
+    #taxa_to_analyze = taxa_to_analyze[:2]
+    fig.subplots_adjust(hspace=0.35, wspace=0.35)
+    for treatment in treatments:
+        col = pt.get_colors()[str(treatment)]
+        for strain in strains:
 
-    plt.plot(df_0B1.Time, df_0B1.cov_ratio, 'o-')
-    plt.plot(df_0B2.Time, df_0B2.cov_ratio, 'o-')
-    plt.plot(df_0B3.Time, df_0B3.cov_ratio, 'o-')
-    plt.plot(df_0B4.Time, df_0B4.cov_ratio, 'o-')
-    plt.plot(df_0B5.Time, df_0B5.cov_ratio, 'o-')
+            ax = fig.add_subplot(3, 2, count+1)
+            count+=1
 
-    plt.xlabel('Time (days)', fontsize = 18)
-    plt.ylabel('Plasmid / chromosome coverage', fontsize = 16)
+            if (count==1) :
+                ax.title.set_text(r'$\mathit{B. \. subtilis} \; \mathrm{sp.} \, \mathrm{168}$')
+            if (count==2) :
+                ax.title.set_text(r'$\mathit{B. \. subtilis} \; \mathrm{sp.} \, \mathrm{168} \, \Delta \mathrm{spo0A}$')
 
-    fig_name = pt.get_path() + '/figs/plasmid_coverage_plot.png'
+            reps = list(set(df.Replicate.to_list()))
+            for rep in reps:
+                df_i = df.loc[(df['Strain'] == strain) & (df['Treatment'] == treatment) & (df['Replicate'] == rep)]
+                ax.plot(df_i.Time, df_i.cov_ratio,  'o-', c=col)
+
+            ax.set_ylim([-0.3, 3.5])
+
+            ax.axhline(y=1, color='darkgrey', linestyle='--')
+
+    fig.text(0.5, 0.02, 'Time (days)', ha='center', fontsize=16)
+    fig.text(0.02, 0.5, 'Plasmid-chromosome coverage ratio', va='center', rotation='vertical', fontsize=14)
+
+    fig_name = pt.get_path() + '/figs/plasmid_coverage_plot_new.png'
     fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     plt.close()
 
@@ -302,7 +308,9 @@ def plot_bPTR_all():
     plt.close()
 
 
+def plot_allele_freqs():
 
 
-plot_bPTR_all()
+
+#plot_bPTR_all()
 #temporal_coverage()

@@ -5,7 +5,7 @@
 
 // Helper functions for calculating empirical pvalues
 
-const int min_numerator_counts = 100;
+const int min_numerator_counts = 50;
 const double pvalue_threshold = std::pow(0.05,1.0/3);
 
 inline double clip_pvalue(double pvalue){
@@ -29,7 +29,7 @@ template<class T1, class T2> inline double calculate_pvalue_from_sorted_list(T1 
 
     int num_greater = sorted_list.end()-std::lower_bound(sorted_list.begin(), sorted_list.end(), query_val);
     int total_num = sorted_list.size();
-    
+
     return calculate_pvalue_from_counts(num_greater, total_num);
 }
 
