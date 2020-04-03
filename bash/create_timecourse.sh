@@ -7,12 +7,12 @@ create_timecourse=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/create_
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/timecourse_scripts
 
-declare -a strains=("B")
-#declare -a treats=("0" "1" "2")
-#declare -a reps=("1" "2" "3" "4" "5")
+declare -a strains=("J")
+declare -a treats=("0" "1" "2")
+declare -a reps=("1" "2" "3" "4" "5")
 
-declare -a treats=("0")
-declare -a reps=("1")
+#declare -a treats=("0")
+#declare -a reps=("1")
 
 declare -a pops=()
 
@@ -52,7 +52,7 @@ do
 
   echo '#!/bin/bash' >> $bash_out
   echo '#PBS -k o' >> $bash_out
-  echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=12:00:00' >> $bash_out
+  echo '#PBS -l nodes=1:ppn=8,vmem=50gb,walltime=12:00:00' >> $bash_out
   echo '#PBS -M wrshoema@iu.edu' >> $bash_out
   echo '#PBS -m abe' >> $bash_out
   echo '#PBS -j oe' >> $bash_out
@@ -63,5 +63,13 @@ do
   echo "cat ${out} | python ${create_timecourse} ${pop} ${times[@]} > $out_timecourse" >> $bash_out
 
   echo "${times[@]}"
-  #qsub $bash_out
+  qsub $bash_out
 done
+
+
+
+#for file in .* *;
+#  do
+#    echo $file
+#    bzcat $file | head -10;
+#done

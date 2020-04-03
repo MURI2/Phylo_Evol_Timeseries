@@ -195,15 +195,19 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
 
     return position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction
 
+
 def calculate_synonymous_nonsynonymous_target_sizes():
     position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction  = create_annotation_map()
     return effective_gene_lengths['synonymous'], effective_gene_lengths['nonsynonymous'], substitution_specific_synonymous_fraction
 
+
 def calculate_reverse_complement_sequence(dna_sequence):
     return "".join(base_table[base] for base in dna_sequence[::-1])
 
+
 def calculate_codon_sequence(dna_sequence):
     return "".join(codon_table[dna_sequence[3*i:3*i+3]] for i in range(0,len(dna_sequence)/3))
+
 
 def get_closest_gene_name(location, gene_data):
     gene_names, start_positions, end_positions, gene_sequences, strands = gene_data
@@ -215,7 +219,9 @@ def get_closest_gene_name(location, gene_data):
     else:
         return gene_names[closest_end_idx]
 
+
 var_types = ['synonymous','missense','nonsense','noncoding','indel','sv']
+
 
 def annotate_gene(position, position_gene_map):
 
@@ -228,7 +234,7 @@ def annotate_gene(position, position_gene_map):
 
 def annotate_variant(position, allele, gene_data, position_gene_map):
 
-    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands = gene_data
+    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features = gene_data
 
     # get gene
     gene_name = annotate_gene(position, position_gene_map)
@@ -278,136 +284,33 @@ def annotate_variant(position, allele, gene_data, position_gene_map):
 
 
                     # calculate codon start
-                    codon_start = long(position_in_gene/3)*3
+                    codon_start = int(position_in_gene/3)*3
                     codon = oriented_gene_sequence[codon_start:codon_start+3]
                     codon_list = list(codon)
                     position_in_codon = position_in_gene%3
-                    codon_list[position_in_codon]=new_base
-                    new_codon="".join(codon_list)
-                    if codon_table[codon]==codon_table[new_codon]:
-                        var_type='synonymous'
-                    else:
+                    #print(position_in_gene, len(oriented_gene_sequence), codon_start )
+                    #print("length of codon list " + str(len(codon_list)))
+                    if (len(codon_list) == 0) or (len(set(codon_list) - set('ACGT')) != 0) :
+                        #print('empty codon list')
+                        var_type='unknown'
 
-                        if codon_table[new_codon]=='!':
-                            var_type='nonsense'
+                    else:
+                        codon_list[position_in_codon]=new_base
+                        new_codon="".join(codon_list)
+                        # one wrong bp in caulobacter reference genome
+                        if codon_table[codon]==codon_table[new_codon]:
+                            var_type='synonymous'
                         else:
-                            var_type='missense'
+
+                            if codon_table[new_codon]=='!':
+                                var_type='nonsense'
+                            else:
+                                var_type='missense'
     else:
         sys.stderr.write("Unknown: %s\n" % allele)
         var_type='unknown'
 
     return gene_name, var_type
-
-def old_annotate_variant(location, allele, gene_data, repeat_data):
-
-    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands = gene_data
-    repeat_names, repeat_start_positions, repeat_end_positions, repeat_complements = repeat_data
-
-    if allele[0]=='+' or allele[0]=='-':
-        location+=1
-        # where the actual base change resides
-
-    # get gene
-    gene_idxs = numpy.nonzero((location >= gene_start_positions) * (location <= gene_end_positions))[0]
-    repeat_idxs = numpy.nonzero((location >= repeat_start_positions) * (location <= repeat_end_positions))[0]
-    promoter_idxs = numpy.nonzero((location >= promoter_start_positions) * (location <= promoter_end_positions))[0]
-
-    #sys.stderr.write('%s\n' % str(promoter_idxs))
-    #sys.stderr.write('%d %d\n' % (gene_start_positions[0], promoter_start_positions[0]))
-    #sys.stderr.write('%d %d\n' % (gene_end_positions[0], promoter_end_positions[0]))
-
-    if len(gene_idxs) > 0:
-
-        # if it is inside a gene
-
-        gene_idx = gene_idxs[0]
-        gene_name = gene_names[gene_idx]
-        gene_start = gene_start_positions[gene_idx]
-        gene_end = gene_end_positions[gene_idx]
-        gene_sequence = gene_sequences[gene_idx]
-        gene_position = location-gene_start
-
-        #print gene_sequence
-        if allele.startswith('MOB') or allele.startswith('JC'):
-            var_type = 'sv'
-
-        if allele[1:3]=='->':
-            # a SNP, so annotate it
-
-            if gene_sequence=="":
-                var_type = 'missense'
-            else:
-
-                new_gene_sequence = list(gene_sequence)
-                new_gene_sequence[gene_position] = allele[-1]
-                new_gene_sequence = "".join(new_gene_sequence)
-
-                if strands[gene_idx] == 'reverse':
-                   gene_sequence = calculate_reverse_complement_sequence(gene_sequence)
-                   new_gene_sequence = calculate_reverse_complement_sequence(new_gene_sequence)
-
-                codon_sequence = calculate_codon_sequence(gene_sequence)
-                new_codon_sequence = calculate_codon_sequence(new_gene_sequence)
-                if codon_sequence == new_codon_sequence:
-                    var_type = 'synonymous'
-                else:
-                    if new_codon_sequence.find('!') < len(new_codon_sequence)-1:
-                        var_type = 'nonsense'
-                        #sys.stderr.write("nonsense: %d\n" % (len(new_codon_sequence)-new_codon_sequence.find('!')-1))
-                    else:
-                        var_type = 'missense'
-
-
-        elif allele.startswith('MOB') or allele.startswith('junction'):
-            var_type = 'sv'
-        else:
-            var_type = 'indel'
-
-        if len(repeat_idxs) > 0:
-            # a repeat sequence
-            repeat_idx = repeat_idxs[0]
-            #sys.stderr.write("Also a repeat sequence: %s %s\n" % (gene_name, repeat_names[repeat_idx]))
-
-
-    elif len(promoter_idxs) > 0:
-        # if it is inside a promoter
-        promoter_idx = promoter_idxs[0]
-        gene_name = gene_names[promoter_idx]
-        if allele[1:3] == '->':
-            var_type = 'promoter'
-        elif allele.startswith('MOB') or allele.startswith('JC'):
-            var_type = 'sv'
-        else:
-            var_type = 'indel'
-
-    elif len(repeat_idxs) > 0:
-        # a repeat sequence
-        repeat_idx = repeat_idxs[0]
-        gene_name = repeat_names[repeat_idx]
-
-        if allele[1:3] == '->':
-            var_type = 'repeat'
-        elif allele.startswith('MOB') or allele.startswith('JC'):
-            var_type = 'sv'
-        else:
-            var_type = 'indel'
-
-    else:
-        # an intergenic mutation
-
-        gene_name = 'intergenic'
-        if allele[1:3]=='->':
-            # SNP
-            var_type = 'intergenic'
-        elif allele.startswith('MOB') or allele.startswith('junction'):
-            var_type = 'sv'
-        else:
-            var_type = 'indel'
-
-    return gene_name, var_type
-
-
-
 
 
 
@@ -449,103 +352,8 @@ def print_reference_fasta(reference_sequence):
     for i in range(0,len(reference_sequence),70):
         print(reference_sequence[i:min([len(reference_sequence),i+70])])
 
-def annotate_operon(gene_name,operon_data):
-
-    operon_gene_map, gene_operon_map, operon_size_map  = operon_data
-
-    if gene_name in gene_operon_map:
-        return gene_operon_map[gene_name]
-    else:
-        return None
-
-def parse_operon_list(filename="additional_data/door_operon_list.txt"): #, gene_data=None, repeat_data=None, position_gene_map=None):
-
-    gene_data = parse_gene_list()
-    repeat_data = parse_repeat_list()
-    mask_data = parse_mask_list()
-    position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction = create_annotation_map(gene_data, repeat_data, mask_data)
-    gene_size_map = create_gene_size_map(effective_gene_lengths)
 
 
-    # returns dictionary: operon name
-
-    operons = {}
-    raw_operon_lengths = {}
-
-    file = open(filename,"r")
-    file.readline() # header
-    for line in file:
-        print(line)
-
-        if line.strip()=="":
-            break
-
-        items = line.split()
-        operon_id = items[0].strip()
-
-        start_position = long(items[3])
-        end_position = long(items[4])
-
-        for position in range(start_position,end_position+1):
-            if position in position_gene_map:
-                gene_name = position_gene_map[position]
-                if gene_name!='repeat':
-                    # add it to the list
-                    if operon_id not in operons:
-                        operons[operon_id] = set()
-                        raw_operon_lengths[operon_id] = end_position-start_position
-                    operons[operon_id].add(gene_name)
-
-    # create (possibly nonunique) reverse map
-    gene_operon_multimap = {}
-    for operon_id in operons.keys():
-        for gene_name in operons[operon_id]:
-            if gene_name not in gene_operon_multimap:
-                gene_operon_multimap[gene_name] = []
-            gene_operon_multimap[gene_name].append(operon_id)
-
-    # now choose unique operon for each gene
-    for gene_name in gene_operon_multimap:
-        if len(gene_operon_multimap[gene_name]) > 1:
-            operon_lengths = numpy.array([raw_operon_lengths[operon_id] for operon_id in gene_operon_multimap[gene_name]])
-
-            desired_idx = operon_lengths.argmax()
-
-            for i in range(0,len(gene_operon_multimap[gene_name])):
-
-                if i!=desired_idx:
-                    operons[ gene_operon_multimap[gene_name][i] ].remove(gene_name)
-
-
-    # everything should be unique now
-
-    # create reverse map
-    gene_operon_map = {}
-    operon_gene_map = {}
-    for operon_id in operons.keys():
-        operon_name = ";".join(operons[operon_id])
-        operon_gene_map[operon_name] = operons[operon_id]
-        for gene_name in operons[operon_id]:
-            gene_operon_map[gene_name] = operon_name
-
-    # add in genes that were left out before
-    for gene_name in gene_size_map:
-        if gene_name not in gene_operon_map:
-            gene_operon_map[gene_name] = gene_name
-            operon_gene_map[gene_name] = set([gene_name])
-
-    # calculate operon sizes
-
-    operon_size_map = {}
-
-    for gene_name in gene_operon_map.keys():
-        operon_name = gene_operon_map[gene_name]
-        if operon_name not in operon_size_map:
-            operon_size_map[operon_name]=0
-
-        operon_size_map[operon_name] += gene_size_map[gene_name]
-
-    return operon_gene_map, gene_operon_map, operon_size_map
 
 
 def create_gene_size_map(effective_gene_lengths=None):
@@ -576,23 +384,7 @@ def create_gene_size_map(effective_gene_lengths=None):
     return gene_size_map
 
 
-def old_create_gene_size_map(gene_data):
-    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands = gene_data
 
-    gene_size_map = {}
-
-    for i in range(0,len(gene_names)):
-        gene_name = gene_names[i]
-        if not gene_name.startswith('ins'):
-
-            if gene_name.startswith('tRNA') or gene_name.startswith('rRNA'):
-                nonsynonymous_multiple = 1.0
-            else:
-                nonsynonymous_multiple = 3.0/4
-
-            gene_size_map[gene_name] = (fabs(gene_start_positions[i]-gene_end_positions[i])*nonsynonymous_multiple + fabs(promoter_start_positions[i]-promoter_end_positions[i]))
-
-    return gene_size_map
 
 
 #####################################################################
@@ -601,7 +393,7 @@ def old_create_gene_size_map(gene_data):
 # compiles a list of genes, tRNAs, etc.
 #
 #####################################################################
-def parse_gene_list(taxon='B', reference_sequence=None):
+def parse_gene_list(taxon, reference_sequence=None):
     gene_names = []
     start_positions = []
     end_positions = []
@@ -612,7 +404,7 @@ def parse_gene_list(taxon='B', reference_sequence=None):
     genes = []
     features = []
 
-    filename= pt.get_path() + '/' + pt.get_ref_gbff_dict()[taxon]
+    filename= pt.get_path() + '/' + pt.get_ref_gbff_dict(taxon)
     gene_features = ['CDS', 'tRNA', 'rRNA', 'ncRNA', 'tmRNA']
     recs = [rec for rec in SeqIO.parse(filename, "genbank")]
     count_riboswitch = 0
@@ -767,27 +559,27 @@ def parse_timecourse(filename):
 
     times = []
     for i in range(10,len(items),2):
-        times.append(long(items[i].split(":")[1]))
+        times.append(int(items[i].split(":")[1]))
     times = numpy.array(times)
 
     for line in file:
         items = line.strip().split(",")
-        location = long(items[0])
+        location = int(items[0])
         gene_name = items[1].strip()
         ref_allele = items[2].strip()
         alt_allele = items[3].strip()
         var_type = items[4].strip()
         test_statistic = float(items[5])
         pvalue = float(items[6])
-        cutoff_idx = long(items[7])
+        cutoff_idx = int(items[7])
         depth_fold_change = float(items[8])
         depth_change_pvalue = float(items[9])
 
         alts = []
         depths = []
         for i in range(10,len(items),2):
-            alts.append(long(float(items[i])))
-            depths.append(long(float(items[i+1])))
+            alts.append(int(float(items[i])))
+            depths.append(int(float(items[i+1])))
 
         alts = numpy.array(alts)
         depths = numpy.array(depths)
@@ -809,11 +601,12 @@ def parse_timecourse(filename):
     keys, mutations = (list(t) for t in zip(*sorted(zip(keys, mutations))))
     return mutations
 
+
 def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
 
     mutations = []
 
-    timecourse_filename = data_directory+("%s_annotated_timecourse.txt" % population)
+    timecourse_filename =  pt.get_path() + '/data/timecourse_final/' +("%s_annotated_timecourse.txt" % population)
 
     file = open(timecourse_filename, "r")
 
@@ -822,7 +615,7 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
 
     times = []
     for i in range(13,len(items),2):
-        times.append(long(items[i].split(":")[1]))
+        times.append(int(items[i].split(":")[1]))
     times = numpy.array(times)
 
     # depth line
@@ -832,7 +625,6 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
     for i in range(13,len(items),2):
         avg_depths.append(float(items[i+1]))
     avg_depths = numpy.array(avg_depths)
-
     population_avg_depth_times = times[times<1000000]
     population_avg_depths = avg_depths[times<1000000]
     clone_avg_depth_times = times[times>1000000]-1000000
@@ -840,17 +632,17 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
 
     for line in file:
         items = line.strip().split(",")
-        location = long(items[0])
+        location = int(items[0])
         gene_name = items[1].strip()
         allele = items[2].strip()
         var_type = items[3].strip()
         test_statistic = float(items[4])
         pvalue = float(items[5])
-        cutoff_idx = long(items[6])
+        cutoff_idx = int(items[6])
         depth_fold_change = float(items[7])
         depth_change_pvalue = float(items[8])
 
-        duplication_idx = long(items[9])
+        duplication_idx = int(items[9])
         fold_increase = float(items[10])
         duplication_pvalue = float(items[11])
 
@@ -864,8 +656,8 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
         depths = []
 
         for i in range(13,len(items),2):
-            alts.append(long(float(items[i])))
-            depths.append(long(float(items[i+1])))
+            alts.append(int(float(items[i])))
+            depths.append(int(float(items[i+1])))
 
         alts = numpy.array(alts)
         depths = numpy.array(depths)
@@ -878,6 +670,7 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
         pop_alts = alts[(times<1000000)]
         pop_depths = depths[(times<1000000)]
 
+
         clone_times = times[(times>1000000)]-1000000
         clone_alts = alts[(times>1000000)]
         clone_depths = depths[(times>1000000)]
@@ -886,7 +679,7 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
             mutations.append((location, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, pop_times, pop_alts, pop_depths, clone_times, clone_alts, clone_depths))
 
     file.close()
-
+    #print(mutations[0])
     # sort by position
     keys = [mutation[0] for mutation in mutations]
     keys, mutations = (list(t) for t in zip(*sorted(zip(keys, mutations))))
@@ -943,7 +736,7 @@ def parse_haplotype_timecourse(population):
 
 def parse_well_mixed_state_timecourse(population):
 
-    haplotype_filename = data_directory+('%s_well_mixed_state_timecourse.txt' % population)
+    haplotype_filename = pt.get_path() + '/data/timecourse_final/' +('%s_well_mixed_state_timecourse.txt' % population)
 
     file = open(haplotype_filename,"r")
 
@@ -982,7 +775,7 @@ def print_timecourse(mutations):
 
 def parse_coverage(coverage_filename):
     coverage_file = open(coverage_filename)
-    ts = numpy.array([long(item) for item in coverage_file.readline().split()])
+    ts = numpy.array([int(item) for item in coverage_file.readline().split()])
     ds = numpy.array([float(item) for item in coverage_file.readline().split()])
     return ts,ds
 
@@ -1178,32 +971,12 @@ def parse_convergence_matrix(filename):
             subitems = item.split(";")
             for subitem in subitems:
                 subsubitems = subitem.split(":")
-                mutation = (float(subsubitems[0]), long(subsubitems[1]), long(subsubitems[2]), float(subsubitems[3]))
+                mutation = (float(subsubitems[0]), int(subsubitems[1]), int(subsubitems[2]), float(subsubitems[3]))
                 convergence_matrix[gene_name]['mutations'][population].append(mutation)
 
 
     return convergence_matrix
 
-def old_parse_convergence_matrix(filename):
-
-    convergence_matrix = []
-    populations = []
-
-    convergence_file = open(filename,"r")
-    # header
-    line = convergence_file.readline()
-    gene_names = [item.strip() for item in line.split(",")[1:]]
-
-    for line in convergence_file:
-        items = line.split(",")
-        population = items[0]
-        m = [float(item) for item in items[1:]]
-
-        populations.append(population)
-        convergence_matrix.append(m)
-
-    convergence_matrix = numpy.array(convergence_matrix)
-    return convergence_matrix, populations, gene_names
 
 
 if __name__=='__main__':

@@ -10,25 +10,28 @@ mkdir -p $data_breseq
 mkdir -p $data_breseq_out
 mkdir -p $data_breseq_err
 
-A_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/KBS0703_new/FCE86-Genome.gbk
-
-B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
-C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff
-D_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff
-F_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.gbff
-J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.gbff
-P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff
+A_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Arthrobacter_sp_KBS0703/GCF_002008315.2_ASM200831v2_genomic.gbff
+B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.gbff
+C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCF_000022005.1_ASM2200v1_genomic.gbff
+D_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCF_000008565.1_ASM856v1_genomic.gbff
+F_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCF_005938645.2_ASM593864v2_genomic.gbff
+J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCF_005937955.2_ASM593795v2_genomic.gbff
+P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCF_005938045.2_ASM593804v2_genomic.gbff
 
 #declare -a strains=("A" "B" "C" "D" "F" "J" "P" "S")
-declare -a strains=("S")
-declare -a treats=("0" "1" "2")
+# Done: B,S,C,D,
+
+declare -a strains=("F")
+declare -a treats=("2")
+
 #declare -a treats=("0")
 # "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
-#declare -a reps=("4")
+# "3" "4" "5")
+#declare -a reps=("2" "3" "4" "5")
 
-
-declare -a times=("200")
+#declare -a times=("3000")
+declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
 
 
 #declare -a samples=("1C4_100" "1D3_100" "1F2_100" "1F3_100" "1F5_100" "1P3_100" "2B3_100" "2C4_100" "2C5_100" "2D4_100" "2F5_100" "2P5_100")
@@ -52,13 +55,21 @@ done
 for sample in "${samples[@]}"
 do
   reads="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt/"*"_${sample}_"*"_clean.fastq.gz"
-  if (( ${#reads[@]} )); then
+  files_test=( $reads )
+  #if (( ${#reads[@]} )); then
+  if [ -e "${files_test[0]}" ]; then
     bash_out="${bin_breseq_scripts}/${sample}_breseq.sh"
     if [ -f $bash_out ]; then
       rm $bash_out
     fi
     OUT_breseq="${data_breseq}/${sample}"
+    # delete breseq directory if it exists
+    if [ -d $OUT_breseq ]
+    then
+      rm -r $OUT_breseq
+    fi
     mkdir -p $OUT_breseq
+
     OUT_breseq_out="${data_breseq_out}/${sample}.out"
     if [ -f $OUT_breseq_out ]; then
       rm $OUT_breseq_out
@@ -91,7 +102,7 @@ do
 
     echo '#!/bin/bash' >> $bash_out
     echo '#PBS -k o' >> $bash_out
-    echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=10:00:00' >> $bash_out
+    echo '#PBS -l nodes=1:ppn=8,vmem=50gb,walltime=10:00:00' >> $bash_out
     #echo '#PBS -M wrshoema@iu.edu' >> $bash_out
     echo '#PBS -m abe' >> $bash_out
     echo '#PBS -j oe' >> $bash_out

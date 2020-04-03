@@ -10,24 +10,26 @@ mkdir -p $data_rebreseq
 mkdir -p $data_rebreseq_out
 mkdir -p $data_rebreseq_err
 
-A_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/KBS0703/FCE86-Genome.gbk
+A_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Arthrobacter_sp_KBS0703/GCF_002008315.2_ASM200831v2_genomic.gbff
+B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.gbff
+C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCF_000022005.1_ASM2200v1_genomic.gbff
+D_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCF_000008565.1_ASM856v1_genomic.gbff
+F_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCF_005938645.2_ASM593864v2_genomic.gbff
+J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCF_005937955.2_ASM593795v2_genomic.gbff
+P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCF_005938045.2_ASM593804v2_genomic.gbff
 
 
-B_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
-C_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff
-D_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff
-F_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.gbff
-J_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.gbff
-P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff
+declare -a strains=("F")
+#declare -a treats=("0" "1" "2")
+declare -a treats=("2")
 
-
-
-declare -a strains=("P")
-declare -a treats=("1" "2")
+# "1" "2")
 # "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
+# "2" "3" "4" "5")
 
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
+#declare -a times=("100")
 
 
 declare -a samples=()
@@ -47,15 +49,20 @@ do
 done
 
 
+
 for sample in "${samples[@]}"
 do
   reads="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reads_clean_cutadapt/"*"_${sample}_"*"_clean.fastq.gz"
-  if (( ${#reads[@]} )); then
+  files_test=( $reads )
+  #if (( ${#reads[@]} )); then
+  if [ -e "${files_test[0]}" ]; then
     pop="$(echo "$sample" | cut -d "_" -f1-1)"
     pop_gd="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/breseq_jc/merged/${pop}.gd"
 
     # get reference
     if [[ $sample == *"B"* ]]; then
+      gbk=$B_gbk
+    elif [[ $sample == *"S"* ]]; then
       gbk=$B_gbk
     elif [[ $sample == *"C"* ]]; then
       gbk=$C_gbk
@@ -75,22 +82,22 @@ do
 
     bash_out="${bash_rebreseq_scripts}/${sample}_rebreseq.sh"
     if [ -f $bash_out ]; then
-      rm $bash_out
+      rm -f $bash_out
     fi
     OUT_rebreseq="${data_rebreseq}/${sample}"
     mkdir -p $OUT_rebreseq
     OUT_rebreseq_out="${data_rebreseq_out}/${sample}.out"
     if [ -f $OUT_rebreseq_out ]; then
-      rm $OUT_rebreseq_out
+      rm -f $OUT_rebreseq_out
     fi
     OUT_rebreseq_err="${data_rebreseq_err}/${sample}.err"
     if [ -f $OUT_rebreseq_err ]; then
-      rm $OUT_rebreseq_err
+      rm -f $OUT_rebreseq_err
     fi
 
     echo '#!/bin/bash' >> $bash_out
     echo '#PBS -k o' >> $bash_out
-    echo '#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=20:00:00' >> $bash_out
+    echo '#PBS -l nodes=1:ppn=8,vmem=50gb,walltime=8:00:00' >> $bash_out
     #echo '#PBS -M wrshoema@iu.edu' >> $bash_out
     echo '#PBS -m abe' >> $bash_out
     echo '#PBS -j oe' >> $bash_out

@@ -15,7 +15,6 @@ depth_file = bz2.open(depth_filename,"wt")
 
 taxon = input_filename.split('/')[-1].split('_')[0][1]
 
-position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction = parse_file.create_annotation_map(taxon=taxon)
 
 avg_depths = None
 times = None

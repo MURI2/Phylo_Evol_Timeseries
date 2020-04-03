@@ -41,6 +41,7 @@ def get_sample_names():
     sample_names_path.close()
 
 
+
 def merge_metadata():
     # first get dictionary for barcodes one and two for GSF2124, GSF2056
     GSF_files = ['GSF2056-run1-plates1-2-demultiplexing-summary',
@@ -164,9 +165,9 @@ def merge_metadata():
             pop = pop.replace('L', '')
         new_name = '_'.join([run, pop, day, BC1, BC2, R, end])
 
-        df_out.write('\t'.join([line, new_name]) + '\n')
+        #df_out.write('\t'.join([line, new_name]) + '\n')
 
-    df_out.close()
+    #df_out.close()
 
 #get_sample_names()
 #merge_metadata()

@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -k o
-#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=15:00:00
+#PBS -l nodes=1:ppn=8,vmem=50gb,walltime=20:00:00
 #PBS -M wrshoema@iu.edu
 #PBS -m abe
 #PBS -m n
@@ -8,7 +8,7 @@
 
 module load python
 
-declare -a strains=("S")
+declare -a strains=("P", "J")
 declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 
