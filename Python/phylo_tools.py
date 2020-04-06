@@ -9,13 +9,36 @@ import colorsys
 def get_path():
     return os.path.expanduser("~/GitHub/Phylo_Evol_Timeseries")
 
+taxa = ['B','S','C','D','F','J','P']
+treatments = ['0', '1', '2']
+replicates = ['1','2','3','4','5']
+
+populations_to_ignore = ['1D4'] # ['1C1']
+
+
+
+
+def get_taxon_ls(taxon):
+
+    if taxon == 'S':
+        ls = ':'
+    else:
+        ls ='--'
+
+    return ls
+
+
 
 
 def samples_to_remove(population):
     population_dict = {'0D1':[600],
                         '0D2':[900],
                         '0D3':[900],
-                        '0D4':[900]}
+                        '0D4':[900],
+                        '2S2':[700],
+                        '2S3':[700],
+                        '2S4':[700],
+                        '2S5':[700]}
 
 
     if population not in population_dict:
@@ -25,8 +48,9 @@ def samples_to_remove(population):
 
 
 
-def pops_to_ignore():
-    return ['1C1']
+
+
+
 
 def get_treatment_name(treatment):
     treatment_dict = {'0': '1-day',

@@ -7,17 +7,23 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib.lines import Line2D
 import phylo_tools as pt
 import scipy.stats as stats
+import statsmodels.api as sm
 
 import parse_file
 import timecourse_utils
+import mutation_spectrum_utils
 
 from scipy.special import gammaln
 
-treatments = ['0','1','2']
-replicates = ['1','2','3','4','5']
+from matplotlib_venn import venn2, venn2_circles, venn3, venn3_circles
+
+np.random.seed(123456789)
+
+treatments=pt.treatments
+replicates = pt.replicates
 
 
-latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \; \mathrm{NCIB \, 3610}$',
+latex_formal_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \; \mathrm{NCIB \, 3610}$',
                 'S': r'$\mathit{Bacillus\, subtilis} \; \mathrm{NCIB \, 3610} \, \Delta \mathrm{spo0A} $',
                 'C': r'$\mathit{Caulobacter \, crescentus} \; \mathrm{NA1000}$',
                 'D': r'$\mathit{Deinococcus \, radiodurans} \; \mathrm{BAA-816}$',
@@ -27,12 +33,23 @@ latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \; \mathrm{NCIB \, 3610}$',
                 }
 
 
+
+latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \, \mathrm{wt} $',
+                'S': r'$\mathit{Bacillus\, subtilis} \, \Delta \mathrm{spo0A} $',
+                'C': r'$\mathit{Caulobacter \, crescentus}$',
+                'D': r'$\mathit{Deinococcus \, radiodurans}$',
+                'P': r'$\mathit{Pseudomonas \,} \; \mathrm{sp. \, KBS0710}$',
+                'F': r'$\mathit{Pedobacter \,} \; \mathrm{sp. \, KBS0701}$',
+                'J': r'$\mathit{Janthinobacterium \,} \; \mathrm{sp. \, KBS0711}$'
+                }
+
+
+
 def temporal_coverage():
     df = pd.read_csv(pt.get_path() + '/data/bacillus_coverage.txt', sep = '\t', header = 'infer')#, index_col = 0)
     df['cov_ratio'] = df['CP020103'] / df['CP020102']
     df = df.sort_values('Time')
     strains = ['B', 'S']
-    treatments = [0,1,2]
 
     fig = plt.figure()
     count = 0
@@ -329,61 +346,6 @@ def plot_bPTR_all():
 
 
 
-
-
-def plot_allele_freqs():
-
-    # only plot if they pass
-    population = '1S3'
-    annotated_timecourse_template = pt.get_path() + "/data/timecourse_final/%s_annotated_timecourse.txt"
-    annotated_timecourse_file = open(annotated_timecourse_template % population,"r")
-
-    first_line = annotated_timecourse_file.readline()
-    first_line = first_line.strip()
-    first_line_items = first_line.split(",")
-    times = np.asarray([float(x.strip().split(':')[1]) for x in first_line_items[13::2]])
-    times = np.insert(times, 0, 0, axis=0)
-    # skip first line
-    fig = plt.figure()
-    for i, line in enumerate(annotated_timecourse_file):
-        line = line.strip()
-        items = line.split(",")
-        pass_or_fail = items[12].strip()
-        if pass_or_fail == 'FAIL':
-            continue
-        alt_cov = np.asarray([ float(x) for x in items[13::2]])
-        total_cov = np.asarray([ float(x) for x in items[14::2]])
-        # pseudocount to avoid divide by zero error
-        alt_cov = alt_cov
-        total_cov = total_cov + 1
-        freqs = alt_cov / total_cov
-        freqs = np.insert(freqs, 0, 0, axis=0)
-
-        rgb = pt.mut_freq_colormap()
-        rgb = pt.lighten_color(rgb, amount=0.5)
-        #print(times)
-        #print(total_cov)
-        #if freqs[-1] > 0.9:
-
-        plt.plot(times, freqs, '.-', c=rgb, alpha=0.7)
-
-
-        #print(rgb)
-
-    annotated_timecourse_file.close()
-
-    plt.xlim([0,max(times)])
-    plt.ylim([0, 1])
-
-    plt.xlabel( 'Days, ' + r'$t$', fontsize=18)
-    plt.ylabel('Allele frequency, ' + r'$f(t)$', fontsize=18)
-
-    fig_name = pt.get_path() + '/figs/test_freq_trajectory.png'
-    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
-    plt.close()
-
-
-
 def plot_allele_freqs_all_treats(strain):
 
     fig = plt.figure(figsize = (12, 6))
@@ -432,8 +394,6 @@ def plot_allele_freqs_all_treats(strain):
                 if len(times) == len(freqs) + 1:
                     freqs = np.insert(freqs, 0, 0, axis=0)
 
-                if population == '0D1':
-                    print(times, freqs)
 
                 ax_i.plot(times, freqs, '.-', c=rgb, alpha=0.4)
 
@@ -581,166 +541,6 @@ def calculate_parallelism_logpvalues(gene_statistics):
 
 
 
-def get_sig_mult_genes(gene_parallelism_statistics, nmin=2):
-    # Give each gene a p-value, get distribution
-    gene_logpvalues = calculate_parallelism_logpvalues(gene_parallelism_statistics)
-    #print(gene_logpvalues)
-    pooled_pvalues = []
-    for gene_name in gene_logpvalues.keys():
-        if (gene_parallelism_statistics[gene_name]['observed']>= nmin) and (float(gene_logpvalues[gene_name]) >= 0):
-            pooled_pvalues.append( gene_logpvalues[gene_name] )
-
-    pooled_pvalues = np.array(pooled_pvalues)
-    pooled_pvalues.sort()
-    #if len(pooled_pvalues) == 0:
-    #    continue
-    null_pvalue_survival = NullGeneLogpSurvivalFunction.from_parallelism_statistics( gene_parallelism_statistics, nmin=nmin)
-    observed_ps, observed_pvalue_survival = calculate_unnormalized_survival_from_vector(pooled_pvalues, min_x=-4)
-    # Pvalue version
-    # remove negative minus log p values.
-    neg_p_idx = np.where(observed_ps>=0)
-    observed_ps_copy = observed_ps[neg_p_idx]
-    observed_pvalue_survival_copy = observed_pvalue_survival[neg_p_idx]
-    pvalue_pass_threshold = np.nonzero(null_pvalue_survival(observed_ps_copy)*1.0/observed_pvalue_survival_copy<0.05)[0]
-
-    if len(pvalue_pass_threshold) == 0:
-        return []
-    else:
-        threshold_idx = pvalue_pass_threshold[0]
-        pstar = observed_ps_copy[threshold_idx] # lowest value where this is true
-        num_significant = observed_pvalue_survival[threshold_idx]
-
-        list_genes = []
-
-        for gene_name in sorted(gene_parallelism_statistics, key=lambda x: gene_parallelism_statistics.get(x)['observed'],reverse=True):
-            if gene_logpvalues[gene_name] >= pstar and gene_parallelism_statistics[gene_name]['observed']>=nmin:
-                #print(gene_name, gene_parallelism_statistics[gene_name])
-                list_genes.append(gene_name)
-
-        return list_genes
-
-
-
-def jaccard_similarity(list1, list2):
-    s1 = set(list1)
-    s2 = set(list2)
-    return len(s1.intersection(s2)) / len(s1.union(s2))
-
-
-
-def get_mult_similarity():
-
-    treatments = ['0','1','2']
-    replicates = ['1','2','3','4','5']
-    strains = ['B','S']
-
-    strain_treat_dict = {}
-
-    gene_data = parse_file.parse_gene_list('B')
-    position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction = parse_file.create_annotation_map(taxon='B', gene_data=gene_data)
-
-    #print(effective_gene_lengths)
-
-
-    for strain in strains:
-
-        for treatment in treatments:
-
-            print(treatment + strain )
-
-            strain_treat_gene_parallelism_statistics = {}
-            n_tot = 0
-
-            for gene_i, length_i in effective_gene_lengths.items():
-                if (gene_i == 'synonymous') or (gene_i == 'nonsynonymous') or (gene_i == 'noncoding'):
-                    continue
-                strain_treat_gene_parallelism_statistics[gene_i] = {}
-                strain_treat_gene_parallelism_statistics[gene_i]['length'] = length_i
-                strain_treat_gene_parallelism_statistics[gene_i]['observed'] = 0
-                strain_treat_gene_parallelism_statistics[gene_i]['multiplicity'] = 0
-
-            for replicate in replicates:
-
-
-                population = treatment + strain + replicate
-                annotated_timecourse_path = pt.get_path() + "/data/timecourse_final/%s_annotated_timecourse.txt" % population
-                if os.path.exists(annotated_timecourse_path) == False:
-                    continue
-                annotated_timecourse_file = open(annotated_timecourse_path ,"r")
-
-                first_line = annotated_timecourse_file.readline()
-                first_line = first_line.strip()
-                first_line_items = first_line.split(",")
-                times = np.asarray([float(x.strip().split(':')[1]) for x in first_line_items[13::2]])
-                times = np.insert(times, 0, 0, axis=0)
-
-                for i, line in enumerate(annotated_timecourse_file):
-                    line = line.strip()
-                    items = line.split(",")
-                    pass_or_fail = items[12].strip()
-                    if pass_or_fail == 'FAIL':
-                        continue
-
-                    alt_cov = np.asarray([ float(x) for x in items[13::2]])
-                    total_cov = np.asarray([ float(x) for x in items[14::2]])
-                    # pseudocount to avoid divide by zero error
-                    alt_cov = alt_cov
-                    total_cov = total_cov
-                    freqs = alt_cov / total_cov
-
-
-                    if np.isnan(freqs[-1]) == True:
-
-                        last_freq = freqs[-2]
-                    else:
-                        last_freq = freqs[-1]
-
-                    if last_freq <= 0.3:
-                        continue
-
-                    gene = items[1].strip()
-
-                    if gene in strain_treat_gene_parallelism_statistics:
-                        strain_treat_gene_parallelism_statistics[gene]['observed'] += 1
-                        n_tot += 1
-
-
-            #print(strain_treat_gene_parallelism_statistics)
-            L_mean = np.mean(list(effective_gene_lengths.values()))
-            L_tot = sum(list(effective_gene_lengths.values()))
-            # go back over and calculate multiplicity
-            for locus_tag_i in strain_treat_gene_parallelism_statistics.keys():
-                # double check the measurements from this
-                strain_treat_gene_parallelism_statistics[locus_tag_i]['multiplicity'] = strain_treat_gene_parallelism_statistics[locus_tag_i]['observed'] *1.0/ strain_treat_gene_parallelism_statistics[locus_tag_i]['length'] * L_mean
-                strain_treat_gene_parallelism_statistics[locus_tag_i]['expected'] = n_tot*strain_treat_gene_parallelism_statistics[locus_tag_i]['length']/L_tot
-
-
-            sig_genes_all = get_sig_mult_genes(strain_treat_gene_parallelism_statistics)
-
-
-            strain_treat_dict[treatment + strain] = sig_genes_all
-
-    treat_sim_list = []
-
-    for treatment in treatments:
-        treat_sim = jaccard_similarity(strain_treat_dict[treatment + 'B'], strain_treat_dict[treatment + 'S'])
-
-        treat_sim_list.append(treat_sim)
-
-    fig = plt.figure()
-
-    plt.plot([1, 10, 100], treat_sim_list, '.-', c = 'blue', alpha=0.9, markersize = 14)
-    plt.xscale('log', basex=10)
-
-    plt.xlabel('Transfer time', fontsize = 14)
-    plt.ylabel("Jaccard similarity of significant\ngenes between " + r'$\mathrm{WT}$' + ' and ' + r'$\Delta \mathrm{spo0A}$', fontsize = 14)
-
-
-    fig_name = pt.get_path() + '/figs/jaccard.png'
-    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
-    plt.close()
-
-
 
 
 
@@ -751,7 +551,6 @@ def get_mutation_fixation_trajectories(population):
     mutations, depth_tuple = parse_file.parse_annotated_timecourse(population)
     population_avg_depth_times, population_avg_depths, clone_avg_depth_times, clone_avg_depths = depth_tuple
     state_times, state_trajectories = parse_file.parse_well_mixed_state_timecourse(population)
-
     times = mutations[0][9]
     Ms = np.zeros_like(times)*1.0
     fixed_Ms = np.zeros_like(times)*1.0
@@ -776,8 +575,6 @@ def get_mutation_fixation_trajectories(population):
         if t0==tf==transit_time==None:
             continue
 
-        #transit_times[population].append(transit_time)
-
         interpolating_function = timecourse_utils.create_interpolation_function(masked_times, masked_freqs, tmax=100000)
 
         fs = interpolating_function(times)
@@ -800,6 +597,7 @@ def plot_B_S_mutation_trajectory():
 
     mutation_trajectories = {}
     fixed_mutation_trajectories = {}
+    delta_mutation_trajectories = {}
     #transit_times = {}
     taxa = ['B', 'S']
 
@@ -813,19 +611,23 @@ def plot_B_S_mutation_trajectory():
                 times, Ms, fixed_Ms = get_mutation_fixation_trajectories(population)
 
                 fixed_mutation_trajectories[population] = (times, fixed_Ms)
-                mutation_trajectories[population] = (times, Ms)
+                mutation_trajectories[population] = (times,np.log10(Ms))
+                delta_mutation_trajectories[population] = (times[1:], np.log10(Ms[1:]/Ms[:-1] ))
 
-                sys.stderr.write("analyzed %d mutations!\n" % len(mutations))
+                sys.stderr.write("analyzed %d mutations!\n" % len(Ms))
 
 
-    fig = plt.figure(figsize = (10, 6))
+    fig = plt.figure(figsize = (10, 9))
 
     column_count = 0
 
     for treatment in treatments:
 
-        ax_t_vs_M = plt.subplot2grid((2, 3), (0, column_count), colspan=1)
-        ax_M_vs_F = plt.subplot2grid((2, 3), (1, column_count), colspan=1)
+        ax_t_vs_M = plt.subplot2grid((3, 3), (0, column_count), colspan=1)
+
+        ax_t_vs_delta_M = plt.subplot2grid((3, 3), (1, column_count), colspan=1)
+
+        ax_M_vs_F = plt.subplot2grid((3, 3), (2, column_count), colspan=1)
 
         #ax_M_vs_F.plot([0,300],[0,300],'--',linewidth=1,color='k', zorder=1)
 
@@ -833,42 +635,46 @@ def plot_B_S_mutation_trajectory():
 
             treatment_taxon_populations = []
 
-
             for replicate in replicates:
 
                 population = treatment + taxon + replicate
 
                 Mts,Ms = mutation_trajectories[population]
                 fixed_Mts, fixed_Ms = fixed_mutation_trajectories[population]
+                deltaMts, deltaMs = delta_mutation_trajectories[population]
 
-                ax_t_vs_M.plot(Mts, Ms, 'o-',color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon), alpha=1, markersize=7,linewidth=2, markeredgewidth=1.5, zorder=1)
-
-                ax_M_vs_F.plot(fixed_Mts, fixed_Ms, 'o-', color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon), alpha=1, markersize=7,linewidth=2, markeredgewidth=1.5, zorder=1)
-                #late_mut_axis.plot(Mts, Ms-intercept, linestyle, color=colorVal, alpha=1, markersize=1,linewidth=0.5,zorder=zorder, markeredgewidth=0)
-
-                ax_t_vs_M.set_xlabel('Days, ' + r'$t$', fontsize = 11)
+                ax_t_vs_M.plot(Mts, 10**Ms, 'o-',color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon), alpha=1, markersize=7,linewidth=3, markeredgewidth=1.5, zorder=1)
+                ax_t_vs_M.set_yscale('log', basey=10)
                 ax_t_vs_M.tick_params(axis='x', labelsize=8)
 
+                # back transform to format plot axes
+                ax_t_vs_delta_M.plot(deltaMts, 10**deltaMs, color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon))
+                ax_t_vs_delta_M.set_yscale('log', basey=10)
 
-                ax_M_vs_F.set_xlabel('Mutations, ' + r'$M(t)$', fontsize = 12)
-
+                ax_M_vs_F.plot(fixed_Mts, fixed_Ms, 'o-', color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon), alpha=1, markersize=7,linewidth=3, markeredgewidth=1.5, zorder=1)
+                #ax_M_vs_F.set_xlabel('Days, ' + r'$t$', fontsize = 12)
 
                 treatment_taxon_populations.append(population)
 
             avg_Mts, avg_Ms = timecourse_utils.average_trajectories([mutation_trajectories[population] for population in treatment_taxon_populations])
+
+            avg_deltaMts, avg_deltaMs = timecourse_utils.average_trajectories([delta_mutation_trajectories[population] for population in treatment_taxon_populations])
+
 
             if taxon == 'B':
                 ls = '--'
             else:
                 ls = ':'
 
-            ax_t_vs_M.plot(avg_Mts, avg_Ms, ls,color='k', marker=" ", alpha=1, linewidth=2.5, zorder=2)
+            ax_t_vs_delta_M.axhline(y=1, c='grey', linestyle=':', lw=3, zorder=1)
+            ax_t_vs_M.plot(avg_Mts, 10**avg_Ms, ls,color='k', marker=" ", alpha=1, linewidth=4, zorder=2)
+            ax_t_vs_delta_M.plot(avg_deltaMts, 10**avg_deltaMs, ls,color='k', marker=" ", alpha=1, linewidth=4, zorder=2)
 
 
             if (taxon_i == 0) and (column_count==0):
                 legend_elements = [Line2D([0], [0], ls='--', color='k', lw=1.5, label= r'$\overline{M}_{WT} (t)$'),
                                    Line2D([0], [0], ls=':', color='k', lw=1.5, label= r'$\overline{M}_{\Delta \mathrm{spo0A}} (t)$')]
-                ax_t_vs_M.legend(handles=legend_elements, loc='upper left', fontsize=6.5)
+                ax_t_vs_M.legend(handles=legend_elements, loc='lower right', fontsize=8)
 
         ax_t_vs_M.set_title( str(10**int(treatment))+ '-day transfers', fontsize=17)
 
@@ -877,14 +683,120 @@ def plot_B_S_mutation_trajectory():
 
         if column_count == 0:
 
-            ax_t_vs_M.set_ylabel('Mutations, ' + r'$M(t)$', fontsize = 14)
-            ax_M_vs_F.set_ylabel('Fixed mutations', fontsize = 14)
+            ax_t_vs_M.set_ylabel('Mutations, ' + r'$M(t)$', fontsize = 15)
+            ax_M_vs_F.set_ylabel('Fixed mutations', fontsize = 15)
+            ax_t_vs_delta_M.set_ylabel('Change in mutations,\n' + r'$M(t)/M(t-1)$', fontsize = 15)
 
         column_count += 1
 
-    fig_name = pt.get_path() + '/figs/B_S_rate.png'
+    fig.text(0.53, 0.02, 'Days, ' + r'$t$', ha='center', fontsize=28)
+
+
+    fig_name = pt.get_path() + '/figs/rate_B_S.png'
     fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     plt.close()
+
+
+
+def plot_taxon_mutation_trajectory(taxon):
+
+    sys.stderr.write("Loading mutation data...\n")
+
+    mutation_trajectories = {}
+    fixed_mutation_trajectories = {}
+    delta_mutation_trajectories = {}
+    #transit_times = {}
+
+    for treatment in treatments:
+        for replicate in replicates:
+
+            population = treatment + taxon + replicate
+            if population in pt.populations_to_ignore:
+                continue
+
+            sys.stderr.write("Processing %s...\t" % population)
+
+            times, Ms, fixed_Ms = get_mutation_fixation_trajectories(population)
+
+            fixed_mutation_trajectories[population] = (times, fixed_Ms)
+            mutation_trajectories[population] = (times,np.log10(Ms))
+            delta_mutation_trajectories[population] = (times[1:], np.log10(Ms[1:]/Ms[:-1] ))
+
+            sys.stderr.write("analyzed %d mutations!\n" % len(Ms))
+
+    fig = plt.figure(figsize = (10, 9))
+
+    column_count = 0
+
+    for treatment in treatments:
+
+        ax_t_vs_M = plt.subplot2grid((3, 3), (0, column_count), colspan=1)
+
+        ax_t_vs_delta_M = plt.subplot2grid((3, 3), (1, column_count), colspan=1)
+
+        ax_M_vs_F = plt.subplot2grid((3, 3), (2, column_count), colspan=1)
+
+        treatment_taxon_populations = []
+
+        for replicate in replicates:
+
+            population = treatment + taxon + replicate
+            if population in pt.populations_to_ignore:
+                continue
+
+            Mts,Ms = mutation_trajectories[population]
+            fixed_Mts, fixed_Ms = fixed_mutation_trajectories[population]
+            deltaMts, deltaMs = delta_mutation_trajectories[population]
+
+            ax_t_vs_M.plot(Mts, 10**Ms, 'o-',color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon), alpha=1, markersize=7,linewidth=3, markeredgewidth=1.5, zorder=1)
+            ax_t_vs_M.set_yscale('log', basey=10)
+            ax_t_vs_M.tick_params(axis='x', labelsize=8)
+
+            # back transform to format plot axes
+            ax_t_vs_delta_M.plot(deltaMts, 10**deltaMs, color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon))
+            ax_t_vs_delta_M.set_yscale('log', basey=10)
+
+            ax_M_vs_F.plot(fixed_Mts, fixed_Ms, 'o-', color= pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), fillstyle=pt.plot_species_fillstyle(taxon), alpha=1, markersize=7,linewidth=3, markeredgewidth=1.5, zorder=1)
+            #ax_M_vs_F.set_xlabel('Days, ' + r'$t$', fontsize = 12)
+
+            treatment_taxon_populations.append(population)
+
+        avg_Mts, avg_Ms = timecourse_utils.average_trajectories([mutation_trajectories[population] for population in treatment_taxon_populations])
+
+        avg_deltaMts, avg_deltaMs = timecourse_utils.average_trajectories([delta_mutation_trajectories[population] for population in treatment_taxon_populations])
+
+        ax_t_vs_delta_M.axhline(y=1, c='grey', linestyle=':', lw=3, zorder=1)
+        ax_t_vs_M.plot(avg_Mts, 10**avg_Ms, '--',color='k', marker=" ", alpha=1, linewidth=4, zorder=2)
+        ax_t_vs_delta_M.plot(avg_deltaMts, 10**avg_deltaMs, '--',color='k', marker=" ", alpha=1, linewidth=4, zorder=2)
+
+
+        if (column_count==0):
+            legend_elements = [Line2D([0], [0], ls='--', color='k', lw=1.5, label= r'$\overline{M}(t)$')]
+            ax_t_vs_M.legend(handles=legend_elements, loc='lower right', fontsize=8)
+
+        ax_t_vs_M.set_title( str(10**int(treatment))+ '-day transfers', fontsize=17)
+
+        #if treatment == '2':
+        #    ax_M_vs_F.yaxis.set_major_locator(MaxNLocator(integer=True))
+
+        if column_count == 0:
+
+            ax_t_vs_M.set_ylabel('Mutations, ' + r'$M(t)$', fontsize = 15)
+            ax_M_vs_F.set_ylabel('Fixed mutations', fontsize = 15)
+            ax_t_vs_delta_M.set_ylabel('Change in mutations,\n' + r'$M(t)/M(t-1)$', fontsize = 15)
+
+        column_count += 1
+
+    fig.text(0.53, 0.02, 'Days, ' + r'$t$', ha='center', fontsize=28)
+
+
+    fig.suptitle(latex_dict[taxon], fontsize=30)
+
+
+    fig_name = pt.get_path() + '/figs/rate_%s.png' % taxon
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
 
 
 
@@ -910,6 +822,9 @@ def allele_survival():
             ax_i = plt.subplot2grid((1, 2), (0, taxon_idx), colspan=1)
             for replicate in ['1', '2', '3', '4', '5']:
                 population = treatment + taxon + replicate
+
+                if population in pt.populations_to_ignore:
+                    continue
 
                 num_runs = []
 
@@ -1039,18 +954,20 @@ def plot_allele_corr_delta(min_trajectory_length=3):
     mutation_trajectories = {}
     fixed_mutation_trajectories = {}
     #transit_times = {}
-    taxa = ['B', 'S']
+    taxa = ['B', 'S', 'D']
 
     r2s_obs_dict = {}
 
     #r2s_null_dict = {}
 
-    for treatment in ['0','1']:
+    for treatment in ['0', '1']:
         for taxon in taxa:
             r2s = []
             for replicate in replicates:
 
                 population = treatment + taxon + replicate
+                if population in pt.populations_to_ignore:
+                    continue
                 sys.stderr.write("Processing %s...\n" % population)
 
                 mutations, depth_tuple = parse_file.parse_annotated_timecourse(population)
@@ -1131,12 +1048,13 @@ def plot_allele_corr_delta(min_trajectory_length=3):
 
             r2s_obs_dict[treatment + taxon] = r2s
 
-    fig = plt.figure(figsize = (12, 6))
+    fig = plt.figure(figsize = (12, 12))
 
+    tuples = [ (0,0), (0,1), (1,0)]
     for i, taxon in enumerate(taxa):
-            ax_i = plt.subplot2grid((1, 2), (0, i), colspan=1)
+            ax_i = plt.subplot2grid((2, 2), tuples[i], colspan=1)
 
-            for treatment in ['0','1']:
+            for treatment in ['0', '1']:
                 r2_treatment_taxon = r2s_obs_dict[treatment+taxon]
 
                 ax_i.hist(r2_treatment_taxon, label=pt.get_treatment_name(treatment), color= pt.get_colors(treatment), lw=5, histtype='step', bins = 30, alpha =1, weights=np.zeros_like(r2_treatment_taxon) + 1. / len(r2_treatment_taxon))
@@ -1151,6 +1069,427 @@ def plot_allele_corr_delta(min_trajectory_length=3):
 
 
     fig_name = pt.get_path() + '/figs/r2_B_S.png'
+    fig.subplots_adjust(hspace=0.3)
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+
+def plot_0B3_big(population='0B3'):
+
+    fig = plt.figure(figsize = (12, 6))
+
+    annotated_timecourse_path = pt.get_path() + "/data/timecourse_final/%s_annotated_timecourse.txt" % population
+    annotated_timecourse_file = open(annotated_timecourse_path ,"r")
+
+    first_line = annotated_timecourse_file.readline()
+    first_line = first_line.strip()
+    first_line_items = first_line.split(",")
+    times = np.asarray([float(x.strip().split(':')[1]) for x in first_line_items[13::2]])
+    times = np.insert(times, 0, 0, axis=0)
+
+    for i, line in enumerate(annotated_timecourse_file):
+        line = line.strip()
+        items = line.split(",")
+        pass_or_fail = items[12].strip()
+        if pass_or_fail == 'FAIL':
+            continue
+
+        alt_cov = np.asarray([ float(x) for x in items[13::2]])
+        total_cov = np.asarray([ float(x) for x in items[14::2]])
+        # pseudocount to avoid divide by zero error
+        alt_cov = alt_cov
+        total_cov = total_cov + 1
+        freqs = alt_cov / total_cov
+        freqs = np.insert(freqs, 0, 0, axis=0)
+
+        rgb = pt.mut_freq_colormap()
+        rgb = pt.lighten_color(rgb, amount=0.5)
+
+
+        if len(times) == len(freqs) + 1:
+            freqs = np.insert(freqs, 0, 0, axis=0)
+
+        plt.plot(times, freqs, '.-', c=rgb, lw=3, alpha=0.4)
+
+
+    plt.xlim([0,max(times)])
+    plt.ylim([0, 1])
+
+    plt.ylabel( str(10**int(population[0])) + '-day transfers', fontsize =12  )
+
+    plt.tick_params(axis="x", labelsize=8)
+    plt.tick_params(axis="y", labelsize=8)
+
+
+    fig.text(0.5, 0.04, 'Days, ' + r'$t$', ha='center', va='center', fontsize=24)
+    fig.text(0.05, 0.5, 'Allele frequency, ' + r'$f(t)$', ha='center', va='center', rotation='vertical',  fontsize=24)
+
+
+    fig.suptitle(latex_dict['B'], fontsize=28, fontweight='bold')
+    fig_name = pt.get_path() + '/figs/mut_trajectories_0B3.png'
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+def plot_B_S_multiplicity():
+
+    taxa = ['B', 'S']
+
+    parallelism_axes = {}
+
+    fig = plt.figure(figsize = (12, 12))
+
+    gene_data = parse_file.parse_gene_list('B')
+
+    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = gene_data
+    # to get the common gene names for each ID
+
+    for treatment_idx, treatment in enumerate(treatments):
+
+        ax_multiplicity = plt.subplot2grid((3, 3), (0, treatment_idx), colspan=1)
+        ax_regression = plt.subplot2grid((3, 3), (1, treatment_idx), colspan=1)
+        ax_venn = plt.subplot2grid((3, 3), (2, treatment_idx), colspan=1)
+
+        ax_multiplicity.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
+        ax_multiplicity.set_ylabel('Fraction mutations ' + r'$\geq m$', fontsize=14)
+        ax_multiplicity.set_title( str(10**int(treatment))+ '-day transfers', fontsize=17)
+
+        ax_multiplicity.set_xscale('log', basex=10)
+        ax_multiplicity.set_yscale('log', basey=10)
+
+        ax_multiplicity.set_ylim([0.001, 1.1])
+        ax_multiplicity.set_xlim([0.07, 130])
+
+        ax_regression.set_xlabel('Gene multiplicity, ' + r'$m$' + '\n' + latex_dict['B']   , fontsize=14)
+        ax_regression.set_ylabel('Gene multiplicity, ' + r'$m$' + '\n' + latex_dict['S'] , fontsize=14)
+
+        ax_regression.set_xscale('log', basex=10)
+        ax_regression.set_yscale('log', basey=10)
+
+        ax_venn.axis('off')
+
+        mult_taxa_dict = {}
+
+        for taxon in taxa:
+
+            if taxon == 'B':
+                multiplicity_label = r'$\mathrm{wt}$'
+            else:
+                multiplicity_label = r'$\Delta \mathrm{spo0A}$'
+
+            populations = [treatment+taxon + replicate for replicate in replicates ]
+
+            # Load convergence matrix
+            convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
+
+            gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations,Lmin=100)
+
+            G, pvalue = mutation_spectrum_utils.calculate_total_parallelism(gene_parallelism_statistics)
+
+            sys.stdout.write("Total parallelism for %s = %g (p=%g)\n" % (treatment+taxon, G,pvalue))
+
+            predictors = []
+            responses = []
+
+            gene_hits = []
+            gene_predictors = []
+
+            Ls = []
+
+            for gene_name in convergence_matrix.keys():
+
+                # get multiplicities for regression
+                if gene_name not in mult_taxa_dict:
+                    mult_taxa_dict[gene_name] = {}
+                    mult_taxa_dict[gene_name][taxon] = gene_parallelism_statistics[gene_name]['multiplicity']
+                else:
+                    mult_taxa_dict[gene_name][taxon] = gene_parallelism_statistics[gene_name]['multiplicity']
+
+                convergence_matrix[gene_name]['length'] < 50 and convergence_matrix[gene_name]['length']
+
+                Ls.append(convergence_matrix[gene_name]['length'])
+                m = gene_parallelism_statistics[gene_name]['multiplicity']
+
+                n = 0
+                nfixed = 0
+
+                for population in populations:
+                    for t,L,f in convergence_matrix[gene_name]['mutations'][population]:
+                        fixed_weight = timecourse_utils.calculate_fixed_weight(L,f)
+
+                        predictors.append(m)
+                        responses.append(fixed_weight)
+
+                        n+=1
+                        nfixed+=fixed_weight
+
+                if n > 0.5:
+                    gene_hits.append(n)
+                    gene_predictors.append(m)
+
+            Ls = np.asarray(Ls)
+            ntot = len(predictors)
+            mavg = ntot*1.0/len(Ls)
+
+            predictors, responses = (np.array(x) for x in zip(*sorted(zip(predictors, responses), key=lambda pair: (pair[0]))))
+
+            gene_hits, gene_predictors = (np.array(x) for x in zip(*sorted(zip(gene_hits, gene_predictors), key=lambda pair: (pair[0]))))
+
+            rescaled_predictors = np.exp(np.fabs(np.log(predictors/mavg)))
+
+            #logit_mod = sm.Logit(responses, sm.add_constant(rescaled_predictors))
+            #logit_res = logit_mod.fit()
+
+            #sys.stdout.write("Logistic regression for %ss:\n" % (population))
+            #sys.stdout.write("%s\n" % str(logit_res.summary()))
+            #sys.stdout.write("Params:\n")
+            #sys.stdout.write("%s\n" % str(logit_res.params))
+
+            sys.stdout.write("Avg mutation multiplicity=%g, Avg fixed mutation multiplicity=%g\n" % (predictors.sum()/len(responses), (predictors*responses).sum()/responses.sum()))
+            sys.stderr.write("Calculating null distribution...\n")
+            null_survival_function = mutation_spectrum_utils.NullMultiplicitySurvivalFunction.from_parallelism_statistics(gene_parallelism_statistics)
+
+            # default base is 10
+            theory_ms = np.logspace(-2,2,100)
+            theory_survivals = null_survival_function(theory_ms)
+            theory_survivals /= theory_survivals[0]
+
+            sys.stderr.write("Done!\n")
+
+            # step function
+            ax_multiplicity.plot(predictors, (len(predictors)-np.arange(0,len(predictors)))*1.0/len(predictors), lw=3, color=pt.get_colors(treatment),alpha=0.8, ls=pt.get_taxon_ls(taxon), label='Observed ' + multiplicity_label, drawstyle='steps', zorder=2)
+
+            ax_multiplicity.plot(theory_ms, theory_survivals, lw=3, color='grey',alpha=0.8, ls=pt.get_taxon_ls(taxon), label= 'Null ' +  multiplicity_label, zorder=1)
+
+        if treatment_idx == 0:
+            ax_multiplicity.legend( loc='lower left', fontsize=8)
+
+        for gene_name, gene_dict in mult_taxa_dict.items():
+            if 'B' not in gene_dict:
+                mult_taxa_dict[gene_name]['B'] = 0
+            if 'S' not in gene_dict:
+                mult_taxa_dict[gene_name]['S'] = 0
+
+        #mult_B_S = [(mult_taxa_dict[gene_name]['B'], mult_taxa_dict[gene_name]['S']) for gene_name in sorted(mult_taxa_dict) if (mult_taxa_dict[gene_name]['B'] > 0) and (mult_taxa_dict[gene_name]['S'] > 0) ]
+
+        # then get venn diagram
+        # import significant genes
+        parallel_genes_B = open(pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+'B'), "r")
+        parallel_genes_S = open(pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+'S'), "r")
+
+        gene_significant_multiplicity_dict = {}
+
+
+        parallel_genes_B_list = []
+        for i, line in enumerate(parallel_genes_B):
+            if i == 0:
+                continue
+            line = line.strip()
+            items = line.split(",")
+            parallel_genes_B_list.append(items[0])
+
+            if items[0] not in gene_significant_multiplicity_dict:
+                gene_significant_multiplicity_dict[items[0]] = {}
+            gene_significant_multiplicity_dict[items[0]]['B'] = float(items[6].strip())
+
+        parallel_genes_S_list = []
+        for i, line in enumerate(parallel_genes_S):
+            if i == 0:
+                continue
+            line = line.strip()
+            items = line.split(",")
+            parallel_genes_S_list.append(items[0])
+
+            if items[0] not in gene_significant_multiplicity_dict:
+                gene_significant_multiplicity_dict[items[0]] = {}
+            gene_significant_multiplicity_dict[items[0]]['S'] = float(items[6].strip())
+
+
+        #mult_B_S = [(mult_taxa_dict[gene_name]['B'], mult_taxa_dict[gene_name]['S']) for gene_name in sorted(mult_taxa_dict) if (mult_taxa_dict[gene_name]['B'] > 0) and (mult_taxa_dict[gene_name]['S'] > 0) ]
+        mult_B_S = [(gene_significant_multiplicity_dict[gene_name]['B'], gene_significant_multiplicity_dict[gene_name]['S']) for gene_name in sorted(gene_significant_multiplicity_dict) if ('B' in gene_significant_multiplicity_dict[gene_name]) and ('S' in gene_significant_multiplicity_dict[gene_name]) ]
+
+        mult_B = [x[0] for x in mult_B_S]
+        mult_S = [x[1] for x in mult_B_S]
+
+
+        ax_regression.scatter(mult_B, mult_S, color=pt.get_colors(treatment),alpha=1,s=90, zorder=2)
+
+        if treatment_idx == 2:
+            ax_regression.set_xlim([  0.9, max( mult_B + mult_S )*1.5  ])
+            ax_regression.set_ylim([  0.9, max( mult_B + mult_S )*1.5  ])
+            ax_regression.plot([0.9, max( mult_B + mult_S )*1.5 ], [ 0.9, max( mult_B + mult_S )*1.5  ], lw = 3, c='k', ls = '--', zorder=1 )
+
+
+        else:
+            ax_regression.set_xlim([  min( mult_B + mult_S )/1.5, max( mult_B + mult_S )*1.5  ])
+            ax_regression.set_ylim([  min( mult_B + mult_S )/1.5, max( mult_B + mult_S )*1.5  ])
+            ax_regression.plot([  min( mult_B + mult_S )/1.5, max( mult_B + mult_S )*1.5 ], [  min( mult_B + mult_S )/1.5, max( mult_B + mult_S )*1.5  ], lw = 3, c='k', ls = '--', zorder=1 )
+
+        venn = venn2(subsets = (len(parallel_genes_B_list), len(parallel_genes_S_list), len(set(parallel_genes_B_list) & set(parallel_genes_S_list))), ax=ax_venn, set_labels=('', ''), set_colors=(pt.get_colors(treatment), pt.get_colors(treatment)))
+        c = venn2_circles(subsets=(len(parallel_genes_B_list), len(parallel_genes_S_list), len(set(parallel_genes_B_list) & set(parallel_genes_S_list))), ax=ax_venn, linestyle='dashed')
+        #set_colors=(pt.get_colors(treatment), pt.get_colors(treatment)),
+
+        c[0].set_ls('--')
+        c[1].set_ls(':')
+        c[0].set_lw(5)
+        c[1].set_lw(5)
+        c[0].set_edgecolor(pt.get_colors(treatment))
+        c[1].set_edgecolor(pt.get_colors(treatment))
+        #c[0].set_radius(len(parallel_genes_B_list) / 80 )
+        #c[1].set_radius(len(parallel_genes_S_list) / 80)
+
+    fig.subplots_adjust(hspace=0.3, wspace=0.5)
+    fig_name = pt.get_path() + '/figs/B_S_multiplicity.png'
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+def plot_within_taxon_paralleliism(taxon):
+
+    fig = plt.figure(figsize = (18, 12))
+
+    gene_data = parse_file.parse_gene_list('B')
+
+    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = gene_data
+    # to get the common gene names for each ID
+
+    ax_multiplicity = plt.subplot2grid((2, 3), (0, 0), colspan=1)
+    ax_venn = plt.subplot2grid((2, 3), (0, 1), colspan=1)
+    #ax_mult_pfix = plt.subplot2grid((3, 2), (1, 0), colspan=1)
+    ax_mult_freq = plt.subplot2grid((2, 3), (0, 2), colspan=1)
+    ax_mult_1_10 = plt.subplot2grid((2, 3), (1, 0), colspan=1)
+
+    ax
+
+    ax_multiplicity.set_xscale('log', basex=10)
+    ax_multiplicity.set_yscale('log', basey=10)
+    ax_multiplicity.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
+    ax_multiplicity.set_ylabel('Fraction mutations ' + r'$\geq m$', fontsize=14)
+
+    ax_multiplicity.set_ylim([0.001, 1.1])
+    ax_multiplicity.set_xlim([0.07, 130])
+
+    ax_venn.axis('off')
+
+    ax_mult_pfix.set_xscale('log', basex=10)
+    ax_mult_pfix.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
+
+    ax_mult_freq.set_xscale('log', basex=10)
+    ax_mult_freq.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
+
+    significant_multiplicity_dict = {}
+
+    for treatment_idx, treatment in enumerate(treatments):
+
+        significan_multiplicity_taxon = open(pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+taxon), "r")
+        significan_multiplicity_list = []
+        for i, line in enumerate(significan_multiplicity_taxon):
+            if i == 0:
+                continue
+            line = line.strip()
+            items = line.split(",")
+            significan_multiplicity_list.append(items[0])
+
+        significant_multiplicity_dict[treatment] = significan_multiplicity_list
+
+        populations = [treatment+taxon + replicate for replicate in replicates ]
+
+        # Load convergence matrix
+        convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
+
+        gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations,Lmin=100)
+
+        G, pvalue = mutation_spectrum_utils.calculate_total_parallelism(gene_parallelism_statistics)
+
+        sys.stdout.write("Total parallelism for %s = %g (p=%g)\n" % (treatment+taxon, G,pvalue))
+
+        predictors = []
+        responses = []
+
+        gene_hits = []
+        gene_predictors = []
+
+        Ls = []
+
+        for gene_name in convergence_matrix.keys():
+
+            # try to get probability of fixation for all treatments with at least 30 total mutations
+
+            # get multiplicities for regression
+            #if gene_name not in mult_taxa_dict:
+            #    mult_taxa_dict[gene_name] = {}
+            #    mult_taxa_dict[gene_name][taxon] = gene_parallelism_statistics[gene_name]['multiplicity']
+            #else:
+            #    mult_taxa_dict[gene_name][taxon] = gene_parallelism_statistics[gene_name]['multiplicity']
+
+            convergence_matrix[gene_name]['length'] < 50 and convergence_matrix[gene_name]['length']
+
+            Ls.append(convergence_matrix[gene_name]['length'])
+            m = gene_parallelism_statistics[gene_name]['multiplicity']
+
+            n = 0
+            nfixed = 0
+
+            for population in populations:
+                for t,L,f in convergence_matrix[gene_name]['mutations'][population]:
+                    fixed_weight = timecourse_utils.calculate_fixed_weight(L,f)
+
+                    predictors.append(m)
+                    responses.append(fixed_weight)
+
+                    n+=1
+                    nfixed+=fixed_weight
+
+            if n > 0.5:
+                gene_hits.append(n)
+                gene_predictors.append(m)
+
+        Ls = np.asarray(Ls)
+        ntot = len(predictors)
+        mavg = ntot*1.0/len(Ls)
+
+        predictors, responses = (np.array(x) for x in zip(*sorted(zip(predictors, responses), key=lambda pair: (pair[0]))))
+
+        gene_hits, gene_predictors = (np.array(x) for x in zip(*sorted(zip(gene_hits, gene_predictors), key=lambda pair: (pair[0]))))
+
+        rescaled_predictors = np.exp(np.fabs(np.log(predictors/mavg)))
+
+        null_survival_function = mutation_spectrum_utils.NullMultiplicitySurvivalFunction.from_parallelism_statistics(gene_parallelism_statistics)
+
+        # default base is 10
+        theory_ms = np.logspace(-2,2,100)
+        theory_survivals = null_survival_function(theory_ms)
+        theory_survivals /= theory_survivals[0]
+
+        sys.stderr.write("Done!\n")
+
+        # step function
+        ax_multiplicity.plot(predictors, (len(predictors)-np.arange(0,len(predictors)))*1.0/len(predictors), lw=3.5, color=pt.get_colors(treatment),alpha=0.8, ls=pt.get_taxon_ls(taxon), label= str(int(10**int(treatment))) + '-day', drawstyle='steps', zorder=2)
+
+        ax_multiplicity.plot(theory_ms, theory_survivals, lw=3, color=pt.get_colors(treatment), alpha=0.8, ls=':',  zorder=1)
+
+    print(len(set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['2'])))
+
+    subset_tuple = (len( significant_multiplicity_dict['0']), \
+                    len( significant_multiplicity_dict['1']), \
+                    len(set(significant_multiplicity_dict['0']) & set(significant_multiplicity_dict['1'])), \
+                    len(significant_multiplicity_dict['2']), \
+                    len(set(significant_multiplicity_dict['0']) & set(significant_multiplicity_dict['2'])), \
+                    len(set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['2'])),  \
+                    len(set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['2'])))
+
+
+    venn = venn3(subsets = subset_tuple, ax=ax_venn, set_labels=('', '', ''), set_colors=(pt.get_colors('0'), pt.get_colors('1'), pt.get_colors('2')))
+    c = venn3_circles(subsets=subset_tuple, ax=ax_venn, linestyle='dashed')
+
+    fig.suptitle(latex_dict[taxon], fontsize=30)
+
+    fig.subplots_adjust() #hspace=0.3, wspace=0.5
+    fig_name = pt.get_path() + "/figs/multiplicity_%s.png" % taxon
     fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     plt.close()
 
@@ -1161,7 +1500,11 @@ def plot_allele_corr_delta(min_trajectory_length=3):
 
 
 
+#plot_within_taxon_paralleliism('D')
 
+#plot_B_S_multiplicity()
+
+#plot_0B3_big()
 #plot_allele_corr_delta()
 
 #allele_survival()
@@ -1171,8 +1514,9 @@ def plot_allele_corr_delta(min_trajectory_length=3):
 
 #plot_allele_freqs_all_treats('B')
 #plot_allele_freqs_all_treats('S')
-plot_allele_freqs_all_treats('D')
+#plot_allele_freqs_all_treats('D')
 
+#plot_taxon_mutation_trajectory('D')
 
 
 #plot_bPTR_all()

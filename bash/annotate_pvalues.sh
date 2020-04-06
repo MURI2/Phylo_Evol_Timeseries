@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-declare -a strains=("C")
+declare -a strains=("F")
 declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 
@@ -35,9 +35,13 @@ do
   indel_timecourse_filename="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_indel/${pop}_indel_timecourse.bz"
   likelihood_timecourse_filename="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_likelihood/${pop}_likelihood_timecourse.bz"
 
+  if [ -f $likelihood_timecourse_filename ]; then
+    rm $likelihood_timecourse_filename
+  fi
+
   echo '#!/bin/bash' >> $bash_out
   echo '#PBS -k o' >> $bash_out
-  echo '#PBS -l nodes=1:ppn=8,vmem=10gb,walltime=24:00:00' >> $bash_out
+  echo '#PBS -l nodes=1:ppn=8,vmem=10gb,walltime=48:00:00' >> $bash_out
   echo '#PBS -M wrshoema@iu.edu' >> $bash_out
   echo '#PBS -m abe' >> $bash_out
   echo '#PBS -j oe' >> $bash_out

@@ -41,7 +41,8 @@ for treatment in treatments:
 
         if times_to_ignore != None:
             times_to_ignore_idx=[numpy.where(times == t)[0] for t in times_to_ignore][0]
-
+        else:
+            times_to_ignore_idx=None
         #times = np.delete(times, times_to_ignore_idx)
         #alts = np.delete(alts, times_to_ignore_idx)
         #depths = np.delete(depths, times_to_ignore_idx)
@@ -51,12 +52,11 @@ for treatment in treatments:
             location, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutation_data[mutation_idx]
 
             good_idxs, masked_alts, masked_depths = timecourse_utils.mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change, depth_change_pvalue, min_coverage)
-
-            #print(times, good_idxs, masked_alts, masked_depths)
-            times = numpy.delete(times, times_to_ignore_idx)
-            good_idxs = numpy.delete(good_idxs, times_to_ignore_idx)
-            masked_alts = numpy.delete(masked_alts, times_to_ignore_idx)
-            masked_depths = numpy.delete(masked_depths, times_to_ignore_idx)
+            if times_to_ignore_idx != None:
+                times = numpy.delete(times, times_to_ignore_idx)
+                good_idxs = numpy.delete(good_idxs, times_to_ignore_idx)
+                masked_alts = numpy.delete(masked_alts, times_to_ignore_idx)
+                masked_depths = numpy.delete(masked_depths, times_to_ignore_idx)
 
             max_freq = (masked_alts*1.0/(masked_depths+(masked_depths<1))).max()
 

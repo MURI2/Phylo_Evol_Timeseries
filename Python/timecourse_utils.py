@@ -39,7 +39,7 @@ def estimate_slope(ts, xs):
 # at timepoints where this can be estimated
 #
 ############################
-def average_trajectories(trajectories):
+def average_trajectories(trajectories, log10=False):
 
     avg_map = {}
 
@@ -86,9 +86,10 @@ def mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change
     # did we infer that a deletion happened?
     #if (var_type=='sv' and depth_fold_change < -2 and depth_change_pvalue < 1e-04) or (var_type!='sv' and depth_fold_change < -1 and depth_change_pvalue < 1e-03):
     if depth_change_pvalue < 1e-02:
-       # deletion nearby, trim timecourse
-       masked_alts[cutoff_idx:] = 0
-       masked_depths[cutoff_idx:] = 0
+        print("what")
+        # deletion nearby, trim timecourse
+        masked_alts[cutoff_idx:] = 0
+        masked_depths[cutoff_idx:] = 0
 
     good_idxs = numpy.nonzero(masked_depths>0.5)[0]
 
@@ -266,11 +267,11 @@ def calculate_appearance_time_from_freqs(times, freqs):
 
     return t
 
-def calculate_appearance_time(ts, fs, state_Ls, Ls):
+def calculate_appearance_time(ts, fs, Ls):
     # Three choices: either from freqs, simple HMM, or clade HMM
     #return calculate_appearance_time_from_freqs(ts,fs)
     #return calculate_appearance_time_from_hmm(ts,fs,state_Ls)
-    return calculate_appearance_fixation_time_from_clade_hmm(ts,fs,Ls)[0]
+    return calculate_appearance_time_from_hmm(ts,fs,Ls)
 
 
 def calculate_fixed_weight(L,f):

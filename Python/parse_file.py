@@ -80,23 +80,15 @@ for codon in codon_table.keys():
 
 
 
-def is_repeat_masked(position, position_gene_map=None):
 
-    if position_gene_map==None:
-        position_gene_map,effective_gene_lengths, substitution_specific_synonymous_fraction = create_annotation_map()
 
-    if position in position_gene_map:
-        if position_gene_map[position]=='repeat':
-            return True
 
-    return False
-
-def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_data=None):
+def create_annotation_map(taxon, gene_data=None):
 
     if gene_data==None:
         gene_data = parse_gene_list(taxon)
 
-    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features = gene_data
+    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = gene_data
     position_gene_map = {}
     gene_position_map = {}
     # new
@@ -196,8 +188,8 @@ def create_annotation_map(taxon=None, gene_data=None, repeat_data=None, mask_dat
     return position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction
 
 
-def calculate_synonymous_nonsynonymous_target_sizes():
-    position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction  = create_annotation_map()
+def calculate_synonymous_nonsynonymous_target_sizes(taxon):
+    position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction  = create_annotation_map(taxon=taxon)
     return effective_gene_lengths['synonymous'], effective_gene_lengths['nonsynonymous'], substitution_specific_synonymous_fraction
 
 
@@ -234,7 +226,7 @@ def annotate_gene(position, position_gene_map):
 
 def annotate_variant(position, allele, gene_data, position_gene_map):
 
-    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features = gene_data
+    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = gene_data
 
     # get gene
     gene_name = annotate_gene(position, position_gene_map)
@@ -282,7 +274,6 @@ def annotate_variant(position, allele, gene_data, position_gene_map):
                         oriented_gene_sequence = calculate_reverse_complement_sequence(gene_sequence)
                         new_base = base_table[allele[3]]
 
-
                     # calculate codon start
                     codon_start = int(position_in_gene/3)*3
                     codon = oriented_gene_sequence[codon_start:codon_start+3]
@@ -314,8 +305,8 @@ def annotate_variant(position, allele, gene_data, position_gene_map):
 
 
 
-def parse_reference_genome(taxon=None):
-    filename= pt.get_path() + '/' + pt.get_ref_gbff_dict()[taxon]
+def parse_reference_genome(taxon):
+    filename= pt.get_path() + '/' + pt.get_ref_gbff_dict(taxon)
 
     reference_sequences = []
 
@@ -356,16 +347,16 @@ def print_reference_fasta(reference_sequence):
 
 
 
-def create_gene_size_map(effective_gene_lengths=None):
+
+def create_gene_size_map(taxon, effective_gene_lengths=None):
 
     if effective_gene_lengths==None:
-        reference_sequence = parse_reference_genome()
-        gene_data = parse_gene_list()
-        repeat_data = parse_repeat_list()
-        mask_data = parse_mask_list()
-        gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands = gene_data
+        reference_sequence = parse_reference_genome(taxon)
+        gene_data = parse_gene_list(taxon)
 
-        position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction = create_annotation_map(gene_data, repeat_data, mask_data)
+        gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = gene_data
+
+        position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction = create_annotation_map(taxon=taxon,gene_data=gene_data)
 
 
     excluded_genes=set(['synonymous','nonsynonymous','noncoding','masked'])
@@ -403,6 +394,7 @@ def parse_gene_list(taxon, reference_sequence=None):
     strands = []
     genes = []
     features = []
+    protein_ids = []
 
     filename= pt.get_path() + '/' + pt.get_ref_gbff_dict(taxon)
     gene_features = ['CDS', 'tRNA', 'rRNA', 'ncRNA', 'tmRNA']
@@ -516,6 +508,11 @@ def parse_gene_list(taxon, reference_sequence=None):
                 else:
                     gene = ""
 
+                if 'protein_id' in list((feat.qualifiers.keys())):
+                    protein_id = feat.qualifiers['protein_id'][0]
+                else:
+                    protein_id = ""
+
 
                 if strand_symbol == '+':
                     promoter_start = start - 100 # by arbitrary definition, we treat the 100bp upstream as promoters
@@ -543,10 +540,11 @@ def parse_gene_list(taxon, reference_sequence=None):
                 strands.append(strand)
                 genes.append(gene)
                 features.append(feat.type)
+                protein_ids.append(protein_id)
 
-    gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features = (list(x) for x in zip(*sorted(zip(gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features), key=lambda pair: pair[1])))
+    gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = (list(x) for x in zip(*sorted(zip(gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids), key=lambda pair: pair[1])))
 
-    return gene_names, numpy.array(start_positions), numpy.array(end_positions), numpy.array(promoter_start_positions), numpy.array(promoter_end_positions), gene_sequences, strands, genes, features
+    return gene_names, numpy.array(start_positions), numpy.array(end_positions), numpy.array(promoter_start_positions), numpy.array(promoter_end_positions), gene_sequences, strands, genes, features, protein_ids
 
 
 def parse_timecourse(filename):
@@ -971,7 +969,7 @@ def parse_convergence_matrix(filename):
             subitems = item.split(";")
             for subitem in subitems:
                 subsubitems = subitem.split(":")
-                mutation = (float(subsubitems[0]), int(subsubitems[1]), int(subsubitems[2]), float(subsubitems[3]))
+                mutation = (float(subsubitems[0]), int(subsubitems[1]), float(subsubitems[2]))
                 convergence_matrix[gene_name]['mutations'][population].append(mutation)
 
 
@@ -979,28 +977,19 @@ def parse_convergence_matrix(filename):
 
 
 
-if __name__=='__main__':
-    reference_sequence = parse_reference_genome()
-    gene_data = parse_gene_list()
-    repeat_data = parse_repeat_list()
-    mask_data = parse_mask_list()
-    gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands = gene_data
+#if __name__=='__main__':
+#reference_sequence = parse_reference_genome()
+#gene_data = parse_gene_list()
+#gene_names, start_positions, end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands = gene_data
 
-    position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction = create_annotation_map(gene_data, repeat_data, mask_data)
+#position_gene_map, effective_gene_lengths, substitution_specific_synonymous_fraction = create_annotation_map(taxon=taxon, gene_data=gene_data)
 
-    print("Total:", len(reference_sequence))
-    print("Masked:", effective_gene_lengths['masked'])
-    print("Synonymous sites:", effective_gene_lengths['synonymous'])
-    print("Nonsynonymous sites:", effective_gene_lengths['nonsynonymous'])
-    print("Noncoding sites:", effective_gene_lengths['noncoding'])
+#print("Total:", len(reference_sequence))
+#print("Masked:", effective_gene_lengths['masked'])
+#print("Synonymous sites:", effective_gene_lengths['synonymous'])
+#print("Nonsynonymous sites:", effective_gene_lengths['nonsynonymous'])
+#print("Noncoding sites:", effective_gene_lengths['noncoding'])
 
-    print("Nonsynonymous:synonymous ratio:", effective_gene_lengths['nonsynonymous']/effective_gene_lengths['synonymous'])
-    print("Noncoding:synonymous ratio:", effective_gene_lengths['noncoding']/effective_gene_lengths['synonymous'])
-    print(len(gene_names), "genes")
-
-    operon_data = parse_operon_list(gene_data=gene_data,repeat_data=repeat_data,position_gene_map=position_gene_map)
-
-
-    for gene_name in gene_names:
-        if gene_name.startswith('mut'):
-            print(gene_name, annotate_operon(gene_name,operon_data))
+#print("Nonsynonymous:synonymous ratio:", effective_gene_lengths['nonsynonymous']/effective_gene_lengths['synonymous'])
+#print("Noncoding:synonymous ratio:", effective_gene_lengths['noncoding']/effective_gene_lengths['synonymous'])
+#print(len(gene_names), "genes")

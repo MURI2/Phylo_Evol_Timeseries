@@ -9,10 +9,8 @@ import statsmodels.stats.multitest as multi
 
 taxon = sys.argv[1]
 
-treatments = ['0', '1', '2']
-reps = ['1', '2', '3', '4', '5']
-
-
+treatments = pt.treatments
+replicates = pt.replicates
 
 gene_data = parse_file.parse_gene_list(taxon)
 
@@ -77,8 +75,10 @@ populations = pt.get_populations(taxon)
 
 
 for treatment in treatments:
-    for replicate in reps:
+    for replicate in replicates:
         population = treatment + taxon + replicate
+        if population in pt.populations_to_ignore:
+            continue
         #if population in pt.pops_to_ignore():
         #    continue
         #file = open(input_filename_template % population,"r")
