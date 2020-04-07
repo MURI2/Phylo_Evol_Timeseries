@@ -249,22 +249,6 @@ def get_codon_dict():
 
     return codon_dict
 
-def mutations_to_exclude():
-    directory = os.fsencode(get_path() + '/data/pool_pop_seq/rebreseq_annotated')
-    list_muts = []
-    for file in os.listdir(directory):
-        filename = os.fsdecode(file)
-        if filename.endswith('-100.gd'):
-            in_df = open(os.path.join(str(directory, 'utf-8'), filename), 'r')
-            for line in in_df:
-                line_split = line.strip().split()
-                if line_split[0] not in get_to_keep():
-                    continue
-                freq = [s for s in line_split if 'frequency=' in s][0].split('=')[1]
-                if float(freq) == float(1):
-                    list_muts.append(line_split[3] + '_' + line_split[4])
-    dict_muts = Counter(list_muts)
-    return [i for i in dict_muts if dict_muts[i] >= 10]
 
 
 

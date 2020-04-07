@@ -20,7 +20,7 @@ import phylo_tools as pt
 ###################
 
 #taxa = pt.taxa
-taxa = ['B', 'S', 'D']
+taxa = [ 'C']
 treatments = pt.treatments
 replicates = pt.replicates
 

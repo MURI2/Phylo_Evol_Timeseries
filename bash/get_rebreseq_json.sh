@@ -2,7 +2,7 @@
 
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq_json
 
-declare -a strains=("B" "S")
+declare -a strains=("B" "S" "C" "D" "F" "J" "P")
 declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 

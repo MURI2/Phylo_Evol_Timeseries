@@ -1,5 +1,5 @@
 from __future__ import division
-import os, sys
+import os, sys, json
 import pandas as pd
 import numpy as np
 import  matplotlib.pyplot as plt
@@ -45,43 +45,266 @@ latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \, \mathrm{wt} $',
 
 
 
-def temporal_coverage():
-    df = pd.read_csv(pt.get_path() + '/data/bacillus_coverage.txt', sep = '\t', header = 'infer')#, index_col = 0)
-    df['cov_ratio'] = df['CP020103'] / df['CP020102']
-    df = df.sort_values('Time')
-    strains = ['B', 'S']
 
-    fig = plt.figure()
-    count = 0
-    #taxa_to_analyze = taxa_to_analyze[:2]
-    fig.subplots_adjust(hspace=0.35, wspace=0.35)
-    for treatment in treatments:
-        col = pt.get_colors()[str(treatment)]
-        for strain in strains:
 
-            ax = fig.add_subplot(3, 2, count+1)
-            count+=1
+def plot_spores():
+    path_IN = pt.get_path() + '/data/spore_assay/Sporulation_170912_long.txt'
+    IN = pd.read_csv(path_IN, sep = '\t')
+    IN = IN.loc[IN['Time_hours'] <= 400]
+    #d100
+    IN_0B1_100 = IN.loc[(IN['Pop'] == '0B1') & (IN['Day'] == 100)]
+    IN_2B1_100 = IN.loc[(IN['Pop'] == '2B1') & (IN['Day'] == 100)]
+    IN_mean_0B1_100 = IN_0B1_100['Vegetative_percent'].groupby(IN_0B1_100['Time_hours']).mean().reset_index()
+    IN_mean_2B1_100 = IN_2B1_100['Vegetative_percent'].groupby(IN_2B1_100['Time_hours']).mean().reset_index()
+    IN_std_0B1_100 = IN_0B1_100['Vegetative_percent'].groupby(IN_0B1_100['Time_hours']).std().reset_index()
+    IN_std_2B1_100 = IN_2B1_100['Vegetative_percent'].groupby(IN_2B1_100['Time_hours']).std().reset_index()
+    # Day 500
+    IN_0B1_500 = IN.loc[(IN['Pop'] == '0B1') & (IN['Day'] == 500)]
+    IN_2B1_500 = IN.loc[(IN['Pop'] == '2B1') & (IN['Day'] == 500)]
+    IN_mean_0B1_500 = IN_0B1_500['Vegetative_percent'].groupby(IN_0B1_500['Time_hours']).mean().reset_index()
+    IN_mean_2B1_500 = IN_2B1_500['Vegetative_percent'].groupby(IN_2B1_500['Time_hours']).mean().reset_index()
+    IN_std_0B1_500 = IN_0B1_500['Vegetative_percent'].groupby(IN_0B1_500['Time_hours']).std().reset_index()
+    IN_std_2B1_500 = IN_2B1_500['Vegetative_percent'].groupby(IN_2B1_500['Time_hours']).std().reset_index()
 
-            if (count==1) :
-                ax.title.set_text(r'$\mathit{B. \. subtilis} \; \mathrm{sp.} \, \mathrm{168}$')
-            if (count==2) :
-                ax.title.set_text(r'$\mathit{B. \. subtilis} \; \mathrm{sp.} \, \mathrm{168} \, \Delta \mathrm{spo0A}$')
+    fig = plt.figure(figsize=(6,3))
 
-            reps = list(set(df.Replicate.to_list()))
-            for rep in reps:
-                df_i = df.loc[(df['Strain'] == strain) & (df['Treatment'] == treatment) & (df['Replicate'] == rep)]
-                ax.plot(df_i.Time, df_i.cov_ratio,  'o-', c=col)
+    #plt.scatter(IN_mean_0B1.Time_hours.values, IN_mean_0B1.Vegetative_percent.values, c='#87CEEB', marker='o', label='_nolegend_', s = 60)
+    plt.plot(IN_mean_0B1_100.Time_hours.values, 1.001- IN_mean_0B1_100.Vegetative_percent.values, \
+        'b-',  c='#87CEEB')
+    plt.plot(IN_mean_2B1_100.Time_hours.values, 1.001- IN_mean_2B1_100.Vegetative_percent.values, \
+        'b-',  c = '#FF6347')
+    plt.errorbar(IN_mean_0B1_100.Time_hours.values, 1.001- IN_mean_0B1_100.Vegetative_percent.values, \
+        IN_std_0B1_100.Vegetative_percent.values,  linestyle='None', marker='o', c='#87CEEB', elinewidth=1.5, label="1-day WT, day 100",)
+    plt.errorbar(IN_mean_2B1_100.Time_hours.values, 1.001- IN_mean_2B1_100.Vegetative_percent.values, \
+        IN_std_2B1_100.Vegetative_percent.values, linestyle='None', marker='o', c = '#FF6347', elinewidth=1.5, label="100-day WT, day 100",)
 
-            ax.set_ylim([-0.3, 3.5])
+    plt.plot(IN_mean_0B1_500.Time_hours.values, 1.001- IN_mean_0B1_500.Vegetative_percent.values, \
+        'b-',  c='#87CEEB')
+    plt.plot(IN_mean_2B1_500.Time_hours.values, 1.001- IN_mean_2B1_500.Vegetative_percent.values, \
+        'b-',  c = '#FF6347')
+    plt.errorbar(IN_mean_0B1_500.Time_hours.values, 1.001- IN_mean_0B1_500.Vegetative_percent.values, \
+        IN_std_0B1_500.Vegetative_percent.values,  linestyle='None', marker='v', c='#87CEEB', elinewidth=1.5, label="1-day WT, day 500",)
+    plt.errorbar(IN_mean_2B1_500.Time_hours.values, 1.001- IN_mean_2B1_500.Vegetative_percent.values, \
+        IN_std_2B1_500.Vegetative_percent.values, linestyle='None', marker='v', c = '#FF6347', elinewidth=1.5, label="100-day WT, day 500",)
+    #plt.title('Bacillus sporulation', fontsize = 24)
+    plt.xlabel('Time (hours)', fontsize = 18)
+    plt.ylabel('Percent spores', fontsize = 18)
+    plt.ylim(0.0008, 1.1)
+    plt.xlim(-5, 400)
+    plt.yscale('log')
+    plt.legend(numpoints=1, prop={'size':8},  loc='lower right', frameon=False)
 
-            ax.axhline(y=1, color='darkgrey', linestyle='--')
+    plt.title(latex_dict['B'], fontsize=24)
 
-    fig.text(0.5, 0.02, 'Time (days)', ha='center', fontsize=16)
-    fig.text(0.02, 0.5, 'Plasmid-chromosome coverage ratio', va='center', rotation='vertical', fontsize=14)
-
-    fig_name = pt.get_path() + '/figs/plasmid_coverage_plot_new.png'
+    fig_name = pt.get_path() + '/figs/spore_assay.png'
     fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     plt.close()
+
+
+
+
+def plot_spo0a_fitness():
+    df = pd.read_csv(pt.get_path() + '/data/competition_2018-1-9-count.txt', sep = '\t')
+    rows_to_keep = []
+    for index, row in df.iterrows():
+        wt = row['WT']
+        spo0a = row['spoA']
+        if (wt == 'TMTC') or (spo0a == 'TMTC') :
+            continue
+        wt_spo0a = int(wt) + int(spo0a)
+        if (wt_spo0a < 30):
+            continue
+        rows_to_keep.append(index)
+
+
+    def cfus_ml(column, conc):
+        return column * (10 ** (int(conc) * -1))
+
+    df_keep = df.ix[rows_to_keep]
+    df_keep.WT = df_keep.WT.astype(int)
+    df_keep.spoA = df_keep.spoA.astype(int)
+
+    df_keep['WT_cfus_ml'] = df_keep.apply(lambda x: cfus_ml(x.WT, x.Concentration), axis=1)
+    df_keep['spoA_cfus_ml'] = df_keep.apply(lambda x: cfus_ml(x.spoA, x.Concentration), axis=1)
+
+    df_keep = df_keep.drop(['Concentration', 'WT', 'spoA', 'Rep'], 1)
+    df_keep = df_keep.groupby(['Day','Flask'], as_index=False).mean()
+
+    flask_1 = df_keep.loc[df_keep['Flask'] == 1]
+    flask_2 = df_keep.loc[df_keep['Flask'] == 2]
+    flask_3 = df_keep.loc[df_keep['Flask'] == 3]
+
+    relative_fitness_1 = np.log((flask_1['spoA_cfus_ml'].values / flask_1['WT_cfus_ml'].values) * ( 0.51/0.49))
+    relative_fitness_2 = np.log((flask_2['spoA_cfus_ml'].values / flask_2['WT_cfus_ml'].values) * ( 0.48/0.52))
+    relative_fitness_3 = np.log((flask_3['spoA_cfus_ml'].values / flask_3['WT_cfus_ml'].values) * ( 0.54/0.46))
+
+    relative_fitness_per_time_1 = np.log((flask_1['spoA_cfus_ml'].values / flask_1['WT_cfus_ml'].values) * ( 0.51/0.49)) /  flask_1['Day'].values
+    relative_fitness_per_time_2 = np.log((flask_2['spoA_cfus_ml'].values / flask_2['WT_cfus_ml'].values) * ( 0.48/0.52)) /  flask_2['Day'].values
+    relative_fitness_per_time_3 = np.log((flask_3['spoA_cfus_ml'].values / flask_3['WT_cfus_ml'].values) * ( 0.54/0.46)) /  flask_3['Day'].values
+
+
+    zipped_relative = list(zip(list(relative_fitness_1), list(relative_fitness_2), list(relative_fitness_3)))
+    relative_mean = (relative_fitness_1 + relative_fitness_2 + relative_fitness_3) / 3
+    relative_se_list = []
+    for i , item in enumerate(zipped_relative):
+        relative_se_list.append(2*np.std(np.asarray(item)) / np.sqrt(len(item)))
+
+    zipped_relative_time = list(zip(list(relative_fitness_per_time_1), list(relative_fitness_per_time_2), list(relative_fitness_per_time_3)))
+    relative_time_mean = (relative_fitness_per_time_1 + relative_fitness_per_time_2 + relative_fitness_per_time_3) / 3
+    relative_time_se_list = []
+    for i , item in enumerate(zipped_relative_time):
+        relative_time_se_list.append(2*np.std(np.asarray(item)) / np.sqrt(len(item)))
+
+
+    fig = plt.figure(figsize = (10, 9))
+
+    ax_relative = plt.subplot2grid((2, 1), (0, 0), colspan=1)
+    ax_time_relative = plt.subplot2grid((2, 1), (1, 0), colspan=1)
+
+    ax_relative.axhline(y=0, color='grey', linestyle='--', lw = 3)
+    ax_relative.errorbar(flask_1['Day'].values, relative_mean, relative_se_list, linestyle='-', marker='o', lw = 3)
+    ax_relative.set_ylim(-5, 5)
+    ax_relative.set_ylabel(latex_dict['S'] + '\nrelative fitness at ' + r'$t$' + ', ' + r'$X(t)$'  , fontsize = 16)
+    ax_relative.set_xscale('log', basex=10)
+
+    ax_time_relative.axhline(y=0, color='grey', linestyle='--', lw = 3)
+    ax_time_relative.errorbar(flask_1['Day'].values, relative_time_mean, relative_time_se_list, linestyle='-', marker='o', lw = 3)
+    ax_time_relative.set_ylim(-0.35, 0.75)
+    ax_time_relative.set_ylabel(latex_dict['S'] + '\nrelative fitness, ' + r'$\Delta X$'  , fontsize = 16)
+    ax_time_relative.set_xscale('log', basex=10)
+
+
+    ax_time_relative.set_xlabel('Days, ' + r'$t$', fontsize = 20)
+
+    fig_name = pt.get_path() + '/figs/fitness_spo0a.png'
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+
+
+def temporal_coverage_B_S():
+
+    taxa = ['B', 'S']
+
+    fig = plt.figure(figsize = (14, 12))
+
+    for taxon_idx, taxon in enumerate(taxa):
+
+        for treatment_idx, treatment in enumerate(treatments):
+
+            ax_i = plt.subplot2grid((3, 2), (treatment_idx, taxon_idx), colspan=1)
+
+            if treatment_idx == 0:
+                ax_i.set_title(latex_dict[taxon] + '\nplasmid pBS32 (84,215bp)', fontsize=20 )
+
+            if taxon_idx == 0:
+                ax_i.set_ylabel( str(int(10** int(treatment) ) ) + '-day transfer', fontsize=20  )
+
+
+            for replicate in replicates:
+
+                population = '%s%s%s' % (treatment, taxon, replicate)
+
+                coverage_ratio = []
+                times = []
+
+                for time in [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]:
+
+                    sample = '%s_%s' % (population, time)
+                    sample_path = pt.get_path() + '/data/rebreseq_json/%s.json' % sample
+
+                    if os.path.isfile(sample_path) == False:
+                        continue
+
+                    data = json.load(open(sample_path))
+
+                    if data['references']['reference']['NZ_CP020102']['coverage_average'] >= 50:
+                        coverage_ratio.append(data['references']['reference']['NZ_CP020103']['coverage_average'] / data['references']['reference']['NZ_CP020102']['coverage_average'])
+                        times.append(time)
+
+                ax_i.plot(times, coverage_ratio,  marker=pt.plot_species_marker(taxon), c=pt.get_colors(treatment), linestyle='dashed', alpha=0.8, ms = 10, lw=1.5, zorder=2)
+                ax_i.axhline(y=1, color='darkgrey', linestyle='--', zorder=1)
+                ax_i.axhline(y=0, color='k', linestyle=':', zorder=1)
+                ax_i.set_ylim([-0.3, 3.5])
+                if taxon == 'B':
+                    ax_i.xaxis.set_tick_params(labelsize=10)
+
+    fig.text(0.5, 0.05, 'Days', ha='center', fontsize=30)
+    fig.text(0.05, 0.4, 'Plasmid-chromosome coverage ratio', va='center', rotation='vertical', fontsize=28)
+
+    fig_name = pt.get_path() + '/figs/plasmid_coverage_B_S.png'
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+
+
+
+def temporal_coverage_D():
+
+    plasmids = ['NC_001264', 'NC_000958', 'NC_000959']
+
+    pladmid_name_dict = {'NC_001264':'chromosome 2 (412,348bp)', 'NC_000958': 'plasmid MP1 (177,466bp)', 'NC_000959': 'plasmid CP1 (45,704bp)'}
+
+    fig = plt.figure(figsize = (18, 14))
+
+    taxon = 'D'
+
+    for plasmid_idx, plasmid in enumerate(plasmids):
+
+        for treatment_idx, treatment in enumerate(treatments):
+
+            ax_i = plt.subplot2grid((3, 3), (treatment_idx, plasmid_idx), colspan=1)
+
+            if treatment_idx == 0:
+
+                ax_i.set_title( latex_dict[taxon] + '\n' + pladmid_name_dict[plasmid], fontsize=20 )
+
+            if plasmid_idx == 0:
+
+                ax_i.set_ylabel( str(int(10** int(treatment) ) ) + '-day transfer', fontsize=20  )
+
+            for replicate in replicates:
+
+                population = '%s%s%s' % (treatment, taxon, replicate)
+
+                coverage_ratio = []
+                times = []
+
+                for time in [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]:
+
+                    sample = '%s_%s' % (population, str(time))
+                    sample_path = pt.get_path() + '/data/rebreseq_json/%s.json' % sample
+
+                    if os.path.isfile(sample_path) == False:
+                        continue
+
+                    data = json.load(open(sample_path))
+
+                    if data['references']['reference']['NC_001263']['coverage_average'] >= 50:
+                        coverage_ratio.append(data['references']['reference'][plasmid]['coverage_average'] / data['references']['reference']['NC_001263']['coverage_average'])
+                        times.append(time)
+
+                ax_i.plot(times, coverage_ratio,  marker=pt.plot_species_marker(taxon), c=pt.get_colors(treatment), linestyle='dashed', alpha=0.8, ms = 10, lw=1.5, zorder=2)
+                ax_i.axhline(y=1, color='darkgrey', linestyle='--', zorder=1)
+                ax_i.axhline(y=0, color='k', linestyle=':', zorder=1)
+
+                if treatment_idx == plasmid_idx == 2:
+                    ax_i.set_ylim([-0.3, 8.5])
+                else:
+                    ax_i.set_ylim([-0.3, 5.5])
+
+
+    fig.text(0.5, 0.05, 'Days', ha='center', fontsize=30)
+    fig.text(0.05, 0.5, 'Plasmid-chromosome coverage ratio', va='center', rotation='vertical', fontsize=28)
+
+    fig_name = pt.get_path() + '/figs/plasmid_coverage_D.png'
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
 
 
 
@@ -459,92 +682,6 @@ def calculate_unnormalized_survival_from_vector(xs, min_x=None, max_x=None, min_
 
 
 
-# NullGeneLogpSurvivalFunction class is modified from GitHub repo
-# benjaminhgood/LTEE-metagenomic under GPL v2
-class NullGeneLogpSurvivalFunction(object):
-    # Null distribution of -log p for each gene
-
-    def __init__(self, Ls, ntot,nmin=0):
-        self.ntot = ntot
-        self.Ls = np.array(Ls)*1.0
-        self.Lavg = self.Ls.mean()
-        self.ps = self.Ls/self.Ls.sum()
-        self.expected_ns = self.ntot*self.ps
-        self.nmin = nmin
-
-    @classmethod
-    def from_parallelism_statistics(cls, gene_parallelism_statistics,nmin=0):
-
-        # calculate Ls
-        Ls = []
-        ntot = 0
-        for gene_name in gene_parallelism_statistics.keys():
-            Ls.append(gene_parallelism_statistics[gene_name]['length'])
-            ntot += gene_parallelism_statistics[gene_name]['observed']
-
-        return cls(Ls, ntot, nmin)
-
-    def __call__(self, mlogps):
-
-        # Do sum by hand
-        ns = np.arange(0,400)*1.0
-
-        logpvalues = calculate_poisson_log_survival(ns[None,:], self.expected_ns[:,None])
-
-        logprobabilities = ns[None,:]*np.log(self.expected_ns)[:,None]-gammaln(ns+1)[None,:]-self.expected_ns[:,None]
-        probabilities = np.exp(logprobabilities)
-        survivals = np.array([ ((logpvalues>=mlogp)*(ns[None,:]>=self.nmin)*probabilities).sum() for mlogp in mlogps])
-        return survivals
-
-
-
-
-# calculate_poisson_log_survival function is modified from GitHub repo
-# benjaminhgood/LTEE-metagenomic under GPL v2
-def calculate_poisson_log_survival(ns, expected_ns):
-    # change threshold from 1e-20 to 1e-60 so that genes w/ most mutations can pass
-
-    survivals = stats.poisson.sf(ns-0.1, expected_ns)
-
-    logsurvivals = np.zeros_like(survivals)
-    logsurvivals[survivals>1e-60] = -np.log(survivals[survivals>1e-60])
-    logsurvivals[survivals<=1e-60] = (-ns*np.log(ns/expected_ns+(ns==0))+ns-expected_ns)[survivals<=1e-60]
-
-    return logsurvivals
-
-
-# calculate_parallelism_logpvalues function is modified from GitHub repo
-# benjaminhgood/LTEE-metagenomic under GPL v2
-def calculate_parallelism_logpvalues(gene_statistics):
-
-    gene_names = []
-    Ls = []
-    ns = []
-    expected_ns = []
-
-    for gene_name in gene_statistics.keys():
-        gene_names.append(gene_name)
-        ns.append(gene_statistics[gene_name]['observed'])
-        expected_ns.append(gene_statistics[gene_name]['expected'])
-
-    ns = np.array(ns)
-    expected_ns = np.array(expected_ns)
-
-
-    logpvalues = calculate_poisson_log_survival(ns, expected_ns)
-
-    return {gene_name: logp for gene_name, logp in zip(gene_names, logpvalues)}
-
-
-
-
-
-
-
-
-
-
-
 
 def get_mutation_fixation_trajectories(population):
 
@@ -574,6 +711,8 @@ def get_mutation_fixation_trajectories(population):
         t0,tf,transit_time = timecourse_utils.calculate_appearance_fixation_time_from_hmm(masked_times, masked_freqs, masked_state_Ls)
         if t0==tf==transit_time==None:
             continue
+
+        #print(masked_times, masked_freqs)
 
         interpolating_function = timecourse_utils.create_interpolation_function(masked_times, masked_freqs, tmax=100000)
 
@@ -1498,7 +1637,11 @@ def plot_within_taxon_paralleliism(taxon):
 
 
 
+#plot_spo0a_fitness()
 
+
+
+#plot_spores()
 
 #plot_within_taxon_paralleliism('D')
 
@@ -1514,10 +1657,10 @@ def plot_within_taxon_paralleliism(taxon):
 
 #plot_allele_freqs_all_treats('B')
 #plot_allele_freqs_all_treats('S')
-#plot_allele_freqs_all_treats('D')
+#plot_allele_freqs_all_treats('C')
 
-#plot_taxon_mutation_trajectory('D')
+#plot_taxon_mutation_trajectory('C')
 
 
 #plot_bPTR_all()
-#temporal_coverage()
+temporal_coverage_B_S()

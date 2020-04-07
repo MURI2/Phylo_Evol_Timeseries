@@ -1,0 +1,6 @@
+Module ID, Module type, Description, 1-day, 10-day, 100-day
+M00260, Complex, DNA polymerase III complex, bacteria, 1/3, 2/3, 2/3
+M00258, Complex, Putative ABC transport system, 2/3, 0/3, 0/3
+M00083, Pathway, Fatty acid biosynthesis, elongation, 2/3, 1/3, 0/3
+M00240, Complex, Iron complex transport system, 2/3, 2/3, 2/3
+M00331, Complex, Type II general secretion pathway, 0/3, 1/3, 2/3

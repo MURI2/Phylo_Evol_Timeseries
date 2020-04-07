@@ -141,7 +141,7 @@ def create_interpolation_function(times,freqs,tmax=100000,kind='linear'):
     #interpolated_freqs = 1.0/(1+numpy.exp(-interpolated_xis))
     #freqs = 1.0/(1+numpy.exp(-xis))
 
-    interpolating_function = interp1d(padded_times, padded_freqs, kind=kind,bounds_error=True)
+    interpolating_function = interp1d(padded_times, padded_freqs, kind=kind,fill_value="extrapolate") # bounds_error=True,fill_value="extrapolate")
 
     return interpolating_function
 

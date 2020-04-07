@@ -79,8 +79,6 @@ for treatment in treatments:
         population = treatment + taxon + replicate
         if population in pt.populations_to_ignore:
             continue
-        #if population in pt.pops_to_ignore():
-        #    continue
         #file = open(input_filename_template % population,"r")
         likelihood_filename = '%s_likelihood_timecourse.bz' % (population)
         likelihood_timecourse_path = pt.get_path() + '/data/timecourse_likelihood/' + likelihood_filename

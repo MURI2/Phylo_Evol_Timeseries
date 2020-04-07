@@ -31,7 +31,7 @@ else:
 # first get data, then make plot
 
 
-taxa = ['B', 'S', 'D']
+taxa = ['C']
 treatments=pt.treatments
 replicates = pt.replicates
 
@@ -116,45 +116,6 @@ for taxon in taxa:
         sys.stdout.write("Found %d significant %ss (p* = %g)\n" % (num_significant, level, exp(-pstar)))
 
 
-
-
-
-
-        #mpl.rcParams['font.size'] = 5.0
-        #mpl.rcParams['lines.linewidth'] = 1.0
-        #mpl.rcParams['legend.frameon']  = False
-        #mpl.rcParams['legend.fontsize']  = 'small'
-
-        #fig = plt.figure(figsize=(2.7, 1.7))
-
-        #grid = gridspec.GridSpec(1, 1)
-
-        #pvalue_axis = plt.Subplot(fig, grid[0])
-        #fig.add_subplot(pvalue_axis)
-
-        #pvalue_axis.spines['top'].set_visible(False)
-        #pvalue_axis.spines['right'].set_visible(False)
-        #pvalue_axis.get_xaxis().tick_bottom()
-        #pvalue_axis.get_yaxis().tick_left()
-
-        #pvalue_axis.set_ylabel('Number of %ss' % level)
-        #pvalue_axis.set_xlabel('$- \\log_{10} P$')
-        #pvalue_axis.set_ylim([1,1000])
-        #pvalue_axis.set_xlim([-1,20])
-
-
-        #pvalue_axis.step(observed_ps/log(10), null_pvalue_survival(observed_ps),'-',label='Expected',color='k')
-
-        #pvalue_axis.step(observed_ps/log(10), observed_pvalue_survival,'b-',label='Observed')
-        #pvalue_axis.semilogy([pstar/log(10), pstar/log(10)],[5e-02,num_significant],'k-',linewidth=0.5)
-        #pvalue_axis.semilogy([-3,pstar/log(10)],[num_significant, num_significant],'k-',linewidth=0.5)
-        #pvalue_axis.semilogy([pstar/log(10)],[num_significant],'r.')
-
-        #pvalue_axis.legend(loc='upper right',frameon=False)
-
-        #fig.savefig(parse_file.figure_directory+"supplemental_%s_parallelism_pvalue.pdf" % level,bbox_inches='tight')
-
-
         ntot = 0
         nsignificant = 0
         Ltot = 0
@@ -162,7 +123,6 @@ for taxon in taxa:
 
         nonsignificant_genes = []
 
-        #output_filename = +("parallel_%ss.txt" % level)
         output_file = open(pt.get_path() +'/data/timecourse_final/' +  ("parallel_%ss_%s.txt" % (level, treatment+taxon)) ,"w")
 
         # print header

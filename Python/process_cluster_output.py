@@ -11,7 +11,6 @@ import phylo_tools as pt
 
 
 likelihood_directory = pt.get_path() + '/data/timecourse_likelihood/'
-final_directory = pt.get_path() + '/data/final_directory'
 filter_snps_path = pt.get_path() + '/Python/filter_snps_and_calculate_depth.py'
 pvals_python_path = pt.get_path() + '/Python/annotate_pvalues.py'
 filter_pvals_python_path = pt.get_path() + '/Python/filter_pvalues.py'
@@ -26,7 +25,7 @@ reps = ['1', '2', '3', '4', '5']
 #treatments = ['0']
 #reps = ['1']
 #strains = ['B', 'C', 'D', 'F', 'J', 'P', 'S']
-strains = ['F']
+strains = ['C']
 
 def process_output():
     for strain in strains:
@@ -53,22 +52,22 @@ def process_output():
                 annotated_timecourse_path = pt.get_path() + '/data/timecourse_final/' + annotated_timecourse_filename
 
                 # Filter SNPs and calculate avg depth per sample
-                sys.stdout.write('Filtering SNPS and calculating depth...\n')
-                return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
-                if return_val==0:
-                    sys.stdout.write('Done!\n')
-                else:
-                    sys.stdout.write("Error!\n")
+                #sys.stdout.write('Filtering SNPS and calculating depth...\n')
+                #return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
+                #if return_val==0:
+                #    sys.stdout.write('Done!\n')
+                #else:
+                #    sys.stdout.write("Error!\n")
 
 
                 # Call indels
-                sys.stdout.write("Calling indels...\n")
-                call_indels_path = pt.get_path() + '/Python/call_indels.py'
-                return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
-                if return_val==0:
-                    sys.stdout.write('Done!\n')
-                else:
-                    sys.stdout.write("Error!\n")
+                #sys.stdout.write("Calling indels...\n")
+                #call_indels_path = pt.get_path() + '/Python/call_indels.py'
+                #return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
+                #if return_val==0:
+                #    sys.stdout.write('Done!\n')
+                #else:
+                #    sys.stdout.write("Error!\n")
 
 
                 # Get pvalues
@@ -84,23 +83,22 @@ def process_output():
 
     sys.stdout.write("\n\nTrajectory post-processing output for energy-limited evolution sequencing project\n")
     sys.stdout.write("Date: %s\n\n" % str(date.today()))
-    os.system('mkdir -p %s' % final_directory)
 
     # Filter and annotate timecourse
-    #sys.stdout.write('Performing final filtering and annotation step...\n')
-    #return_val = os.system('python %s %s' % (combined_annotate_timecourse_path, strain))
-    #if return_val==0:
-    #    sys.stdout.write('Done!\n')
-    #else:
-    #    sys.stdout.write("Error!\n")
+    sys.stdout.write('Performing final filtering and annotation step...\n')
+    return_val = os.system('python %s %s' % (combined_annotate_timecourse_path, strain))
+    if return_val==0:
+        sys.stdout.write('Done!\n')
+    else:
+        sys.stdout.write("Error!\n")
 
     # Infer trajectory states in well-mixed HMM
-    #sys.stdout.write('Inferring trajectory states in well-mixed HMM...\n')
-    #return_val = os.system('python %s %s' % (well_mixed_hmm_wrapper, strain))
-    #if return_val==0:
-    #    sys.stdout.write('Done!\n')
-    #else:
-    #    sys.stdout.write("Error!\n")
+    sys.stdout.write('Inferring trajectory states in well-mixed HMM...\n')
+    return_val = os.system('python %s %s' % (well_mixed_hmm_wrapper, strain))
+    if return_val==0:
+        sys.stdout.write('Done!\n')
+    else:
+        sys.stdout.write("Error!\n")
 
 
 
