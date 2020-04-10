@@ -27,6 +27,9 @@ for treatment in treatments:
     for replicate in reps:
         population = treatment + taxon + replicate
 
+        if population in pt.populations_to_ignore:
+            continue
+
         times_to_ignore = pt.samples_to_remove(population)
 
         mutations = []

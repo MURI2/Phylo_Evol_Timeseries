@@ -430,6 +430,8 @@ def parse_gene_list(taxon, reference_sequence=None):
                 if '+' in location_str:
                     if taxon == 'D':
                         pos_position = [pos for pos, char in enumerate(location_str) if char == '+']
+                    elif taxon == 'J':
+                        pos_position = [pos for pos, char in enumerate(location_str) if char == '+']
                     else:
                         pos_position = [r.start() for r in re.finditer('+', location_str)]
 
@@ -686,21 +688,23 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
 clade_hmm_states = {'A':0,'E':1,'FB':2,'FM':3, 'Fm':4,'PB':5,'PM':6,'Pm':7,'PB*':8}
 well_mixed_hmm_states = {'A':0,'E':1,'F':2,'P':3}
 
-UNBORN = clade_hmm_states['A']
-EXTINCT= clade_hmm_states['E']
-ANCESTRAL_FIXED = clade_hmm_states['FB']
-MINOR_FIXED=clade_hmm_states['Fm']
-MAJOR_FIXED=clade_hmm_states['FM']
-ANCESTRAL_POLYMORPHIC=clade_hmm_states['PB']
-MINOR_POLYMORPHIC=clade_hmm_states['Pm']
-MAJOR_POLYMORPHIC=clade_hmm_states['PM']
+UNBORN = well_mixed_hmm_states['A']
+EXTINCT= well_mixed_hmm_states['E']
+POLYMORPHIC= well_mixed_hmm_states['P']
+
+#ANCESTRAL_FIXED = clade_hmm_states['FB']
+#MINOR_FIXED=clade_hmm_states['Fm']
+#MAJOR_FIXED=clade_hmm_states['FM']
+#ANCESTRAL_POLYMORPHIC=clade_hmm_states['PB']
+#MINOR_POLYMORPHIC=clade_hmm_states['Pm']
+#MAJOR_POLYMORPHIC=clade_hmm_states['PM']
 
 clade_extinct_states = set([clade_hmm_states['A'],clade_hmm_states['E']])
-clade_fixed_states = set([clade_hmm_states['FB'], clade_hmm_states['FM'], clade_hmm_states['Fm'], clade_hmm_states['PB*']])
+#clade_fixed_states = set([clade_hmm_states['FB'], clade_hmm_states['FM'], clade_hmm_states['Fm'], clade_hmm_states['PB*']])
 
-clade_majority_states = set([clade_hmm_states['FB'], clade_hmm_states['FM'], clade_hmm_states['PB'],clade_hmm_states['PM'],clade_hmm_states['PB*']])
+#clade_majority_states = set([clade_hmm_states['FB'], clade_hmm_states['FM'], clade_hmm_states['PB'],clade_hmm_states['PM'],clade_hmm_states['PB*']])
 
-clade_polymorphic_states = set([clade_hmm_states['PB'], clade_hmm_states['PM'], clade_hmm_states['Pm']])
+#clade_polymorphic_states = set([clade_hmm_states['PB'], clade_hmm_states['PM'], clade_hmm_states['Pm']])
 
 well_mixed_extinct_states = set([well_mixed_hmm_states['A'], well_mixed_hmm_states['E']])
 well_mixed_polymorphic_states = set([well_mixed_hmm_states['P']])
@@ -969,7 +973,7 @@ def parse_convergence_matrix(filename):
             subitems = item.split(";")
             for subitem in subitems:
                 subsubitems = subitem.split(":")
-                mutation = (float(subsubitems[0]), int(subsubitems[1]), float(subsubitems[2]))
+                mutation = (float(subsubitems[0]), int(subsubitems[1]), float(subsubitems[2]), float(subsubitems[3]) )
                 convergence_matrix[gene_name]['mutations'][population].append(mutation)
 
 

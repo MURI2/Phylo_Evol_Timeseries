@@ -172,8 +172,8 @@ for treatment in treatments:
                 freqs = timecourse_utils.estimate_frequencies(filtered_alts, filtered_depths)
                 masked_times = times[good_idxs]
                 masked_freqs = freqs[good_idxs]
-
-                masked_depth_ratios = depths[good_idxs]/pop_avg_depths[good_idxs]
+                # add pseudocount of 1
+                masked_depth_ratios = depths[good_idxs]/(pop_avg_depths[good_idxs]+1)
 
                 #interpolation_function = timecourse_utils.create_interpolation_function(masked_times, masked_freqs, tmax=100000)
 
@@ -190,6 +190,8 @@ for treatment in treatments:
 
         file.close()
 
+        if len(annotated_mutations) == 0:
+            continue
 
         output_filename_template = pt.get_path() + "/data/timecourse_final/%s_annotated_timecourse.txt"
         # now write them out in sorted order

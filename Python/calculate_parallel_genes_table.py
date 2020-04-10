@@ -31,7 +31,7 @@ else:
 # first get data, then make plot
 
 
-taxa = ['C']
+taxa = [ 'J', 'F', 'P']
 treatments=pt.treatments
 replicates = pt.replicates
 
@@ -92,12 +92,13 @@ for taxon in taxa:
         gene_qvalues, gene_pvalues = mutation_spectrum_utils.calculate_parallelism_qvalues(gene_parallelism_statistics)
 
         gene_logpvalues = mutation_spectrum_utils.calculate_parallelism_logpvalues(gene_parallelism_statistics)
-
         pooled_pvalues = []
         for gene_name in gene_logpvalues.keys():
             if gene_parallelism_statistics[gene_name]['observed']>=nmin:
                 pooled_pvalues.append( gene_logpvalues[gene_name] )
         pooled_pvalues = numpy.asarray(pooled_pvalues)
+        if len(pooled_pvalues) == 0:
+            continue
         pooled_pvalues.sort()
 
         null_pvalue_survival = mutation_spectrum_utils.NullGeneLogpSurvivalFunction.from_parallelism_statistics( gene_parallelism_statistics, nmin=nmin)

@@ -1,0 +1,65 @@
+---
+output: pdf_document
+---
+
+
+```{r, results='asis', echo=FALSE, warning=FALSE, message=FALSE}
+rm(list = ls()) 
+setwd("~/GitHub/Phylo_Evol_Timeseries/")
+library(xtable)
+library(dplyr)
+
+df <- read.table("/Users/WRShoemaker/GitHub/Phylo_Evol_Timeseries/data/parallel_pathways.txt", 
+                 header = TRUE, sep = ",", stringsAsFactors = FALSE)
+                    
+df <- df[order(df$Module.type),]
+
+
+
+mat <- xtable(df, display = c("s", "s", "s","s", "s", "s", "s"), align=c("c","l","l","l", "c","c","c"), digits=c(0, 0, 0, 0, 0, 0, 0))
+
+print(mat, comment=FALSE, include.rownames=FALSE, latex.environments="flushleft", math.style.exponents = TRUE,  sanitize.text.function = function(x) {x})
+
+
+
+
+
+
+df.merge <- df.merge[ , !(names(df.merge) %in% drops)]
+
+df.merge.reorder <- select(df.merge, "FullSpecies", "mean_n_muts", "mean_freq", "max_freq", "max_binary_divisions", "max_gen_per_day", "max_birth_per_death") 
+
+colnames(df.merge.reorder) <- c("$\\mathrm{Taxon}$", "$n_{mut}$", "$\\bar{f}$", 
+                                "$f_{max}$", "$b_{max}$", "$T_{2, max} \\, \\textrm{days}$", "$b_{max}/d$")
+                                
+mat <- xtable(df.merge.reorder, display = c("s", "s", "f","f", "f", "g", "g", "g"), align=c("c","l","c","c", "c","c","c","c"), digits=c(0, 0, 0, 2, 2, 2, 2, 2))
+
+
+print(mat, comment=FALSE, include.rownames=FALSE, latex.environments="flushleft", math.style.exponents = TRUE,  sanitize.text.function = function(x) {x})
+
+```
+
+
+
+
+```
+
+
+
+\begin{tabular}{lrrrcrrr}
+\hline
+&\multicolumn{3}{c}{\textit{B. subtilis} wt }&&\multicolumn{3}{c}{\textit{B. subtilis} $\Delta$spo0A}\\
+\cline{2-4}\cline{6-8}
+Transfer time&Gens. (without $N_{f}$) &Gens. (with $N_{f}$)&&Slope&d.f.\\
+\hline
+1 Day&3,300&22&&2.62&22\\
+10 Days&-3.87&23&&-2.28&23\\
+100 Days&-3.87&23&&-2.28&23\\
+\hline
+\end{tabular}
+
+
+```
+
+
+

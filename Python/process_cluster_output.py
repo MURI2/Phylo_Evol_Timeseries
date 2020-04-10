@@ -25,7 +25,7 @@ reps = ['1', '2', '3', '4', '5']
 #treatments = ['0']
 #reps = ['1']
 #strains = ['B', 'C', 'D', 'F', 'J', 'P', 'S']
-strains = ['C']
+strains = ['P']
 
 def process_output():
     for strain in strains:

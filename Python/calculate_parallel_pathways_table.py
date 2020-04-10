@@ -8,7 +8,7 @@ import phylo_tools as pt
 MCR = 0.75
 
 treatments = ['0','1','2']
-taxa = ['B', 'C', 'D']
+taxa = ['B', 'C', 'D', 'F', 'J', 'P']
 maple_types = ['signature', 'complex', 'pathway', 'function']
 
 
@@ -20,7 +20,6 @@ for treatment in treatments:
 
     #kegg_dict_count[treatment] = {}
     #maple_dict_count[treatment] = {}
-
 
     for taxon in taxa:
 
@@ -35,8 +34,10 @@ for treatment in treatments:
             if items[1] != 'K_NA':
                 protein_id_kegg_dict[items[0]] = items[1]
 
-
-        significant_genes = open(pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+taxon) , 'r')
+        significant_genes_path=pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+taxon)
+        if os.path.exists(significant_genes_path) == False:
+            continue
+        significant_genes = open(significant_genes_path, 'r')
 
         first_line = significant_genes.readline()
         first_line = first_line.strip()
@@ -59,10 +60,6 @@ for treatment in treatments:
 
                 if taxon not in kegg_dict_count[protein_id_kegg_dict[protein_id]][treatment]:
                     kegg_dict_count[protein_id_kegg_dict[protein_id]][treatment].append(taxon)
-
-
-                #if taxon not in kegg_dict_count[treatment][protein_id_kegg_dict[protein_id]]:
-                #    kegg_dict_count[treatment][protein_id_kegg_dict[protein_id]].append(taxon)
 
         # map KEGG genes onto pathays
         # get pathways
@@ -120,13 +117,6 @@ for treatment in treatments:
 
                 if kegg_i in maple_i_dict['KEGG']:
 
-                    #if maple_i not in maple_dict_count[treatment]:
-                    #    maple_dict_count[treatment][maple_i] = []
-
-                    #if taxon not in maple_dict_count[treatment][maple_i]:
-                    #    maple_dict_count[treatment][maple_dict_count].append(taxon)
-
-
                     if maple_i not in maple_dict_count:
                         maple_dict_count[ maple_i] = {}
 
@@ -135,12 +125,6 @@ for treatment in treatments:
 
                     if taxon not in maple_dict_count[maple_i][treatment]:
                         maple_dict_count[maple_i][treatment].append(taxon)
-
-
-                    #if kegg_i not in significant_kegg_maple_map:
-                    #    significant_kegg_maple_map[kegg_i] = []
-
-                    #significant_kegg_maple_map[kegg_i].append( maple_i)
 
 
 
@@ -161,6 +145,11 @@ for maple_i, maple_i_dict in maple_dict_count.items():
 
     type = maple_annotation_dict[maple_i]['type']
     description = maple_annotation_dict[maple_i]['description']
+    description = description.replace(',', ';')
+
+    description = description.split(';')[0]
+    description = description.replace(' (Pentose phosphate cycle)', '')
+    description = description.replace(' (PE)', '')
 
     if 'Ribosome' in description:
         continue

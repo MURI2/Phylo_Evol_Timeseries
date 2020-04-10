@@ -89,12 +89,6 @@ def calculate_ks_distance(t1s,t2s):
     #n = len(t1s)
     #m = len(t2s)
 
-    #D = numpy.fabs([(t1s<=t).mean()-(t2s<=t).mean() for t in ts]).max()
-    #own_ks =  D*(m*n*1.0/(n+m))**0.5
-
-    #print D, own_ks, scipy_ks
-
-    #return scipy_ks
 
 ####
 #

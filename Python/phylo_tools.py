@@ -13,8 +13,15 @@ taxa = ['B','S','C','D','F','J','P']
 treatments = ['0', '1', '2']
 replicates = ['1','2','3','4','5']
 
-populations_to_ignore = ['1D4'] # ['1C1']
+populations_to_ignore = ['1D4', '2P4', '2P5', '2F1', '2F2', '2F3', '0J2', '1J3'] # ['1C1']
 
+
+def get_B_S_generations(strain, treatment, day_cutoff=500):
+
+    B_S_generation_dict = {'B': { '0':3321, '1':1171, '2': 107},
+                            'S': {'0':3321, '1':544, '2':163} }
+
+    return B_S_generation_dict[strain][treatment] * (day_cutoff/1000)
 
 
 
@@ -38,7 +45,8 @@ def samples_to_remove(population):
                         '2S2':[700],
                         '2S3':[700],
                         '2S4':[700],
-                        '2S5':[700]}
+                        '2S5':[700],
+                        '1P5':[700]}
 
 
     if population not in population_dict:
@@ -159,9 +167,9 @@ def get_ref_gbff_dict(taxon):
                 "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.gbff",
                 "C": "data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCF_000022005.1_ASM2200v1_genomic.gbff",
                 "D": "data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCF_000008565.1_ASM856v1_genomic.gbff",
-                "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.gbff",
-                "J": "data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.gbff",
-                "P": "data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.gbff"}
+                "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCF_005938645.2_ASM593864v2_genomic.gbff",
+                "J": "data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCF_005937955.2_ASM593795v2_genomic.gbff",
+                "P": "data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCF_005938045.2_ASM593804v2_genomic.gbff"}
 
     return ref_dict[taxon]
 
@@ -171,25 +179,14 @@ def get_ref_fna_dict():
 
     ref_dict = {"B": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.fna",
                 "S": "data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCF_002055965.1_ASM205596v1_genomic.fna",
-                "C": "data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.fna",
-                "D": "data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.fna",
-                "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCA_005938645.1_ASM593864v1_genomic.fna",
-                "J": "data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCA_005937955.1_ASM593795v1_genomic.fna",
-                "P": "data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCA_005938045.1_ASM593804v1_genomic.fna"}
+                "C": "data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCF_000022005.1_ASM2200v1_genomic.fna",
+                "D": "data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCF_000008565.1_ASM856v1_genomic.fna",
+                "F": "data/reference_assemblies_task2/Pedobacter_sp_KBS0701/GCF_005938645.2_ASM593864v2_genomic.fna",
+                "J": "data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/GCF_005937955.2_ASM593795v2_genomic.fna",
+                "P": "data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/GCF_005938045.2_ASM593804v2_genomic.fna"}
     return ref_dict
 
 
-
-def get_ref_bresq_fna_dict():
-
-    ref_dict = {"B": "data/reference_assemblies_task2/breseq_refs/0B1_100.fasta",
-                "S": "data/reference_assemblies_task2/breseq_refs/0B1_100.fasta",
-                "C": "data/reference_assemblies_task2/breseq_refs/GCA_000022005.1_ASM2200v1_genomic.fna",
-                "D": "data/reference_assemblies_task2/breseq_refs/0D1_100.fasta",
-                "F": "data/reference_assemblies_task2/breseq_refs/GCA_005938645.1_ASM593864v1_genomic.fna",
-                "J": "data/reference_assemblies_task2/breseq_refs/GCA_005937955.1_ASM593795v1_genomic.fna",
-                "P": "data/reference_assemblies_task2/breseq_refs/GCA_005938045.1_ASM593804v1_genomic.fna"}
-    return ref_dict
 
 
 

@@ -8,6 +8,10 @@ from matplotlib.lines import Line2D
 import phylo_tools as pt
 import scipy.stats as stats
 import statsmodels.api as sm
+import statsmodels.stats.api as sms
+import statsmodels.formula.api as smf
+from statsmodels.compat import lzip
+
 
 import parse_file
 import timecourse_utils
@@ -134,6 +138,8 @@ def plot_spo0a_fitness():
     flask_2 = df_keep.loc[df_keep['Flask'] == 2]
     flask_3 = df_keep.loc[df_keep['Flask'] == 3]
 
+    # mean initia CFU counts from notebook
+
     relative_fitness_1 = np.log((flask_1['spoA_cfus_ml'].values / flask_1['WT_cfus_ml'].values) * ( 0.51/0.49))
     relative_fitness_2 = np.log((flask_2['spoA_cfus_ml'].values / flask_2['WT_cfus_ml'].values) * ( 0.48/0.52))
     relative_fitness_3 = np.log((flask_3['spoA_cfus_ml'].values / flask_3['WT_cfus_ml'].values) * ( 0.54/0.46))
@@ -184,7 +190,7 @@ def plot_spo0a_fitness():
 
 
 
-def temporal_coverage_B_S():
+def temporal_plasmid_coverage_B_S():
 
     taxa = ['B', 'S']
 
@@ -243,7 +249,7 @@ def temporal_coverage_B_S():
 
 
 
-def temporal_coverage_D():
+def temporal_plasmid_coverage_D():
 
     plasmids = ['NC_001264', 'NC_000958', 'NC_000959']
 
@@ -299,7 +305,7 @@ def temporal_coverage_D():
 
 
     fig.text(0.5, 0.05, 'Days', ha='center', fontsize=30)
-    fig.text(0.05, 0.5, 'Plasmid-chromosome coverage ratio', va='center', rotation='vertical', fontsize=28)
+    fig.text(0.05, 0.5, 'Plasmid-chromosome 1 coverage ratio', va='center', rotation='vertical', fontsize=28)
 
     fig_name = pt.get_path() + '/figs/plasmid_coverage_D.png'
     fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
@@ -755,6 +761,24 @@ def plot_B_S_mutation_trajectory():
 
                 sys.stderr.write("analyzed %d mutations!\n" % len(Ms))
 
+    # fixed mutations t-test for B vs S at day 1 and 10 at day 600
+
+    for treatment in ['0', '1']:
+        fixation_count_dict = {}
+        for taxon in taxa:
+            fixation_count_dict[taxon] = []
+            for replicate in replicates:
+                population = treatment + taxon + replicate
+                fixation_idx = np.where(fixed_mutation_trajectories[population][0] == 600)
+                print(fixed_mutation_trajectories[population][1])
+                fixation_count_dict[taxon].append(fixed_mutation_trajectories[population][1][fixation_idx][0])
+        print(fixation_count_dict)
+
+        print(np.mean(fixation_count_dict['B']))
+
+        print(stats.ttest_ind(fixation_count_dict['B'], fixation_count_dict['S'], equal_var=False))
+
+        #ss.t.sf(t_stat, len(x) + len(y) - 2)
 
     fig = plt.figure(figsize = (10, 9))
 
@@ -1088,12 +1112,12 @@ def allele_survival():
 
 
 
-def plot_allele_corr_delta(min_trajectory_length=3):
+def plot_allele_corr_delta_B_S(min_trajectory_length=3):
 
     mutation_trajectories = {}
     fixed_mutation_trajectories = {}
     #transit_times = {}
-    taxa = ['B', 'S', 'D']
+    taxa = ['B', 'S']
 
     r2s_obs_dict = {}
 
@@ -1177,7 +1201,130 @@ def plot_allele_corr_delta(min_trajectory_length=3):
                             intersect_idx_j = [np.where(delta_masked_times_P_j == intersect_time)[0][0] for intersect_time in intersect_times ]
                             intersect_delta_j = delta_masked_freqs_P_j[intersect_idx_j]
 
+                            if len(intersect_delta_i) != len(intersect_delta_j):
+                                print(len(intersect_delta_j), len(intersect_delta_j))
 
+                            r2 = stats.pearsonr(intersect_delta_i, intersect_delta_j)[0] ** 2
+                            r2s.append(r2)
+
+            r2s_obs_dict[treatment + taxon] = r2s
+
+    fig = plt.figure(figsize = (12, 6))
+
+    #tuples = [ (0,0), (0,1), (1,0), (1,1)]
+    #for i, taxon in enumerate(taxa):
+    for treatment_idx, treatment in enumerate(['0', '1']):
+
+        ax_i = plt.subplot2grid((1, 2), (0,treatment_idx), colspan=1)
+        ax_i.set_title( str(10**int(treatment))+ '-day transfers', fontsize=17)
+
+        for taxon in taxa:
+
+            r2_treatment_taxon = r2s_obs_dict[treatment+taxon]
+            ax_i.hist(r2_treatment_taxon, label=latex_dict[taxon], linestyle=pt.get_taxon_ls(taxon), color= pt.get_colors(treatment), lw=3, histtype='step', bins = 40, alpha =1, weights=np.zeros_like(r2_treatment_taxon) + 1. / len(r2_treatment_taxon))
+            ax_i.set_xlim([0,1] )
+            ax_i.set_yscale('log', basey=10)
+            #ax_i.set_title(latex_dict[taxon], fontsize=18, fontweight='bold')
+            #ax_i.set_xlabel("Squared correlation between\nallele frequency trajectories, " + r'$\rho_{M_{\mathrm{P}}^{ (i) }, M_{\mathrm{P}}^{ (j) }  }^{2} $' , fontsize = 14)
+
+        if treatment_idx == 0:
+            ax_i.legend(loc='upper right', fontsize=12)
+
+    fig.text(0.5, -0.03, "Squared correlation between\nallele frequency trajectories, " + r'$\rho_{M_{\mathrm{P}}^{ (i) }, M_{\mathrm{P}}^{ (j) }  }^{2} $', ha='center', va='center', fontsize=20)
+    fig.text(0.05, 0.5, 'Frequency', ha='center', va='center', rotation='vertical',  fontsize=24)
+
+    fig_name = pt.get_path() + '/figs/r2_B_S.png'
+    fig.subplots_adjust(hspace=0.3)
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+def plot_allele_corr_delta(min_trajectory_length=3):
+
+    mutation_trajectories = {}
+    fixed_mutation_trajectories = {}
+    #transit_times = {}
+    taxa = ['C', 'D', 'J', 'P', 'F']
+
+    r2s_obs_dict = {}
+
+    for taxon in taxa:
+        for treatment in ['0', '1']:
+            r2s = []
+            for replicate in replicates:
+                population = treatment + taxon + replicate
+                if population in pt.populations_to_ignore:
+                    continue
+                sys.stderr.write("Processing %s...\n" % population)
+
+                mutations, depth_tuple = parse_file.parse_annotated_timecourse(population)
+                population_avg_depth_times, population_avg_depths, clone_avg_depth_times, clone_avg_depths = depth_tuple
+                state_times, state_trajectories = parse_file.parse_well_mixed_state_timecourse(population)
+
+                times = mutations[0][9]
+                Ms = np.zeros_like(times)*1.0
+                fixed_Ms = np.zeros_like(times)*1.0
+
+                for mutation_idx_i in range(0,len(mutations)):
+
+                    location_i, gene_name_i, allele_i, var_type_i, test_statistic_i, pvalue_i, cutoff_idx_i, depth_fold_change_i, depth_change_pvalue_i, times_i, alts_i, depths_i, clone_times_i, clone_alts_i, clone_depths_i = mutations[mutation_idx_i]
+
+                    state_Ls_i = state_trajectories[mutation_idx_i]
+                    good_idx_i, filtered_alts_i, filtered_depths_i = timecourse_utils.mask_timepoints(times_i, alts_i, depths_i, var_type_i, cutoff_idx_i, depth_fold_change_i, depth_change_pvalue_i)
+                    freqs_i = timecourse_utils.estimate_frequencies(filtered_alts_i, filtered_depths_i)
+
+                    masked_times_i = times[good_idx_i]
+                    masked_freqs_i = freqs_i[good_idx_i]
+                    masked_state_Ls_i = state_Ls_i[good_idx_i]
+
+                    P_idx_i = np.where(masked_state_Ls_i == 3)[0]
+                    if len(P_idx_i) < min_trajectory_length:
+                        continue
+                    first_P_i = P_idx_i[0]
+                    last_P_i = P_idx_i[-1]
+
+                    masked_freqs_P_i = masked_freqs_i[first_P_i:last_P_i+1]
+                    masked_times_P_i = masked_times_i[first_P_i:last_P_i+1]
+
+                    delta_masked_freqs_P_i = masked_freqs_P_i[1:] - masked_freqs_P_i[:-1]
+                    delta_masked_times_P_i = masked_times_P_i[:-1]
+
+
+                    for mutation_idx_j in range(mutation_idx_i+1,len(mutations)):
+
+                        location_j, gene_name_j, allele_j, var_type_j, test_statistic_j, pvalue_j, cutoff_jdx_j, depth_fold_change_j, depth_change_pvalue_j, times_j, alts_j, depths_j, clone_times_j, clone_alts_j, clone_depths_j = mutations[mutation_idx_j]
+
+                        state_Ls_j = state_trajectories[mutation_idx_j]
+                        good_idx_j, filtered_alts_j, filtered_depths_j = timecourse_utils.mask_timepoints(times_j, alts_j, depths_j, var_type_j, cutoff_jdx_j, depth_fold_change_j, depth_change_pvalue_j)
+                        freqs_j = timecourse_utils.estimate_frequencies(filtered_alts_j, filtered_depths_j)
+
+                        masked_times_j = times[good_idx_j]
+                        masked_freqs_j = freqs_j[good_idx_j]
+                        masked_state_Ls_j = state_Ls_j[good_idx_j]
+
+                        P_jdx_j = np.where(masked_state_Ls_j == 3)[0]
+                        if len(P_jdx_j) < min_trajectory_length:
+                          continue
+                        first_P_j = P_jdx_j[0]
+                        last_P_j = P_jdx_j[-1]
+
+                        masked_freqs_P_j = masked_freqs_j[first_P_j:last_P_j+1]
+                        masked_times_P_j = masked_times_j[first_P_j:last_P_j+1]
+
+                        delta_masked_freqs_P_j = masked_freqs_P_j[1:] - masked_freqs_P_j[:-1]
+                        # delta_f = f_t_plus_1 - f_t
+                        delta_masked_times_P_j = masked_times_P_j[:-1]
+
+                        intersect_times = np.intersect1d(delta_masked_times_P_i, delta_masked_times_P_j)
+
+                        if len(intersect_times)>=3:
+
+                            intersect_idx_i = [np.where(delta_masked_times_P_i == intersect_time)[0][0] for intersect_time in intersect_times ]
+                            intersect_delta_i = delta_masked_freqs_P_i[intersect_idx_i]
+
+                            intersect_idx_j = [np.where(delta_masked_times_P_j == intersect_time)[0][0] for intersect_time in intersect_times ]
+                            intersect_delta_j = delta_masked_freqs_P_j[intersect_idx_j]
 
                             if len(intersect_delta_i) != len(intersect_delta_j):
                                 print(len(intersect_delta_j), len(intersect_delta_j))
@@ -1187,30 +1334,39 @@ def plot_allele_corr_delta(min_trajectory_length=3):
 
             r2s_obs_dict[treatment + taxon] = r2s
 
-    fig = plt.figure(figsize = (12, 12))
+    fig = plt.figure(figsize = (12, 6))
 
-    tuples = [ (0,0), (0,1), (1,0)]
-    for i, taxon in enumerate(taxa):
-            ax_i = plt.subplot2grid((2, 2), tuples[i], colspan=1)
+    tuples = [ (0,0), (0,1), (0,2), (1,0), (1,1)]
+    #for treatment_idx, treatment in enumerate(['0', '1']):
 
-            for treatment in ['0', '1']:
-                r2_treatment_taxon = r2s_obs_dict[treatment+taxon]
+    for taxon_idx, taxon in enumerate(taxa):
+        ax_i = plt.subplot2grid((2, 3), tuples[taxon_idx], colspan=1)
+        ax_i.set_title(latex_dict[taxon], fontsize=15)
 
-                ax_i.hist(r2_treatment_taxon, label=pt.get_treatment_name(treatment), color= pt.get_colors(treatment), lw=5, histtype='step', bins = 30, alpha =1, weights=np.zeros_like(r2_treatment_taxon) + 1. / len(r2_treatment_taxon))
-                ax_i.set_xlim([0,1] )
-                ax_i.set_yscale('log', basey=10)
-                ax_i.set_title(latex_dict[taxon], fontsize=18, fontweight='bold')
-                ax_i.set_xlabel("Squared correlation between\nallele frequency trajectories, " + r'$\rho_{M_{\mathrm{P}}^{ (i) }, M_{\mathrm{P}}^{ (j) }  }^{2} $' , fontsize = 14)
-                ax_i.set_ylabel('Frequency', fontsize = 20 )
+        for treatment in ['0', '1']:
+            r2_treatment_taxon = r2s_obs_dict[treatment+taxon]
+            if len(r2_treatment_taxon) == 0:
+                print("No correlations!")
+                continue
+            ax_i.hist(r2_treatment_taxon, label=str(10**int(population[0])) + '-day transfers', linestyle=pt.get_taxon_ls(taxon), color= pt.get_colors(treatment), lw=3, histtype='step', bins = 40, alpha=1, weights=np.zeros_like(r2_treatment_taxon) + 1. / len(r2_treatment_taxon))
+            ax_i.set_xlim([0,1] )
+            ax_i.set_ylim([0.01,0.2] )
+            ax_i.set_yscale('log', basey=10)
 
-                if i == 0:
-                    ax_i.legend(loc='upper right', fontsize=12)
+        if taxon_idx == 0:
+            ax_i.legend(loc='upper right', fontsize=12)
 
+    fig.text(0.5, 0.03, "Squared correlation between allele frequency trajectories, " + r'$\rho_{M_{\mathrm{P}}^{ (i) }, M_{\mathrm{P}}^{ (j) }  }^{2} $', ha='center', va='center', fontsize=20)
+    fig.text(0.05, 0.5, 'Frequency', ha='center', va='center', rotation='vertical',  fontsize=24)
 
-    fig_name = pt.get_path() + '/figs/r2_B_S.png'
+    fig_name = pt.get_path() + '/figs/r2_all.png'
     fig.subplots_adjust(hspace=0.3)
     fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     plt.close()
+
+
+
+
 
 
 
@@ -1481,7 +1637,7 @@ def plot_B_S_multiplicity():
         #c[1].set_radius(len(parallel_genes_S_list) / 80)
 
     fig.subplots_adjust(hspace=0.3, wspace=0.5)
-    fig_name = pt.get_path() + '/figs/B_S_multiplicity.png'
+    fig_name = pt.get_path() + '/figs/multiplicity_B_vs_S.png'
     fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
     plt.close()
 
@@ -1489,20 +1645,18 @@ def plot_B_S_multiplicity():
 
 def plot_within_taxon_paralleliism(taxon):
 
-    fig = plt.figure(figsize = (18, 12))
+    fig = plt.figure(figsize = (12, 12))
 
     gene_data = parse_file.parse_gene_list('B')
 
     gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = gene_data
     # to get the common gene names for each ID
 
-    ax_multiplicity = plt.subplot2grid((2, 3), (0, 0), colspan=1)
-    ax_venn = plt.subplot2grid((2, 3), (0, 1), colspan=1)
+    ax_multiplicity = plt.subplot2grid((2, 2), (0, 0), colspan=1)
+    ax_venn = plt.subplot2grid((2, 2), (0, 1), colspan=1)
     #ax_mult_pfix = plt.subplot2grid((3, 2), (1, 0), colspan=1)
-    ax_mult_freq = plt.subplot2grid((2, 3), (0, 2), colspan=1)
-    ax_mult_1_10 = plt.subplot2grid((2, 3), (1, 0), colspan=1)
-
-    ax
+    ax_mult_freq = plt.subplot2grid((2, 2), (1, 0), colspan=1)
+    #ax_mult_1_10 = plt.subplot2grid((2, 2), (1, 0), colspan=1)
 
     ax_multiplicity.set_xscale('log', basex=10)
     ax_multiplicity.set_yscale('log', basey=10)
@@ -1514,13 +1668,22 @@ def plot_within_taxon_paralleliism(taxon):
 
     ax_venn.axis('off')
 
-    ax_mult_pfix.set_xscale('log', basex=10)
-    ax_mult_pfix.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
-
     ax_mult_freq.set_xscale('log', basex=10)
-    ax_mult_freq.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
+    ax_mult_freq.set_yscale('log', basey=10)
+
+    alpha_treatment_dict = {'0':0.5, '1':0.5, '2':0.8}
+
+
+    #ax_mult_pfix.set_xscale('log', basex=10)
+    #ax_mult_pfix.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
+
+    #ax_mult_freq.set_xscale('log', basex=10)
+    #ax_mult_freq.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
 
     significant_multiplicity_dict = {}
+
+    all_mults = []
+    all_freqs = []
 
     for treatment_idx, treatment in enumerate(treatments):
 
@@ -1539,7 +1702,6 @@ def plot_within_taxon_paralleliism(taxon):
 
         # Load convergence matrix
         convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
-
         gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations,Lmin=100)
 
         G, pvalue = mutation_spectrum_utils.calculate_total_parallelism(gene_parallelism_statistics)
@@ -1551,8 +1713,12 @@ def plot_within_taxon_paralleliism(taxon):
 
         gene_hits = []
         gene_predictors = []
+        mean_gene_freqs = []
 
         Ls = []
+
+        ax_mult_freqs_x = []
+        ax_mult_freqs_y = []
 
         for gene_name in convergence_matrix.keys():
 
@@ -1572,9 +1738,11 @@ def plot_within_taxon_paralleliism(taxon):
 
             n = 0
             nfixed = 0
+            freqs = []
+            nf_max = 0
 
             for population in populations:
-                for t,L,f in convergence_matrix[gene_name]['mutations'][population]:
+                for t,L,f,f_max in convergence_matrix[gene_name]['mutations'][population]:
                     fixed_weight = timecourse_utils.calculate_fixed_weight(L,f)
 
                     predictors.append(m)
@@ -1583,9 +1751,19 @@ def plot_within_taxon_paralleliism(taxon):
                     n+=1
                     nfixed+=fixed_weight
 
+                    # get freqs for regression
+                    #if L == parse_file.POLYMORPHIC:
+                    #freqs.append(f_max)
+                    nf_max+=timecourse_utils.calculate_fixed_weight(L,f_max)
+
             if n > 0.5:
                 gene_hits.append(n)
                 gene_predictors.append(m)
+                #mean_gene_freqs.append(np.mean(freqs))
+
+                if nf_max > 0:
+                    ax_mult_freqs_x.append(m)
+                    ax_mult_freqs_y.append( nf_max / n )
 
         Ls = np.asarray(Ls)
         ntot = len(predictors)
@@ -1611,7 +1789,13 @@ def plot_within_taxon_paralleliism(taxon):
 
         ax_multiplicity.plot(theory_ms, theory_survivals, lw=3, color=pt.get_colors(treatment), alpha=0.8, ls=':',  zorder=1)
 
-    print(len(set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['2'])))
+        ax_mult_freq.scatter(ax_mult_freqs_x, ax_mult_freqs_y, color=pt.get_colors(treatment), edgecolors=pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), alpha=alpha_treatment_dict[treatment])
+
+        all_mults.extend(ax_mult_freqs_x)
+        all_freqs.extend(ax_mult_freqs_y)
+
+        slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(ax_mult_freqs_x), np.log10(ax_mult_freqs_y))
+        print(slope, p_value)
 
     subset_tuple = (len( significant_multiplicity_dict['0']), \
                     len( significant_multiplicity_dict['1']), \
@@ -1620,6 +1804,11 @@ def plot_within_taxon_paralleliism(taxon):
                     len(set(significant_multiplicity_dict['0']) & set(significant_multiplicity_dict['2'])), \
                     len(set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['2'])),  \
                     len(set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['1']) & set(significant_multiplicity_dict['2'])))
+
+    ax_mult_freq.set_xlim([min(all_mults)*0.5, max(all_mults)*1.5])
+    ax_mult_freq.set_ylim([min(all_freqs)*0.5, max(all_freqs)*1.5])
+
+
 
 
     venn = venn3(subsets = subset_tuple, ax=ax_venn, set_labels=('', '', ''), set_colors=(pt.get_colors('0'), pt.get_colors('1'), pt.get_colors('2')))
@@ -1637,30 +1826,235 @@ def plot_within_taxon_paralleliism(taxon):
 
 
 
-#plot_spo0a_fitness()
 
 
 
-#plot_spores()
+def mutation_regression_B_S(set_time=500):
+
+    mutation_trajectories = {}
+
+    taxa = ['B', 'S']
+    # loop through taxa and get M(700) for all reps in each treatment
+    for taxon in taxa:
+        for treatment in treatments:
+            for replicate in replicates:
+
+                population = treatment + taxon + replicate
+                if population in pt.populations_to_ignore:
+                    continue
+
+                sys.stderr.write("Processing %s...\t" % population)
+
+                times, Ms, fixed_Ms = get_mutation_fixation_trajectories(population)
+
+                if set_time not in times:
+                    continue
+                time_idx = np.where(times == set_time)
+
+                #mutation_trajectories[population] = (times,np.log10(Ms))
+                mutation_trajectories[population] = (times[time_idx][0],np.log10(Ms[time_idx][0] ))
+
+                sys.stderr.write("analyzed %d mutations in %s!\n" % (len(Ms) ,population))
+
+    # run mutiple regression for bacillus
+    # test for interaction and whether there is a difference between treatments
+    # create pandas dataframe
+    #dict_B_S = {}
+    #for population, mutations in mutation_trajectories.items():
+    #    #print(population, mutations)
+    #    if ('B' in population) or ('S' in population):
+    #        dict_B_S[population] = {}
+    #        #dict_B_S[population]['taxon'] = population[1]
+    #        if population[1] == 'B':
+    #            dict_B_S[population]['taxon'] = 0
+    #        else:
+    #            dict_B_S[population]['taxon'] = 1
+    #        dict_B_S[population]['treatment'] = int(population[0])
+    #        dict_B_S[population]['replicate'] = int(population[2])
+    #        dict_B_S[population]['mutations'] = float(mutations[1])
+    #        dict_B_S[population]['genrations_log10'] = np.log10(pt.get_B_S_generations(dict_B_S[population]['taxon'] , str(dict_B_S[population]['treatment']) ))
+
+
+    #df_B_S = pd.DataFrame.from_dict(dict_B_S).T
+    #df_B_S = df_B_S.astype(float)
+
+    #sys.stderr.write("analyzed %d mutations in %s!\n" % (len(Ms) ,population))
+
+
+    #model_1 = smf.ols(formula='mutations ~ treatment + C(taxon)', data=df_B_S)
+    #+ C(taxon)
+    #results_1 = model_1.fit()
+
+    #name = ['Lagrange multiplier statistic', 'p-value',
+    #    'f-value', 'f p-value']
+    #test = sms.het_breuschpagan(results_1.resid, results_1.model.exog)
+    #print(lzip(name, test))
+
+    #print(results_1.summary())
+    #print(results_1.params)
+
+
+
+    #sys.stdout.write("%s\n" % str(res_1.summary()))
+
+
+    # confidence interval code
+
+
+    #y_log10_pred = np.asarray([intercept + (slope*x_log_10_i) for x_log_10_i in x_log10])
+    #SSE = sum((y_log10 - y_log10_pred) ** 2)
+    #N = len(x)
+    #sd_SSE = np.sqrt( (1/ (N-2)) * SSE)
+    #sxd=np.sum((x_log10-np.mean(x_log10))**2)
+
+    #sx=(x_log10_range-np.mean(x_log10))**2	# x axisr for band
+    # Quantile of Student's t distribution for p=1-alpha/2
+    #alpha=1-conf
+    #q = stats.t.ppf(1-alpha/2, N-2)
+    # Confidence band
+    #dy = q*sd_SSE*np.sqrt( 1/N + sx/sxd )
+    #print(dy)
+    # Upper confidence band
+    #ucb = y_log10_range_pred + dy
+    # Lower confidence band
+    #lcb = y_log10_range_pred - dy
+
+    #ax.plot(10**x_log10_range, 10**lcb, color='k', linestyle=':', linewidth=2)
+    #ax.plot(10**x_log10_range, 10**ucb, color='k', linestyle=':', linewidth=2)
+
+
+
+    fig = plt.figure(figsize = (14, 12)) #
+    fig.subplots_adjust(bottom= 0.15)
+
+    time_measures = ['transfers', 'generations']
+    x_axis_labels = ['Transfer time (days)', 'Generations']
+    slope_null = [-1,1]
+
+    for taxon_idx, taxon in enumerate(taxa):
+
+        for time_measure_idx, time_measure in enumerate(time_measures):
+
+            ax_i = plt.subplot2grid((2, 2), (time_measure_idx, taxon_idx), colspan=1)
+
+            if time_measure_idx == 0:
+                ax_i.set_title(latex_dict[taxon], fontsize=24 )
+
+            ax_i.set_xlabel(x_axis_labels[time_measure_idx], fontsize=20)
+
+            #ax_taxon = plt.subplot2grid((2, 2), tuples[taxon_idx], colspan=1)
+            #ax_taxon = fig.add_subplot(2, 2, taxon_idx+1)
+            ax_i.set_xscale('log', basex=10)
+            ax_i.set_yscale('log', basey=10)
+            ax_i.xaxis.set_tick_params(labelsize=16)
+            ax_i.yaxis.set_tick_params(labelsize=16)
+
+            times_all_list = []
+            mutations_all_list = []
+
+            for treatment in treatments:
+
+                mutations_list = np.asarray([value[1] for key, value in mutation_trajectories.items() if treatment+taxon in key])
+
+                if time_measure == 'transfers':
+                    times_list = np.repeat( int(treatment), len(mutations_list))
+                else:
+                    times_list = np.repeat( np.log10(pt.get_B_S_generations(taxon , treatment)), len(mutations_list))
+
+                ax_i.scatter((10**times_list) + np.random.randn(len(times_list))*0.1 , 10**mutations_list, s= 110, facecolors=pt.get_colors(treatment), edgecolors=pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), alpha=0.8, zorder=3)
+                times_all_list.extend(times_list)
+                mutations_all_list.extend(mutations_list)
+
+            ax_i.set_ylim([(10** min(mutations_all_list))*0.5, (10** max(mutations_all_list))*2  ])
+            ax_i.set_xlim([(10** min(times_all_list))*0.5, (10** max(times_all_list))*2  ])
+
+            slope, intercept, r_value, p_value, std_err = stats.linregress(times_all_list, mutations_all_list)
+            x_log10_fit_range =  np.linspace(min(times_all_list) * 0.5, max(times_all_list) * 1.5, 10000)
+
+            y_fit_range = 10 ** (slope*x_log10_fit_range + intercept)
+            ax_i.plot(10**x_log10_fit_range, y_fit_range, c='k', lw=3, linestyle='--', zorder=2)
+
+            y_null_range = 10 ** (slope_null[time_measure_idx] * x_log10_fit_range + intercept)
+            ax_i.plot(10**x_log10_fit_range, y_null_range, c='darkgrey', linestyle=':', lw=3, zorder=1)
+
+            # hypothetical slope of -1
+            ratio = (slope - slope_null[time_measure_idx]) / std_err
+            pval = stats.t.sf(np.abs(ratio), len(mutations_all_list)-2)*2
+            # two sided or one sided?
+            sys.stderr.write("Species %s slope t-test = %f, p = %f\n" % (taxon , round(ratio, 3), round(pval, 3)))
+
+
+            if time_measure_idx == 0:
+
+                ax_i.text(0.05, 0.22, r'$\beta_{1}=$' + str(round(slope, 2)), fontsize=15, transform=ax_i.transAxes)
+                ax_i.text(0.05, 0.13, r'$r^{2}=$' + str(round(r_value**2, 2)), fontsize=15, transform=ax_i.transAxes)
+
+                if pval < 0.05:
+                    ax_i.text(0.05, 0.04, r'$\mathrm{p} < 0.05$', fontsize=15, transform=ax_i.transAxes)
+                else:
+                    ax_i.text(0.05, 0.04, r'$\mathrm{p} \nless 0.05$', fontsize=15, transform=ax_i.transAxes)
+
+            else:
+
+                ax_i.text(0.75, 0.22, r'$\beta_{1}=$' + str(round(slope, 2)), fontsize=15, transform=ax_i.transAxes)
+                ax_i.text(0.75, 0.13, r'$r^{2}=$' + str(round(r_value**2, 2)), fontsize=15, transform=ax_i.transAxes)
+
+                if pval < 0.05:
+                    ax_i.text(0.75, 0.04, r'$\mathrm{p} < 0.05$', fontsize=15, transform=ax_i.transAxes)
+                else:
+                    ax_i.text(0.75, 0.04, r'$\mathrm{p} \nless 0.05$', fontsize=15, transform=ax_i.transAxes)
+
+
+
+    #fig.text(0.4, 0.04, "Transfer time (days)", va='center', fontsize=28)
+    fig.text(0.07, 0.5, 'Mutations at day ' + str(set_time) + ', ' + r'$M({{{}}})$'.format(set_time), ha='center', va='center', rotation='vertical',  fontsize=28)
+
+    fig.subplots_adjust() #hspace=0.3, wspace=0.5
+    fig_name = pt.get_path() + "/figs/mutation_regression_B_S.png"
+    fig.savefig(fig_name, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+
+
+#plot_within_taxon_paralleliism('C')
+
+
+#mutation_regression_B_S()
+
+#mutation_regression_other_taxa()
+
+
+#plot_bPTR_all()
 
 #plot_within_taxon_paralleliism('D')
 
 #plot_B_S_multiplicity()
 
-#plot_0B3_big()
-#plot_allele_corr_delta()
 
 #allele_survival()
-#plot_B_S_mutation_trajectory()
+
 
 #get_mult_similarity()
 
-#plot_allele_freqs_all_treats('B')
-#plot_allele_freqs_all_treats('S')
-#plot_allele_freqs_all_treats('C')
-
-#plot_taxon_mutation_trajectory('C')
 
 
-#plot_bPTR_all()
-temporal_coverage_B_S()
+#plot_spo0a_fitness()
+#plot_spores()
+#temporal_plasmid_coverage_B_S()
+#temporal_plasmid_coverage_D()
+#plot_B_S_mutation_trajectory()
+#plot_allele_corr_delta_B_S()
+#for taxon in ['B', 'S', 'C', 'D', 'F', 'J', 'P']:
+#    plot_allele_freqs_all_treats(taxon)
+
+#    if (taxon != 'B') and (taxon != 'S'):
+#        plot_taxon_mutation_trajectory(taxon)
+#        plot_allele_corr_delta()
+
+
+
+plot_allele_corr_delta()
+
+# plot allele corr B and S

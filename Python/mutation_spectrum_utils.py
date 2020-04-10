@@ -38,7 +38,7 @@ def calculate_parallelism_statistics(convergence_matrix,allowed_populations,Lmin
 
                 n += new_muts
 
-                for t,l,f in convergence_matrix[gene_name]['mutations'][population]:
+                for t,l,f,f_max in convergence_matrix[gene_name]['mutations'][population]:
                     times.append(t)
                     # get maximum allele frequency
 

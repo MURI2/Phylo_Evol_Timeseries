@@ -20,7 +20,7 @@ import phylo_tools as pt
 ###################
 
 #taxa = pt.taxa
-taxa = [ 'C']
+taxa = ['J', 'F', 'P']
 treatments = pt.treatments
 replicates = pt.replicates
 
@@ -58,6 +58,9 @@ for taxon in taxa:
 
         for population in populations:
             sys.stderr.write("Processing %s...\t" % population)
+
+            if population in pt.populations_to_ignore:
+                continue
 
             # calculate mutation trajectories
             # load mutations
@@ -129,7 +132,7 @@ for taxon in taxa:
 
                 t = timecourse_utils.calculate_appearance_time(masked_times, masked_freqs, masked_state_Ls)
 
-                convergence_matrix[identifier]['mutations'][population].append((t, masked_state_Ls[-1], masked_freqs[-1]))
+                convergence_matrix[identifier]['mutations'][population].append((t, masked_state_Ls[-1], masked_freqs[-1], max(masked_freqs)))
 
             sys.stderr.write("processed %d mutations!\n" % num_processed_mutations)
 
@@ -147,7 +150,7 @@ for taxon in taxa:
             mutations = convergence_matrix[identifier]['mutations']
 
             convergence_matrix_file.write("\n")
-            convergence_matrix_file.write(", ".join([identifier, "%0.1f" % length]+[";".join(["%d:%d:%g" % (t,L,f) for t,L,f in mutations[population]]) for population in populations]))
+            convergence_matrix_file.write(", ".join([identifier, "%0.1f" % length]+[";".join(["%d:%d:%g:%g" % (t,L,f,f_max) for t,L,f,f_max in mutations[population]]) for population in populations]))
 
         convergence_matrix_file.close()
 
