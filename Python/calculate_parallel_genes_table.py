@@ -31,9 +31,13 @@ else:
 # first get data, then make plot
 
 
-taxa = [ 'J', 'F', 'P']
+#taxa = [ 'J', 'F', 'P', 'B', 'S', 'C', 'D']
+taxa = [ 'B', 'S']
 treatments=pt.treatments
+#treatments = ['2']
 replicates = pt.replicates
+
+to_skip = ['2F', '1J']
 
 for taxon in taxa:
 
@@ -46,6 +50,10 @@ for taxon in taxa:
     protein_id_dict = dict(zip(gene_names, protein_ids ))
 
     for treatment in treatments:
+
+        if treatment+taxon in to_skip:
+            sys.stderr.write("Skipping %s, too few surviving replicates ...\n" % (treatment+taxon))
+            continue
 
         populations = [treatment+taxon + replicate for replicate in replicates ]
 
@@ -72,9 +80,6 @@ for taxon in taxa:
         pooled_multiplicities.sort()
 
         null_multiplicity_survival = mutation_spectrum_utils.NullGeneMultiplicitySurvivalFunction.from_parallelism_statistics( gene_parallelism_statistics )
-
-
-
 
         observed_ms, observed_multiplicity_survival = stats_utils.calculate_unnormalized_survival_from_vector(pooled_multiplicities)
 
@@ -125,9 +130,14 @@ for taxon in taxa:
         nonsignificant_genes = []
 
         output_file = open(pt.get_path() +'/data/timecourse_final/' +  ("parallel_%ss_%s.txt" % (level, treatment+taxon)) ,"w")
-
         # print header
         output_file.write(", ".join(["Locus tag", "RefSeq protein ID", "Gene", "Length", "Observed", "Expected", "Multiplicity", "-log10(P)"]))
+
+
+        output_file_not_significant = open(pt.get_path() +'/data/timecourse_final/' +  ("parallel_not_significant_%ss_%s.txt" % (level, treatment+taxon)) ,"w")
+        # print header
+        output_file_not_significant.write(", ".join(["Locus tag", "RefSeq protein ID", "Gene", "Length", "Observed", "Expected", "Multiplicity", "-log10(P)"]))
+
 
         sys.stdout.write("-log p^* = %g\n" % pstar)
         sys.stderr.write("Nonsignificant genes:\n")
@@ -149,13 +159,16 @@ for taxon in taxa:
 
             else:
 
-                if gene_parallelism_statistics[gene_name]['observed']>2:
+                if gene_parallelism_statistics[gene_name]['observed']>=nmin:
                         sys.stderr.write("%s, %s,  %s, %0.1f, %d, %0.2f, %0.2f, %g\n" % (gene_name, protein_id_dict[gene_name], gene_name_dict[gene_name], gene_parallelism_statistics[gene_name]['length'],  gene_parallelism_statistics[gene_name]['observed'], gene_parallelism_statistics[gene_name]['expected'], gene_parallelism_statistics[gene_name]['multiplicity'], gene_logpvalues[gene_name]))
 
+                        output_file_not_significant.write("\n")
+                        output_file_not_significant.write("%s, %s, %s, %0.1f, %d, %0.2f, %0.2f, %g" % (gene_name, protein_id_dict[gene_name], gene_name_dict[gene_name], gene_parallelism_statistics[gene_name]['length'],  gene_parallelism_statistics[gene_name]['observed'], gene_parallelism_statistics[gene_name]['expected'], gene_parallelism_statistics[gene_name]['multiplicity'], gene_logpvalues[gene_name]))
 
                 nonsignificant_genes.append(gene_name)
 
         output_file.close()
+        output_file_not_significant.close()
 
         observed_G, pvalue = mutation_spectrum_utils.calculate_total_parallelism(gene_parallelism_statistics, nonsignificant_genes)
 

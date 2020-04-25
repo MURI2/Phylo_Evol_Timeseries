@@ -50,8 +50,8 @@ def calculate_poisson_log_survival(ns, expected_ns):
     survivals = poisson.sf(ns-0.1, expected_ns)
 
     logsurvivals = numpy.zeros_like(survivals)
-    logsurvivals[survivals>1e-200] = -numpy.log(survivals[survivals>1e-200])
-    logsurvivals[survivals<=1e-200] = (-ns*numpy.log(ns/expected_ns+(ns==0))+ns-expected_ns)[survivals<=1e-200]
+    logsurvivals[survivals>1e-800] = -numpy.log(survivals[survivals>1e-800])
+    logsurvivals[survivals<=1e-800] = (-ns*numpy.log(ns/expected_ns+(ns==0))+ns-expected_ns)[survivals<=1e-800]
 
     return logsurvivals
 

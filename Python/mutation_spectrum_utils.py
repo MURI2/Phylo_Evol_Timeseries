@@ -137,8 +137,11 @@ def calculate_total_parallelism(gene_statistics, allowed_genes=None, num_bootstr
     Ls = numpy.array(Ls)
     ns = numpy.array(ns)
 
+
     Ltot = Ls.sum()
     ntot = ns.sum()
+
+
     ps = Ls*1.0/Ltot
 
     gs = ns*numpy.log(ns/(ntot*ps)+(ns==0))
@@ -156,6 +159,52 @@ def calculate_total_parallelism(gene_statistics, allowed_genes=None, num_bootstr
 
     pvalue = ((bootstrapped_Gs>=observed_G).sum()+1.0)/(len(bootstrapped_Gs)+1.0)
     return observed_G, pvalue
+
+
+
+def calculate_subsampled_total_parallelism(gene_statistics, ntot_subsample=None, allowed_genes=None, num_bootstraps=10000):
+
+    if allowed_genes==None:
+        allowed_genes = gene_statistics.keys()
+
+    Ls = []
+    ns = []
+
+    for gene_name in allowed_genes:
+
+        Ls.append( gene_statistics[gene_name]['length'] )
+        ns.append( gene_statistics[gene_name]['observed'] )
+
+
+    Ls = numpy.array(Ls)
+    ns = numpy.array(ns)
+
+    Ltot = Ls.sum()
+    ntot = ns.sum()
+
+    ns_subsample = multinomial(ntot_subsample, ns*1.0/ntot)
+
+
+
+    ps = Ls*1.0/Ltot
+
+    gs = ns_subsample*numpy.log(ns_subsample/(ntot_subsample*ps)+(ns_subsample==0))
+
+    observed_G = gs.sum()/ns_subsample.sum()
+    bootstrapped_Gs = []
+    #for bootstrap_idx in range(0,num_bootstraps):
+    #    bootstrapped_ns = multinomial(ntot,ps)
+    #    bootstrapped_gs = bootstrapped_ns*numpy.log(bootstrapped_ns/(ntot*ps)+(bootstrapped_ns==0))
+    #    bootstrapped_G = bootstrapped_gs.sum()/bootstrapped_ns.sum()
+
+    #    bootstrapped_Gs.append(bootstrapped_G)
+
+    #bootstrapped_Gs = numpy.array(bootstrapped_Gs)
+
+    #pvalue = ((bootstrapped_Gs>=observed_G).sum()+1.0)/(len(bootstrapped_Gs)+1.0)
+    return observed_G#, pvalue
+
+
 
 def calculate_parallelism_logpvalues(gene_statistics):
 

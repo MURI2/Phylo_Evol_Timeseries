@@ -103,21 +103,6 @@ def mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change
 def estimate_frequencies(alts,depths):
     return alts*1.0/(depths+(depths==0))
 
-###########
-#
-# Naive frequency estimator for clones, restricted to clones with >=min_depth
-#
-###########
-def estimate_clone_frequencies(times, alts, depths, min_depth=20, allowed_times=None):
-
-    masked_times = times[depths>min_depth]
-    masked_alts = alts[depths>min_depth]
-    masked_depths = depths[depths>min_depth]
-    masked_freqs = masked_alts*1.0/masked_depths
-
-    return masked_times, masked_freqs
-
-
 
 ###########
 #

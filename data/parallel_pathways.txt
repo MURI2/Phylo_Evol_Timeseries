@@ -1,33 +1,20 @@
 Module ID, Module type, Description, 1-day, 10-day, 100-day
-M00083, Pathway, Fatty acid biosynthesis, 2/6, 1/6, 1/6
-M00222, Complex, Phosphate transport system, 1/6, 1/6, 2/6
-M00258, Complex, Putative ABC transport system, 3/6, 0/6, 2/6
-M00022, Pathway, Shikimate pathway, 2/6, 0/6, 0/6
-M00240, Complex, Iron complex transport system, 3/6, 2/6, 2/6
-M00004, Pathway, Pentose phosphate pathway, 2/6, 0/6, 0/6
-M00017, Pathway, Methionine biosynthesis, 2/6, 2/6, 1/6
-M00122, Pathway, Cobalamin biosynthesis, 1/6, 0/6, 2/6
-M00549, Pathway, Nucleotide sugar biosynthesis, 2/6, 1/6, 0/6
-M00845, Pathway, Arginine biosynthesis, 2/6, 0/6, 0/6
-M00028, Pathway, Ornithine biosynthesis, 2/6, 0/6, 1/6
-M00012, Pathway, Glyoxylate cycle, 2/6, 1/6, 0/6
-M00093, Pathway, Phosphatidylethanolamine biosynthesis, 1/6, 2/6, 3/6
-M00546, Pathway, Purine degradation, 2/6, 1/6, 1/6
-M00015, Pathway, Proline biosynthesis, 2/6, 0/6, 0/6
-M00125, Pathway, Riboflavin biosynthesis, 3/6, 1/6, 0/6
-M00001, Pathway, Glycolysis (Embden-Meyerhof pathway), 2/6, 2/6, 1/6
-M00260, Complex, DNA polymerase III complex, 2/6, 3/6, 2/6
-M00360, FuncSet, Aminoacyl-tRNA biosynthesis, 2/6, 1/6, 1/6
-M00359, FuncSet, Aminoacyl-tRNA biosynthesis, 2/6, 1/6, 1/6
-M00121, Pathway, Heme biosynthesis, 2/6, 0/6, 0/6
-M00846, Pathway, Siroheme biosynthesis, 2/6, 0/6, 0/6
-M00615, Signature, Nitrate assimilation, 1/6, 2/6, 1/6
-M00334, Complex, Type VI secretion system, 2/6, 0/6, 1/6
-M00212, Complex, Ribose transport system, 1/6, 1/6, 2/6
-M00616, Signature, Sulfate-sulfur assimilation, 2/6, 1/6, 1/6
-M00048, Pathway, Inosine monophosphate biosynthesis, 1/6, 1/6, 2/6
-M00394, Complex, RNA degradosome, 1/6, 2/6, 1/6
-M00053, Pathway, Pyrimidine deoxyribonuleotide biosynthesis, 0/6, 2/6, 1/6
-M00049, Pathway, Adenine ribonucleotide biosynthesis, 0/6, 2/6, 1/6
-M00331, Complex, Type II general secretion pathway, 0/6, 1/6, 4/6
-M00051, Pathway, Uridine monophosphate biosynthesis, 0/6, 1/6, 2/6
+M00083, Pathway, Fatty acid biosynthesis, 2/6, 1/5, 1/5
+M00222, Complex, Phosphate transport system, 1/6, 1/5, 2/5
+M00258, Complex, Putative ABC transport system, 4/6, 0/5, 2/5
+M00022, Pathway, Shikimate pathway, 2/6, 0/5, 0/5
+M00240, Complex, Iron complex transport system, 3/6, 1/5, 2/5
+M00144, Complex, NADH:quinone oxidoreductase, 1/6, 1/5, 2/5
+M00549, Pathway, Nucleotide sugar biosynthesis, 2/6, 0/5, 0/5
+M00012, Pathway, Glyoxylate cycle, 2/6, 0/5, 0/5
+M00015, Pathway, Proline biosynthesis, 2/6, 0/5, 0/5
+M00125, Pathway, Riboflavin biosynthesis, 3/6, 1/5, 0/5
+M00360, FuncSet, Aminoacyl-tRNA biosynthesis, 2/6, 1/5, 1/5
+M00334, Complex, Type VI secretion system, 2/6, 0/5, 1/5
+M00212, Complex, Ribose transport system, 1/6, 1/5, 2/5
+M00616, Signature, Sulfate-sulfur assimilation, 2/6, 1/5, 1/5
+M00048, Pathway, Inosine monophosphate biosynthesis, 1/6, 1/5, 2/5
+M00260, Complex, DNA polymerase III complex, 1/6, 2/5, 1/5
+M00049, Pathway, Adenine ribonucleotide biosynthesis, 0/6, 2/5, 1/5
+M00331, Complex, Type II general secretion pathway, 0/6, 1/5, 3/5
+M00093, Pathway, Phosphatidylethanolamine biosynthesis, 0/6, 1/5, 2/5

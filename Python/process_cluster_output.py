@@ -24,60 +24,59 @@ treatments = ['0', '1', '2']
 reps = ['1', '2', '3', '4', '5']
 #treatments = ['0']
 #reps = ['1']
-#strains = ['B', 'C', 'D', 'F', 'J', 'P', 'S']
-strains = ['P']
+strains = ['B', 'C', 'D', 'F', 'J', 'P', 'S']
+#strains = ['J']
 
-def process_output():
-    for strain in strains:
-        sys.stdout.write("\nProcessing Strain %s...\n" % (strain))
-        for treatment in treatments:
-            for rep in reps:
+for strain in strains:
+    sys.stdout.write("\nProcessing Strain %s...\n" % (strain))
+    for treatment in treatments:
+        for rep in reps:
 
-                print('%s%s%s' % (treatment, strain, rep))
+            print('%s%s%s' % (treatment, strain, rep))
 
-                merged_timecourse_filename = '%s%s%s_merged_timecourse.bz' % (treatment, strain, rep)
-                depth_timecourse_filename = '%s%s%s_depth_timecourse.bz' % (treatment, strain, rep)
-                snp_timecourse_filename = '%s%s%s_snp_timecourse.bz' % (treatment, strain, rep)
-                indel_timecourse_filename = '%s%s%s_indel_timecourse.bz' % (treatment, strain, rep)
-                likelihood_timecourse_filename = '%s%s%s_likelihood_timecourse.bz' % (treatment, strain, rep)
-                #likelihood_timecourse_clean_filename = '%s%s%s_likelihood_timecourse_clean.bz' % (treatment, strain, rep)
-                annotated_timecourse_filename = '%s%s%s_annotated_timecourse.bz' % (treatment, strain, rep)
+            merged_timecourse_filename = '%s%s%s_merged_timecourse.bz' % (treatment, strain, rep)
+            depth_timecourse_filename = '%s%s%s_depth_timecourse.bz' % (treatment, strain, rep)
+            snp_timecourse_filename = '%s%s%s_snp_timecourse.bz' % (treatment, strain, rep)
+            indel_timecourse_filename = '%s%s%s_indel_timecourse.bz' % (treatment, strain, rep)
+            likelihood_timecourse_filename = '%s%s%s_likelihood_timecourse.bz' % (treatment, strain, rep)
+            #likelihood_timecourse_clean_filename = '%s%s%s_likelihood_timecourse_clean.bz' % (treatment, strain, rep)
+            annotated_timecourse_filename = '%s%s%s_annotated_timecourse.bz' % (treatment, strain, rep)
 
-                merged_timecourse_path = pt.get_path() + '/data/timecourse_merged/' + merged_timecourse_filename
-                depth_timecourse_path = pt.get_path() + '/data/timecourse_depth/' + depth_timecourse_filename
-                snp_timecourse_path = pt.get_path() + '/data/timecourse_snp/' + snp_timecourse_filename
-                indel_timecourse_path = pt.get_path() + '/data/timecourse_indel/' + indel_timecourse_filename
-                likelihood_timecourse_path = pt.get_path() + '/data/timecourse_likelihood/' + likelihood_timecourse_filename
-                #likelihood_timecourse_clean_path = pt.get_path() + '/data/timecourse_likelihood_clean/' + likelihood_timecourse_clean_filename
-                annotated_timecourse_path = pt.get_path() + '/data/timecourse_final/' + annotated_timecourse_filename
+            merged_timecourse_path = pt.get_path() + '/data/timecourse_merged/' + merged_timecourse_filename
+            depth_timecourse_path = pt.get_path() + '/data/timecourse_depth/' + depth_timecourse_filename
+            snp_timecourse_path = pt.get_path() + '/data/timecourse_snp/' + snp_timecourse_filename
+            indel_timecourse_path = pt.get_path() + '/data/timecourse_indel/' + indel_timecourse_filename
+            likelihood_timecourse_path = pt.get_path() + '/data/timecourse_likelihood/' + likelihood_timecourse_filename
+            #likelihood_timecourse_clean_path = pt.get_path() + '/data/timecourse_likelihood_clean/' + likelihood_timecourse_clean_filename
+            annotated_timecourse_path = pt.get_path() + '/data/timecourse_final/' + annotated_timecourse_filename
 
-                # Filter SNPs and calculate avg depth per sample
-                #sys.stdout.write('Filtering SNPS and calculating depth...\n')
-                #return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
-                #if return_val==0:
-                #    sys.stdout.write('Done!\n')
-                #else:
-                #    sys.stdout.write("Error!\n")
-
-
-                # Call indels
-                #sys.stdout.write("Calling indels...\n")
-                #call_indels_path = pt.get_path() + '/Python/call_indels.py'
-                #return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
-                #if return_val==0:
-                #    sys.stdout.write('Done!\n')
-                #else:
-                #    sys.stdout.write("Error!\n")
+            # Filter SNPs and calculate avg depth per sample
+            #sys.stdout.write('Filtering SNPS and calculating depth...\n')
+            #return_val = os.system('python %s %s %s %s %s' % (filter_snps_path, merged_timecourse_path, depth_timecourse_path, snp_timecourse_path, strain))
+            #if return_val==0:
+            #    sys.stdout.write('Done!\n')
+            #else:
+            #    sys.stdout.write("Error!\n")
 
 
-                # Get pvalues
-                #sys.stdout.write("Calculating pvalues...\n")
-                #return_val = os.system('python %s %s %s %s %s' % \
-                #    (pvals_python_path, depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, likelihood_timecourse_path))
-                #if return_val==0:
-                #    sys.stdout.write('Done!\n')
-                #else:
-                #    sys.stdout.write("Error!\n")
+            # Call indels
+            #sys.stdout.write("Calling indels...\n")
+            #call_indels_path = pt.get_path() + '/Python/call_indels.py'
+            #return_val = os.system('python %s %s %s' % (call_indels_path, merged_timecourse_path, indel_timecourse_path))
+            #if return_val==0:
+            #    sys.stdout.write('Done!\n')
+            #else:
+            #    sys.stdout.write("Error!\n")
+
+
+            # Get pvalues
+            #sys.stdout.write("Calculating pvalues...\n")
+            #return_val = os.system('python %s %s %s %s %s' % \
+            #    (pvals_python_path, depth_timecourse_path, snp_timecourse_path, indel_timecourse_path, likelihood_timecourse_path))
+            #if return_val==0:
+            #    sys.stdout.write('Done!\n')
+            #else:
+            #    sys.stdout.write("Error!\n")
 
 
 
@@ -101,8 +100,6 @@ def process_output():
         sys.stdout.write("Error!\n")
 
 
-
-process_output()
 
 
 

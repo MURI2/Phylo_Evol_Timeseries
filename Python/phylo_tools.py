@@ -15,6 +15,8 @@ replicates = ['1','2','3','4','5']
 
 populations_to_ignore = ['1D4', '2P4', '2P5', '2F1', '2F2', '2F3', '0J2', '1J3'] # ['1C1']
 
+treatment_taxa_to_ignore = ['2F', '1J']
+
 
 def get_B_S_generations(strain, treatment, day_cutoff=500):
 
@@ -36,6 +38,26 @@ def get_taxon_ls(taxon):
 
 
 
+def lighten_color(color, amount=0.5):
+    """
+    Lightens the given color by multiplying (1-luminosity) by the given amount.
+    Input can be matplotlib color string, hex string, or RGB tuple.
+
+    Examples:
+    >> lighten_color('g', 0.3)
+    >> lighten_color('#F034A3', 0.6)
+    >> lighten_color((.3,.55,.1), 0.5)
+    """
+    import matplotlib.colors as mc
+    import colorsys
+    try:
+        c = mc.cnames[color]
+    except:
+        c = color
+    c = colorsys.rgb_to_hls(*mc.to_rgb(c))
+    return colorsys.hls_to_rgb(c[0], 1 - amount * (1 - c[1]), c[2])
+
+
 
 def samples_to_remove(population):
     population_dict = {'0D1':[600],
@@ -46,7 +68,12 @@ def samples_to_remove(population):
                         '2S3':[700],
                         '2S4':[700],
                         '2S5':[700],
-                        '1P5':[700]}
+                        '1P5':[700],
+                        '2P1':[500],
+                        '1F5':[500],
+                        '1F2':[700],
+                        '0B4':[800],
+                        '2J4':[500]}
 
 
     if population not in population_dict:
@@ -97,6 +124,19 @@ def plot_species_fillstyle(taxon):
 def get_colors(treatment):
     get_colors_dict = {'0':'#87CEEB', '1': '#FFA500', '2':'#FF6347'}
     return get_colors_dict[treatment]
+
+
+#def get_scatter_edge_color(strain, treatment):
+
+
+
+def get_scatter_facecolor(taxon, treatment):
+
+    if taxon == 'S':
+        return 'white'
+    else:
+        return get_colors(treatment)
+
 
 
 
@@ -188,11 +228,6 @@ def get_ref_fna_dict():
 
 
 
-
-
-
-def get_to_keep():
-    return ['SNP', 'INS', 'DEL']
 
 
 def common_entries(*dcts):

@@ -5,7 +5,7 @@ import numpy as np
 import phylo_tools as pt
 
 
-MCR = 0.75
+MCR = 1
 
 treatments = ['0','1','2']
 taxa = ['B', 'C', 'D', 'F', 'J', 'P']
@@ -16,10 +16,11 @@ kegg_dict_count = {}
 maple_dict_count = {}
 maple_annotation_dict = {}
 
+treatment_count_dict = {}
+
 for treatment in treatments:
 
-    #kegg_dict_count[treatment] = {}
-    #maple_dict_count[treatment] = {}
+    treatment_count_dict[treatment] = 0
 
     for taxon in taxa:
 
@@ -37,6 +38,8 @@ for treatment in treatments:
         significant_genes_path=pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+taxon)
         if os.path.exists(significant_genes_path) == False:
             continue
+        print(significant_genes_path)
+        treatment_count_dict[treatment] += 1
         significant_genes = open(significant_genes_path, 'r')
 
         first_line = significant_genes.readline()
@@ -76,8 +79,8 @@ for treatment in treatments:
                 line = line.strip()
                 items = line.split("\t")
 
-                #if float(items[10]) < MCR:
-                #    continue
+                if float(items[10]) < MCR:
+                    continue
                 # remove rows that are less than 80% complete
                 # query(coverage) = MCR % (ITR)
                 # query(coverage/max) = MCR % (WC)
@@ -155,19 +158,19 @@ for maple_i, maple_i_dict in maple_dict_count.items():
         continue
 
     if '0' in maple_i_dict:
-        out_0 = str(len(maple_i_dict['0'])) + '/' + str(len(taxa))
+        out_0 = str(len(maple_i_dict['0'])) + '/' + str(treatment_count_dict['0'])
     else:
-        out_0 = '0/' + str(len(taxa))
+        out_0 = '0/' + str(treatment_count_dict['0'])
 
     if '1' in maple_i_dict:
-        out_1 = str(len(maple_i_dict['1'])) + '/' + str(len(taxa))
+        out_1 = str(len(maple_i_dict['1'])) + '/' + str(treatment_count_dict['1'])
     else:
-        out_1 = '0/' + str(len(taxa))
+        out_1 = '0/' + str(treatment_count_dict['1'])
 
     if '2' in maple_i_dict:
-        out_2 = str(len(maple_i_dict['2'])) + '/' + str(len(taxa))
+        out_2 = str(len(maple_i_dict['2'])) + '/' + str(treatment_count_dict['2'])
     else:
-        out_2 = '0/' + str(len(taxa))
+        out_2 = '0/' + str(treatment_count_dict['2'])
 
 
     convergence_table.write(", ".join([maple_i, type, description, out_0, out_1, out_2 ]) + '\n' )
