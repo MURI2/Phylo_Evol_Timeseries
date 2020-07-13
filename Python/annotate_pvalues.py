@@ -26,9 +26,11 @@ trajectories_count = 0
 #lte =less than or equal
 #gte = grater than or equal
 
-times_to_exclude = {'0C1': [900], '0D1':[600], '0D2':[900], '0D3':[900], '0D4':[900],
-                    '1B5': [1000], '1J3': [400], '1J4': [500], '2S2':[700], '2S3':[700],
-                    '2S4':[700], '2S5':[700]}
+#times_to_exclude = {'0C1': [900], '0D1':[600], '0D2':[900], '0D3':[900], '0D4':[900],
+#                    '1B5': [1000], '1J3': [400], '1J4': [500], '2S2':[700], '2S3':[700],
+#                    '2S4':[700], '2S5':[700]}
+
+times_to_exclude = pt.samples_to_remove
 
 line_name = depth_filename.split('/')[-1].split('_')[0]
 print(line_name)
@@ -145,44 +147,40 @@ def get_composite_p_value(t_pm, A_pm, D_pm):
     f_mean = (sum(A_pm) / sum(D_pm))
     c = max(1, (1/2)*f_mean)
     f_pm = A_pm/D_pm
+    f_pm[np.isnan(f_pm)] = 0
     C_star_mut_null = []
     I_mut_null = []
     #T_mut_null = []
     count = copy.copy(n_iter)
     count2 = copy.copy(n_iter)
     count_attempts = copy.copy(n_iter_max*2)
-    while (count_attempts != 0):
+    while (count >= 0) and (count_attempts >= 0):
 
-        while (count != 0):
+        p_hat_pm = np.random.permutation(f_pm) * c
+        alpha_pm = np.random.poisson(D_pm*p_hat_pm)
+        beta_pm = np.random.poisson(D_pm*(1-p_hat_pm))
+        #print((alpha_pm/ (alpha_pm+beta_pm)) * D_pm)
+        A_hat_pm = np.round( (alpha_pm/ (alpha_pm+beta_pm)) * D_pm )
+        if np.count_nonzero(A_hat_pm) == 0:
+            count_attempts -= 1
+            continue
+        C_star_mut_i, I_mut_i = get_test_statistics(t_pm, A_hat_pm, D_pm)
+        if np.isnan(np.sum([C_star_mut_i, I_mut_i])):
+            count_attempts -= 1
+            continue
+        C_star_mut_null.append(C_star_mut_i)
+        I_mut_null.append(I_mut_i)
+        #T_mut_null.append(T_mut_i)
+        count -= 1
 
-            p_hat_pm = np.random.permutation(f_pm) * c
-            alpha_pm = np.random.poisson(D_pm*p_hat_pm)
-            beta_pm = np.random.poisson(D_pm*(1-p_hat_pm))
-            #print((alpha_pm/ (alpha_pm+beta_pm)) * D_pm)
-            A_hat_pm = np.round( (alpha_pm/ (alpha_pm+beta_pm)) * D_pm )
-            if np.count_nonzero(A_hat_pm) == 0:
-                count_attempts -= 1
-                continue
-            C_star_mut_i, I_mut_i = get_test_statistics(t_pm, A_hat_pm, D_pm)
-            if np.isnan(np.sum([C_star_mut_i, I_mut_i])):
-                count_attempts -= 1
-                continue
-            C_star_mut_null.append(C_star_mut_i)
-            I_mut_null.append(I_mut_i)
-            #T_mut_null.append(T_mut_i)
-            count -= 1
-
+    if len(C_star_mut_null) >= n_iter:
 
         P_C_star = (len([x for x in C_star_mut_null if x > C_star_mut]) +1) /  ( n_iter +1)
         P_I = (len([x for x in I_mut_null if x > I_mut]) +1) / ( n_iter +1)
-        #P_T = len([x for x in T_mut_null if x > T_mut]) / n_iter
-        #if P_T == 0:
-        #    P_T = 0.5
-        #P_list = [P_C_star, P_I, P_T]
         P_list = [P_C_star, P_I]
         comp_stat = sum([np.heaviside(P_star-P_k, 1/2) * np.log(1/P_k) for P_k in P_list])
         comp_stat_null = []
-        while (count2 != 0):
+        while (count2 > 0):
 
             p_hat_pm = np.random.permutation(f_pm) * c
             alpha_pm = np.random.poisson(D_pm*p_hat_pm)
@@ -213,7 +211,6 @@ def get_composite_p_value(t_pm, A_pm, D_pm):
         P_comp_stat = len([x for x in comp_stat_null if x > comp_stat]) / len(comp_stat_null)
 
         return C_star_mut, P_comp_stat
-
 
     else:
         return None, None
@@ -275,14 +272,14 @@ def filter_trajectory(snp_split):
 
 
 
-for snp in indel_file:
+for indel in indel_file:
     trajectories_count += 1
-    if trajectories_count != 51:
-        continue
+    #if trajectories_count != 51:
+    #    continue
     #if (trajectories_count % 100) == 0:
     print("Indel trajectory " + str(trajectories_count))
-    snp_split = [x.strip() for x in snp.split(',')]
-    t_pm, A_pm, D_pm = filter_trajectory(snp_split)
+    indel_split = [x.strip() for x in indel.split(',')]
+    t_pm, A_pm, D_pm = filter_trajectory(indel_split)
     if t_pm is None:
         continue
 
@@ -322,14 +319,10 @@ for snp in indel_file:
             print("Deletion detected: excluding samples after t-star from rest of analysis")
             # remove samples after t_star
 
-            print(t_star, delta_l_max, P_delta_l)
-
             after_t_star_idx = np.where(t_pm > t_star)[0]
             t_pm_t_star = np.delete(t_pm, after_t_star_idx)
             A_pm_t_star = np.delete(A_pm, after_t_star_idx)
             D_pm_t_star = np.delete(D_pm, after_t_star_idx)
-
-            #print(t_pm_t_star)
 
             delta_l_null_list = delta_l_max
 
@@ -349,14 +342,13 @@ for snp in indel_file:
         C_star_mut, P_comp_stat = get_composite_p_value(t_pm, A_pm, D_pm)
 
 
-    #print(C_star_mut, P_comp_stat)
-    if C_star_mut == None:
-        continue
+    #if C_star_mut == None:
+    #    continue
 
-    snp_split.append( " ".join([ str(C_star_mut), str(P_comp_stat), str(t_star), str(delta_l_null_list), str(P_delta_l)]) )
-    snp_split_merge = ", ".join(snp_split)
+    indel_split.append( " ".join([ str(C_star_mut), str(P_comp_stat), str(t_star), str(delta_l_null_list), str(P_delta_l)]) )
+    indel_split_merge = ", ".join(indel_split)
 
-    likelihood_file.write(snp_split_merge)
+    likelihood_file.write(indel_split_merge)
     likelihood_file.write("\n")
 
 

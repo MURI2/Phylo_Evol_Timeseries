@@ -2,6 +2,8 @@ import numpy
 from scipy.interpolate import interp1d
 import parse_file
 
+default_min_depth=5
+
 def calculate_loglikelihood_ratio(A0,D0,A1,D1):
 
     R0 = D0-A0
@@ -11,7 +13,7 @@ def calculate_loglikelihood_ratio(A0,D0,A1,D1):
     logL += (A1*numpy.log((A0+A1+(A1==0))/(D0+D1+(A1==0))*(D1+(A1==0))/(A1+(A1==0)))).sum()
     logL += (R1*numpy.log((R0+R1+(R1==0))/(D0+D1+(R1==0))*(D1+(R1==0))/(R1+(R1==0)))).sum()
     logL += (A0*numpy.log((A0+A1+(A0==0))/(D0+D1+(A0==0))*(D0+(A0==0))/(A0+(A0==0)))).sum()
-    logL +=         (R0*numpy.log((R0+R1+(R0==0))/(D0+D1+(R0==0))*(D0+(R0==0))/(R0+(R0==0)))).sum()
+    logL += (R0*numpy.log((R0+R1+(R0==0))/(D0+D1+(R0==0))*(D0+(R0==0))/(R0+(R0==0)))).sum()
 
     dof = ((D0>0.5)*(D1>0.5)).sum()*1.0
 
@@ -69,7 +71,8 @@ def average_trajectories(trajectories, log10=False):
 # is less than minimum threshold, or deletion is inferred to have happened
 #
 ########
-def mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change, depth_change_pvalue, min_depth=parse_file.default_min_depth):
+
+def mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change, depth_change_pvalue, min_depth= default_min_depth):
 
     # first make a copy of alts and depths
     # so that we can modify in place without worrying
@@ -173,6 +176,9 @@ def calculate_appearance_fixation_time_from_hmm(times,fs,Ls):
 
         tstar = (times[polymorphic_idxs])[fs[polymorphic_idxs].argmax()]
 
+
+    if len(numpy.nonzero((times<=tstar)*extinct_idxs)[0]) == 0:
+        return None, None, None
 
     appearance_time = times[numpy.nonzero((times<=tstar)*extinct_idxs)[0][-1]]+100
 

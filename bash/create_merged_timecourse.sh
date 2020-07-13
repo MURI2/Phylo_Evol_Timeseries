@@ -6,11 +6,12 @@
 #PBS -m n
 #PBS -j oe
 
-module load python
+module unload python
+module load python/2.7.16
 
 declare -a strains=("F")
-declare -a treats=("0" "1" "2")
-declare -a reps=("1" "2" "3" "4" "5")
+declare -a treats=("0")
+declare -a reps=("3")
 
 declare -a pops=()
 
@@ -31,5 +32,9 @@ for pop in "${pops[@]}"
 do
   gd_files="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq/${pop}_"*"/output/evidence/evidence.gd"
   #ref="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq/${pop}_100/data/reference.fasta"
-  cat "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}_timecourse.txt" | python $create_breseq_timecourse $pop $gd_files | bzip2 -c > "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}_merged_timecourse.bz"
+  merged_timecourse="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}_merged_timecourse.bz"
+  if [ -f $merged_timecourse ]; then
+    rm $merged_timecourse
+  fi
+  cat "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}_timecourse.txt" | python $create_breseq_timecourse $pop $gd_files | bzip2 -c > $merged_timecourse
 done

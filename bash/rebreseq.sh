@@ -21,11 +21,11 @@ P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblie
 
 declare -a strains=("F")
 #declare -a treats=("0" "1" "2")
-declare -a treats=("2")
+declare -a treats=("0")
 
 # "1" "2")
 # "1" "2")
-declare -a reps=("1" "2" "3" "4" "5")
+declare -a reps=("3")
 # "2" "3" "4" "5")
 
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
@@ -97,7 +97,7 @@ do
 
     echo '#!/bin/bash' >> $bash_out
     echo '#PBS -k o' >> $bash_out
-    echo '#PBS -l nodes=1:ppn=8,vmem=50gb,walltime=8:00:00' >> $bash_out
+    echo '#PBS -l nodes=1:ppn=8,vmem=50gb,walltime=24:00:00' >> $bash_out
     #echo '#PBS -M wrshoema@iu.edu' >> $bash_out
     echo '#PBS -m abe' >> $bash_out
     echo '#PBS -j oe' >> $bash_out

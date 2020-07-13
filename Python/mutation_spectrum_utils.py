@@ -184,8 +184,6 @@ def calculate_subsampled_total_parallelism(gene_statistics, ntot_subsample=None,
 
     ns_subsample = multinomial(ntot_subsample, ns*1.0/ntot)
 
-
-
     ps = Ls*1.0/Ltot
 
     gs = ns_subsample*numpy.log(ns_subsample/(ntot_subsample*ps)+(ns_subsample==0))

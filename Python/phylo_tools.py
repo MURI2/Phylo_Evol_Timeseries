@@ -1,21 +1,112 @@
 from __future__ import division
 import os
 from collections import Counter
-import matplotlib.colors as clr
 import numpy as np
 import colorsys
+
+import matplotlib.colors as clr
+from matplotlib.patches import Ellipse
+import matplotlib.transforms as transforms
+
+from scipy.linalg import block_diag
+from sklearn.metrics.pairwise import euclidean_distances
+
+import parse_file
+#import timecourse_utils
 
 
 def get_path():
     return os.path.expanduser("~/GitHub/Phylo_Evol_Timeseries")
 
-taxa = ['B','S','C','D','F','J','P']
+taxa = ['B','C','D','F','J','P']
 treatments = ['0', '1', '2']
 replicates = ['1','2','3','4','5']
 
-populations_to_ignore = ['1D4', '2P4', '2P5', '2F1', '2F2', '2F3', '0J2', '1J3'] # ['1C1']
+
+samples_to_remove = {'1B4':[900],
+                        '1B5':[1000],
+                        '0C1':[900],
+                        '0C5':[300],
+                        '1C4':[300],
+                        '0D1':[600],
+                        '0D2':[900],
+                        '0D3':[900],
+                        '0D4':[900],
+                        '1J3':[400],
+                        '1J4':[500],
+                        '2S2':[700],
+                        '2S3':[700],
+                        '2S4':[700],
+                        '2S5':[700]}
+
+
+#populations_to_ignore = ['1D4', '2P4', '2P5', '2F1', '2F2', '2F3', '0J2', '1J3'] # ['1C1']
+populations_to_ignore = ['0F3', '2F1', '2F2', '2F3', '0J2', '1J1', '1J2', '1J3', '1J4', '1J5', '1P5'] # ['1C1']
 
 treatment_taxa_to_ignore = ['2F', '1J']
+
+
+
+
+
+latex_formal_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \; \mathrm{NCIB \, 3610}$',
+                'S': r'$\mathit{Bacillus\, subtilis} \; \mathrm{NCIB \, 3610} \, \Delta \mathrm{spo0A} $',
+                'C': r'$\mathit{Caulobacter \, crescentus} \; \mathrm{NA1000}$',
+                'D': r'$\mathit{Deinococcus \, radiodurans} \; \mathrm{BAA-816}$',
+                'P': r'$\mathit{Pseudomonas \,} \; \mathrm{sp. \, KBS0710}$',
+                'F': r'$\mathit{Pedobacter \,} \; \mathrm{sp. \, KBS0701}$',
+                'J': r'$\mathit{Janthinobacterium \,} \; \mathrm{sp. \, KBS0711}$'
+                }
+
+
+
+latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \, \mathrm{wt} $',
+                'S': r'$\mathit{Bacillus\, subtilis} \, \Delta \mathrm{spo0A} $',
+                'C': r'$\mathit{Caulobacter \, crescentus}$',
+                'D': r'$\mathit{Deinococcus \, radiodurans}$',
+                'P': r'$\mathit{Pseudomonas \,} \; \mathrm{sp. \, KBS0710}$',
+                'F': r'$\mathit{Pedobacter \,} \; \mathrm{sp. \, KBS0701}$',
+                'J': r'$\mathit{Janthinobacterium \,} \; \mathrm{sp. \, KBS0711}$'
+                }
+
+latex_bold_dict = {'B': r'$\mathbf{\mathit{Bacillus\, subtilis} \, \mathrm{wt} }$',
+                'S': r'$\mathbf{\mathit{Bacillus\, subtilis} \, \Delta \mathrm{spo0A}} $',
+                'C': r'$\mathbf{\mathit{Caulobacter \, crescentus}}$',
+                'D': r'$\mathbf{\mathit{Deinococcus \, radiodurans}}$',
+                'P': r'$\mathbf{\mathit{Pseudomonas \,} \; \mathrm{sp. \, KBS0710}}$',
+                'F': r'$\mathbf{\mathit{Pedobacter \,} \; \mathrm{sp. \, KBS0701}}$',
+                'J': r'$\mathbf{\mathit{Janthinobacterium \,} \; \mathrm{sp. \, KBS0711}}$'}
+
+
+
+latex_genus_dict = {  'B': r'$\mathit{Bacillus} \, \mathrm{wt} $',
+                'S': r'$\mathit{Bacillus} \, \Delta \mathrm{spo0A} $',
+                'C': r'$\mathit{Caulobacter}$',
+                'D': r'$\mathit{Deinococcus}$',
+                'P': r'$\mathit{Pseudomonas}$',
+                'F': r'$\mathit{Pedobacter}$',
+                'J': r'$\mathit{Janthinobacterium}$'
+                }
+
+latex_genus_bold_dict = {'B': r'$\mathbf{\mathit{Bacillus} }$',
+                'S': r'$\mathbf{\mathit{Bacillus} \, \Delta \mathrm{spo0A}} $',
+                'C': r'$\mathbf{\mathit{Caulobacter}}$',
+                'D': r'$\mathbf{\mathit{Deinococcus}}$',
+                'P': r'$\mathbf{\mathit{Pseudomonas}}$',
+                'F': r'$\mathbf{\mathit{Pedobacter}}$',
+                'J': r'$\mathbf{\mathit{Janthinobacterium} }$'}
+
+
+genus_dict = {'B':'Bacillus',
+            'C':'Caulobacter',
+            'D':'Deinococcus',
+            'F':'Pedobacter',
+            'J':'Janthinobacterium',
+            'P':'Pseudomonas'}
+
+
+
+
 
 
 def get_B_S_generations(strain, treatment, day_cutoff=500):
@@ -24,6 +115,116 @@ def get_B_S_generations(strain, treatment, day_cutoff=500):
                             'S': {'0':3321, '1':544, '2':163} }
 
     return B_S_generation_dict[strain][treatment] * (day_cutoff/1000)
+
+
+def get_ma_mutation_spectrum(taxon):
+
+    # 10^-10/site/generation
+
+    ma_dict = {'B': {'GC_AT': 2.80,
+                    'GC_TA': 0.51,
+                    'GC_CG': 0.17,
+                    'AT_GC': 2.16,
+                    'AT_CG': 0.44,
+                    'AT_TA':0.46},
+
+                'C': {'GC_AT': 2.11,
+                    'GC_TA': 0.14,
+                    'GC_CG': 0.38,
+                    'AT_GC': 3.87,
+                    'AT_CG': 0.61,
+                    'AT_TA': 0.69},
+
+                'D': {'GC_AT': 3.01,
+                    'GC_TA': 0.63,
+                    'GC_CG': 0.17,
+                    'AT_GC': 3.43,
+                    'AT_CG': 3.19,
+                    'AT_TA': 0.74},
+
+                'J': {'GC_AT': 1.33,
+                    'GC_TA': 0.19,
+                    'GC_CG': 0.15,
+                    'AT_GC': 0.36,
+                    'AT_CG': 0.15,
+                    'AT_TA': 0}}
+
+
+    ma_dict_relative = {k: v / sum(ma_dict[taxon].values()) for k, v in ma_dict[taxon].items()}
+
+    return ma_dict_relative
+
+
+
+
+
+
+
+
+
+
+def run_permanova(PC_space, N_list, iter=10000):
+
+    N_list = np.asarray(N_list)
+
+    F_obs = get_F_2(PC_space, N_list)
+
+    F_permute_list = []
+
+    for i in range(iter):
+
+        PC_space_permute = PC_space[np.random.permutation(PC_space.shape[0]),:]
+        F_permute_list.append(get_F_2(PC_space_permute, N_list))
+
+    p = len([j for j in F_permute_list if j > F_obs]) / iter
+
+    return F_obs, p
+
+
+def get_F_2(PC_space, N_list):
+    '''
+    Modified F-statistic from Anderson et al., 2017 doi: 10.1111/anzs.12176
+    Function assumes that the rows of the count matrix are sorted by group
+    i.e., group one is first N1 rows, group two is N2, etc
+    '''
+    #N = N1+N2
+    N = sum(N_list)
+    dist_matrix = euclidean_distances(PC_space, PC_space)
+    A = -(1/2) * (dist_matrix ** 2)
+    I = np.identity(N)
+    J_N = np.full((N, N), 1)
+    G = (I - ((1/N) * J_N )) @ A @ (I - ((1/N) * J_N ))
+    # n matrix list
+    n_list = []
+    for N_i in N_list:
+        n_list.append((1/N_i) * np.full((N_i, N_i), 1))
+    #n1 = (1/N1) * np.full((N1, N1), 1)
+    #n2 = (1/N2) * np.full((N2, N2), 1)
+    #H = block_diag(n1, n2) - ((1/N) * J_N )
+    H = block_diag(*n_list) - ((1/N) * J_N )
+    # indicator matrices
+    # get V matrices
+    V_list = []
+    for i in range(len(N_list)):
+        if i == 0:
+            U_i = np.diag( N_list[i]*[1] + sum(N_list[i+1:])*[0])
+        elif i == len(N_list) - 1:
+            U_i = np.diag( sum(N_list[:i])*[0] + N_list[i]*[1] )
+        else:
+            U_i = np.diag( sum(N_list[:i])*[0] + N_list[i]*[1] +  sum(N_list[i+1:])*[0])
+
+        V_i = np.trace(((I - H) @ U_i @ (I - H)) @ G ) / (N_list[i]-1)
+        V_list.append(V_i)
+
+    F_2 = np.trace(H @ G) / sum( [ (1 - (N_list[i]/N) ) *  V_list[i] for i in range(len(N_list)) ]  )
+
+
+
+    return F_2
+
+
+
+
 
 
 
@@ -59,31 +260,29 @@ def lighten_color(color, amount=0.5):
 
 
 
-def samples_to_remove(population):
-    population_dict = {'0D1':[600],
-                        '0D2':[900],
-                        '0D3':[900],
-                        '0D4':[900],
-                        '2S2':[700],
-                        '2S3':[700],
-                        '2S4':[700],
-                        '2S5':[700],
-                        '1P5':[700],
-                        '2P1':[500],
-                        '1F5':[500],
-                        '1F2':[700],
-                        '0B4':[800],
-                        '2J4':[500]}
+#def samples_to_remove(population):
 
 
-    if population not in population_dict:
-        return None
-    else:
-        return population_dict[population]
+#    if population not in population_dict:
+#        return None
+#    else:
+#        return population_dict[population]
 
 
 
-
+#'0D1':[600],
+#'0D2':[900],
+#'0D3':[900],
+#'0D4':[900],
+#'2S2':[700],
+#'2S3':[700],
+#'2S4':[700],
+#'2S5':[700],
+#'1P5':[700],
+#'2P1':[500],
+#'1F5':[500],
+#'1F2':[700],
+#'2J4':[500]
 
 
 
@@ -91,7 +290,7 @@ def get_treatment_name(treatment):
     treatment_dict = {'0': '1-day',
                         '1': '10-day',
                         '2': '100-day'}
-    return treatment_dict[treatment]
+    return treatment_dict[str(treatment)]
 
 
 
@@ -150,6 +349,62 @@ def get_genome_size(taxon):
                         "P": 6639537}
 
     return genome_size_dict[taxon]
+
+
+
+
+
+def confidence_ellipse(x, y, ax, n_std=3.0, facecolor='none', **kwargs):
+    """
+    Create a plot of the covariance confidence ellipse of *x* and *y*.
+    Parameters
+    ----------
+    x, y : array-like, shape (n, )
+        Input data.
+    ax : matplotlib.axes.Axes
+        The axes object to draw the ellipse into.
+    n_std : float
+        The number of standard deviations to determine the ellipse's radiuses.
+    Returns
+    -------
+    matplotlib.patches.Ellipse
+    Other parameters
+    ----------------
+    kwargs : `~matplotlib.patches.Patch` properties
+    """
+    if x.size != y.size:
+        raise ValueError("x and y must be the same size")
+
+    cov = np.cov(x, y)
+    pearson = cov[0, 1]/np.sqrt(cov[0, 0] * cov[1, 1])
+    # Using a special case to obtain the eigenvalues of this
+    # two-dimensionl dataset.
+    ell_radius_x = np.sqrt(1 + pearson)
+    ell_radius_y = np.sqrt(1 - pearson)
+    ellipse = Ellipse((0, 0),
+        width=ell_radius_x * 2,
+        height=ell_radius_y * 2,
+        facecolor=facecolor,
+        **kwargs)
+
+    # Calculating the stdandard deviation of x from
+    # the squareroot of the variance and multiplying
+    # with the given number of standard deviations.
+    scale_x = np.sqrt(cov[0, 0]) * n_std
+    mean_x = np.mean(x)
+
+    # calculating the stdandard deviation of y ...
+    scale_y = np.sqrt(cov[1, 1]) * n_std
+    mean_y = np.mean(y)
+
+    transf = transforms.Affine2D() \
+        .rotate_deg(45) \
+        .scale(scale_x, scale_y) \
+        .translate(mean_x, mean_y)
+
+    ellipse.set_transform(transf + ax.transData)
+    return ax.add_patch(ellipse)
+
 
 
 

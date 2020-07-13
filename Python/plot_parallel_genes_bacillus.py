@@ -1,14 +1,13 @@
-import os
+import os, copy, sys
 import matplotlib.pyplot as plt
-import matplotlib as mpl
+#import matplotlib as mpl
 from matplotlib import colors
 from matplotlib.patches import Patch
 
 import phylo_tools as pt
 import parse_file
 
-import pandas as pd
-from urllib import request
+import scipy.stats as stats
 import numpy as np
 
 
@@ -62,11 +61,6 @@ for taxon in taxa:
             gene_dict[gene_name][treatment+taxon] = 1
 
 
-# remove genes if less than two genes are significant
-for gene in list(gene_dict):
-    if list(gene_dict[gene].values()).count(2) < 2:
-        del gene_dict[gene]
-
 # add zero for genes that you couldn't test
 for gene, gene_dict_i in gene_dict.items():
     for taxon in taxa:
@@ -75,9 +69,51 @@ for gene, gene_dict_i in gene_dict.items():
                 gene_dict_i[treatment + taxon] = 0
 
 
+# Go back through and perform test before you remove genes you don't want
+for treatment in treatments:
+
+    count_significant_B = 0
+    count_significant_S = 0
+    count_significant_B_S = 0
+
+    for gene, gene_dict_i in gene_dict.items():
+
+        if gene_dict_i[treatment+'B'] == 2:
+            count_significant_B += 1
+
+        if gene_dict_i[treatment+'S'] == 2:
+            count_significant_S += 1
+
+        if (gene_dict_i[treatment+'B'] == 2) and (gene_dict_i[treatment+'S'] == 2):
+            count_significant_B_S += 1
+
+    print(len(gene_names))
+
+    print(count_significant_B_S, count_significant_S, count_significant_B, len(gene_names) - count_significant_S - count_significant_B - count_significant_B_S)
+
+
+    oddsratio, pvalue = stats.fisher_exact([[count_significant_B_S, count_significant_S], [count_significant_B, len(gene_names) - count_significant_S - count_significant_B - count_significant_B_S]], alternative='less')
+
+    sys.stderr.write("%s-day Bacillus WT vs delta spo0A divergence test...\n" % treatment )
+
+    sys.stderr.write("Fisher's exact test odds-ratio = %f, p = %f\n" %  (round(oddsratio, 3),  round(pvalue, 3) ))
+
+
+
+
+
+
+gene_dict_copy = copy.deepcopy(gene_dict)
+# remove genes if less than two genes are significant
+for gene in list(gene_dict_copy):
+    if list(gene_dict_copy[gene].values()).count(2) < 2:
+        del gene_dict_copy[gene]
+
+
+
 gene_values = []
 gene_names = []
-for gene, gene_dict_i in gene_dict.items():
+for gene, gene_dict_i in gene_dict_copy.items():
 
     gene_values.append(list(gene_dict_i.values()))
     if gene in locus_tag_to_gene_dict:
@@ -86,7 +122,9 @@ for gene, gene_dict_i in gene_dict.items():
         gene_names.append(gene)
 
 
-# go back, output all nonsignificant genes into a seperate pfile
+
+
+
 
 # 0 = no test
 # 1 = tested, P > P*

@@ -21,7 +21,7 @@ reps = ['1', '2', '3', '4', '5']
 
 min_coverage = 5
 
-
+samples_to_remove_dict = pt.samples_to_remove
 
 for treatment in treatments:
     for replicate in reps:
@@ -30,7 +30,10 @@ for treatment in treatments:
         if population in pt.populations_to_ignore:
             continue
 
-        times_to_ignore = pt.samples_to_remove(population)
+        if population in pt.samples_to_remove:
+            times_to_ignore = pt.samples_to_remove[population]
+        else:
+            times_to_ignore=None
 
         mutations = []
         good_mutations = []
@@ -52,7 +55,7 @@ for treatment in treatments:
 
         for mutation_idx in range(0,len(mutation_data)):
 
-            location, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutation_data[mutation_idx]
+            location, gene_name, allele, var_type, codon, position_in_codon, AA_count, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutation_data[mutation_idx]
 
             good_idxs, masked_alts, masked_depths = timecourse_utils.mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change, depth_change_pvalue, min_coverage)
             if times_to_ignore_idx != None:

@@ -6,11 +6,11 @@ from bz2 import BZ2File
 from Bio import SeqIO
 
 import phylo_tools as pt
+import timecourse_utils
+#data_directory='data_files/'
+#figure_directory='manuscript/figures/'
 
-data_directory='data_files/'
-figure_directory='manuscript/figures/'
-
-default_min_depth = 5
+default_min_depth=5
 
 #Y = pYrimidines
 #R = puRines
@@ -80,6 +80,52 @@ for codon in codon_table.keys():
 
 
 
+def get_mutation_fixation_trajectories(population):
+
+    mutations, depth_tuple = parse_annotated_timecourse(population)
+    population_avg_depth_times, population_avg_depths, clone_avg_depth_times, clone_avg_depths = depth_tuple
+    state_times, state_trajectories = parse_well_mixed_state_timecourse(population)
+    times = mutations[0][9]
+    Ms = numpy.zeros_like(times)*1.0
+    fixed_Ms = numpy.zeros_like(times)*1.0
+
+    #transit_times[population] = []
+
+    for mutation_idx in range(0,len(mutations)):
+
+        #location, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutations[mutation_idx]
+        location, gene_name, allele, var_type, codon, position_in_codon, AAs_count,  test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutations[mutation_idx]
+
+        state_Ls = state_trajectories[mutation_idx]
+
+        good_idxs, filtered_alts, filtered_depths = timecourse_utils.mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change, depth_change_pvalue)
+
+        freqs = timecourse_utils.estimate_frequencies(filtered_alts, filtered_depths)
+
+        masked_times = times[good_idxs]
+        masked_freqs = freqs[good_idxs]
+        masked_state_Ls = state_Ls[good_idxs]
+
+        t0,tf,transit_time = timecourse_utils.calculate_appearance_fixation_time_from_hmm(masked_times, masked_freqs, masked_state_Ls)
+        #print(t0,tf,transit_time)
+        if t0==tf==transit_time==None:
+            continue
+
+        #print(masked_times, masked_freqs)
+
+        interpolating_function = timecourse_utils.create_interpolation_function(masked_times, masked_freqs, tmax=100000)
+
+        fs = interpolating_function(times)
+        fs[fs<0]=0
+
+        # Record
+        Ms += fs
+        if masked_state_Ls[-1] in well_mixed_fixed_states:
+            fixed_Ms += (times>=tf)
+
+
+    return times, Ms, fixed_Ms
+
 
 
 
@@ -138,7 +184,6 @@ def create_annotation_map(taxon, gene_data=None):
                 continue
 
             else:
-
                 # calculate position in gene
                 if strand=='forward':
                     position_in_gene = position-start
@@ -149,7 +194,9 @@ def create_annotation_map(taxon, gene_data=None):
                 codon_start = int(position_in_gene/3)*3
                 if codon_start+3 > len(gene_sequence):
                     continue
-                codon = gene_sequence[codon_start:codon_start+3]
+
+                #codon = gene_sequence[codon_start:codon_start+3]
+                codon = oriented_gene_sequence[codon_start:codon_start+3]
                 if any(codon_i in codon for codon_i in bases_to_skip):
                     continue
                 position_in_codon = position_in_gene%3
@@ -233,16 +280,31 @@ def annotate_variant(position, allele, gene_data, position_gene_map):
 
     if allele.startswith('Depth'):
         var_type = 'unknown'
+        codon=None
+        position_in_codon=None
+        fold_count=None
     elif allele.startswith('MOB') or allele.startswith('junction'):
         var_type = 'sv'
+        codon=None
+        position_in_codon=None
+        fold_count=None
     elif allele.startswith('indel'):
-            var_type = 'indel'
+        var_type = 'indel'
+        codon=None
+        position_in_codon=None
+        fold_count=None
     elif allele[1:3]=='->':
         # a SNP, so annotate it
         if gene_name=='intergenic':
             var_type = 'noncoding'
+            codon=None
+            position_in_codon=None
+            fold_count=None
         elif gene_name=='repeat':
             var_type = 'repeat'
+            codon=None
+            position_in_codon=None
+            fold_count=None
         else:
             # must be in a real gene
             # so get it
@@ -256,12 +318,17 @@ def annotate_variant(position, allele, gene_data, position_gene_map):
             strand = strands[i]
 
             if position<gene_start_position or position>gene_end_position:
-                #var_type='promoter'
                 var_type='noncoding' # (promoter)
+                codon=None
+                position_in_codon=None
+                fold_count=None
             else:
 
                 if gene_name.startswith('tRNA') or gene_name.startswith('rRNA'):
                     var_type='noncoding'
+                    codon=None
+                    position_in_codon=None
+                    fold_count=None
                 else:
 
                     # calculate position in gene
@@ -279,11 +346,12 @@ def annotate_variant(position, allele, gene_data, position_gene_map):
                     codon = oriented_gene_sequence[codon_start:codon_start+3]
                     codon_list = list(codon)
                     position_in_codon = position_in_gene%3
-                    #print(position_in_gene, len(oriented_gene_sequence), codon_start )
-                    #print("length of codon list " + str(len(codon_list)))
                     if (len(codon_list) == 0) or (len(set(codon_list) - set('ACGT')) != 0) :
-                        #print('empty codon list')
                         var_type='unknown'
+                        fold_count='unknown'
+                        codon='unknown'
+                        position_in_codon='unknown'
+                        fold_count='unknown'
 
                     else:
                         codon_list[position_in_codon]=new_base
@@ -297,11 +365,34 @@ def annotate_variant(position, allele, gene_data, position_gene_map):
                                 var_type='nonsense'
                             else:
                                 var_type='missense'
+
+                        # count fold
+                        if position_in_codon >= 3:
+                            fold_count = 'unknown'
+
+                        else:
+                            amino_acids = []
+                            for base in ['A','C','T','G']:
+
+                                if position_in_codon == 0:
+                                    new_fold_codon = list(base) + codon_list[1:]
+                                elif position_in_codon == 1:
+                                    new_fold_codon = list(codon_list[0]) + list(base) + list(codon_list[2])
+                                else:
+                                    new_fold_codon = codon_list[:2] + list(base)
+
+                                amino_acids.append(codon_table["".join(new_fold_codon)])
+
+                            fold_count=len(set(amino_acids))
+
     else:
         sys.stderr.write("Unknown: %s\n" % allele)
         var_type='unknown'
+        codon='unknown'
+        position_in_codon='unknown'
+        fold_count='unknown'
 
-    return gene_name, var_type
+    return gene_name, var_type, codon, position_in_codon, fold_count
 
 
 
@@ -614,7 +705,8 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
     items = header_line.strip().split(",")
 
     times = []
-    for i in range(13,len(items),2):
+    # 13
+    for i in range(16,len(items),2):
         times.append(int(items[i].split(":")[1]))
     times = numpy.array(times)
 
@@ -622,7 +714,7 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
     depth_line = file.readline()
     items = depth_line.strip().split(",")
     avg_depths = []
-    for i in range(13,len(items),2):
+    for i in range(16,len(items),2):
         avg_depths.append(float(items[i+1]))
     avg_depths = numpy.array(avg_depths)
     population_avg_depth_times = times[times<1000000]
@@ -636,17 +728,26 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
         gene_name = items[1].strip()
         allele = items[2].strip()
         var_type = items[3].strip()
-        test_statistic = float(items[4])
-        pvalue = float(items[5])
-        cutoff_idx = int(items[6])
-        depth_fold_change = float(items[7])
-        depth_change_pvalue = float(items[8])
 
-        duplication_idx = int(items[9])
-        fold_increase = float(items[10])
-        duplication_pvalue = float(items[11])
+        codon = items[4].strip()
+        position_in_codon = items[5].strip()
+        if (position_in_codon != 'None') and (position_in_codon != 'unknown'):
+            position_in_codon = int(position_in_codon)
+        fold_count = items[6].strip()
+        if (fold_count != 'None') and (fold_count != 'unknown'):
+            fold_count = int(fold_count)
 
-        passed_str = items[12]
+        test_statistic = float(items[7])
+        pvalue = float(items[8])
+        cutoff_idx = int(items[9])
+        depth_fold_change = float(items[10])
+        depth_change_pvalue = float(items[11])
+
+        duplication_idx = int(items[12])
+        fold_increase = float(items[13])
+        duplication_pvalue = float(items[14])
+
+        passed_str = items[15]
         if passed_str.strip()=='PASS':
             passed = True
         else:
@@ -655,7 +756,7 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
         alts = []
         depths = []
 
-        for i in range(13,len(items),2):
+        for i in range(16,len(items),2):
             alts.append(int(float(items[i])))
             depths.append(int(float(items[i+1])))
 
@@ -676,7 +777,7 @@ def parse_annotated_timecourse(population, only_passed=True, min_coverage=5):
         clone_depths = depths[(times>1000000)]
 
         if passed or (not only_passed):
-            mutations.append((location, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, pop_times, pop_alts, pop_depths, clone_times, clone_alts, clone_depths))
+            mutations.append((location, gene_name, allele, var_type, codon, position_in_codon, fold_count, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, pop_times, pop_alts, pop_depths, clone_times, clone_alts, clone_depths))
 
     file.close()
     #print(mutations[0])

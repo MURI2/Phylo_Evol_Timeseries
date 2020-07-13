@@ -17,3 +17,4 @@ data/library_metadata/final_to_seq.xlsx
 data/timecourse_merged/
 .gitignore
 data/timecourse_depth/0B1_depth_timecourse.bz
+default.profraw

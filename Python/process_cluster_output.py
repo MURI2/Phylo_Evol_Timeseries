@@ -23,9 +23,9 @@ well_mixed_hmm_wrapper = pt.get_path() + '/Python/calculate_well_mixed_hmm_wrapp
 treatments = ['0', '1', '2']
 reps = ['1', '2', '3', '4', '5']
 #treatments = ['0']
-#reps = ['1']
-strains = ['B', 'C', 'D', 'F', 'J', 'P', 'S']
-#strains = ['J']
+#strains = ['B', 'C', 'D', 'F', 'J', 'P']
+# fix S strain
+strains = ['S']
 
 for strain in strains:
     sys.stdout.write("\nProcessing Strain %s...\n" % (strain))
@@ -33,6 +33,9 @@ for strain in strains:
         for rep in reps:
 
             print('%s%s%s' % (treatment, strain, rep))
+
+            if treatment+strain+rep in pt.populations_to_ignore:
+                continue
 
             merged_timecourse_filename = '%s%s%s_merged_timecourse.bz' % (treatment, strain, rep)
             depth_timecourse_filename = '%s%s%s_depth_timecourse.bz' % (treatment, strain, rep)
@@ -98,7 +101,6 @@ for strain in strains:
         sys.stdout.write('Done!\n')
     else:
         sys.stdout.write("Error!\n")
-
 
 
 

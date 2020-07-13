@@ -20,15 +20,10 @@ P_gbk=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/reference_assemblie
 
 #declare -a strains=("A" "B" "C" "D" "F" "J" "P" "S")
 # Done: B,S,C,D,
-
+declare -a treats=("0")
 declare -a strains=("F")
-declare -a treats=("2")
 
-#declare -a treats=("0")
-# "1" "2")
-declare -a reps=("1" "2" "3" "4" "5")
-# "3" "4" "5")
-#declare -a reps=("2" "3" "4" "5")
+declare -a reps=("3")
 
 #declare -a times=("3000")
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")

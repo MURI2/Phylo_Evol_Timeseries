@@ -8,8 +8,8 @@ mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merge
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/timecourse_scripts
 
 declare -a strains=("F")
-declare -a treats=("0" "1" "2")
-declare -a reps=("1" "2" "3" "4" "5")
+declare -a treats=("0")
+declare -a reps=("2" "3")
 
 #declare -a treats=("0")
 #declare -a reps=("1")
@@ -48,7 +48,11 @@ do
   if [ -f $out ]; then
     rm $out
   fi
+
   out_timecourse="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}_timecourse.txt"
+  if [ -f $out_timecourse ]; then
+    rm $out_timecourse
+  fi
 
   echo '#!/bin/bash' >> $bash_out
   echo '#PBS -k o' >> $bash_out
@@ -58,10 +62,12 @@ do
   echo '#PBS -j oe' >> $bash_out
   echo '' >> $bash_out
   echo 'module load samtools' >> $bash_out
-  echo 'module load python' >> $bash_out
+  echo 'module unload python' >> $bash_out
+  echo 'module load python/2.7.16' >> $bash_out
   echo "samtools mpileup -q10 -f ${ref} ${bam_files} > ${out}" >> $bash_out
-  echo "cat ${out} | python ${create_timecourse} ${pop} ${times[@]} > $out_timecourse" >> $bash_out
+  echo "cat ${out} | python ${create_timecourse} ${pop} ${times[@]} > ${out_timecourse}" >> $bash_out
 
+  echo "${pop}"
   echo "${times[@]}"
   qsub $bash_out
 done
