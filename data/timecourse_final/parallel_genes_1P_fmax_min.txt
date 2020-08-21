@@ -1,0 +1,3 @@
+Locus tag, RefSeq protein ID, Gene, Length, Observed, Expected, Multiplicity, -log10(P)
+FFI16_RS27875, WP_138813356.1, , 1512.3, 5, 0.01, 2.68, 28.2703
+FFI16_RS11960, WP_138817667.1, deoR, 685.7, 3, 0.00, 3.55, 18.2528

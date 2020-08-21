@@ -1,0 +1,7 @@
+Position, Gene, Allele, Annotation, Codon, Position in codon, AA fold count, Test statistic, P-value, Deletion index, Fold reduction, Deletion P-value, Duplication index, Fold increase, Duplication pvalue, Passed?, AC:100, DP:100, AC:200, DP:200, AC:300, DP:300, AC:400, DP:400, AC:500, DP:500, AC:600, DP:600, AC:800, DP:800, AC:900, DP:900
+3063260, intergenic, indel;A;+G, indel, None, None, None, 0.440326197612, 0.1343, 9, 1, 1, 1, 1, 1, FAIL, 21.0, 24.0, 25.0, 27.0, 59.0, 66.0, 9.0, 15.0, 57.0, 67.0, 14.0, 18.0, 25.0, 28.0, 56.0, 65.0
+4489308, FFI16_RS20660, indel;-1, indel, None, None, None, -0.25538097775, 0.3839, 9, 1, 1, 1, 1, 1, FAIL, 5.0, 58.0, 23.0, 105.0, 0.0, 157.0, 0.0, 33.0, 2.0, 79.0, 4.0, 46.0, 2.0, 38.0, 18.0, 91.0
+4877958, FFI16_RS22350, indel;A;+A;+G;G;+T, indel, None, None, None, -0.123194435804, 0.3322, 9, 1, 1, 1, 1, 1, FAIL, 0.0, 65.0, 68.0, 115.0, 9.0, 218.0, 5.0, 45.0, 26.0, 126.0, 24.0, 80.0, 33.0, 61.0, 98.0, 147.0
+4953628, intergenic, indel;+A;-1, indel, None, None, None, -0.142691694558, 0.3929, 9, 1, 1, 1, 1, 1, FAIL, 0.0, 34.0, 5.0, 71.0, 4.0, 101.0, 5.0, 30.0, 1.0, 112.0, 2.0, 33.0, 1.0, 32.0, 2.0, 87.0
+5017347, intergenic, indel;+G, indel, None, None, None, 1.23472469987, 0.1624, 9, 1, 1, 1, 1, 1, PASS, 3.0, 42.0, 4.0, 30.0, 6.0, 69.0, 0.0, 15.0, 0.0, 97.0, 0.0, 58.0, 0.0, 19.0, 0.0, 70.0
+5225955, FFI16_RS23970, indel;-1, indel, None, None, None, 0.237908132877, 0.1617, 9, 1, 1, 1, 1, 1, FAIL, 8.0, 10.0, 4.0, 8.0, 14.0, 16.0, 3.0, 4.0, 6.0, 13.0, 5.0, 8.0, 6.0, 7.0, 8.0, 12.0

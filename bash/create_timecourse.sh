@@ -1,39 +1,81 @@
 #!/bin/bash
-#PBS -k o
-#PBS -l nodes=1:ppn=8,vmem=100gb,walltime=15:00:00
-#PBS -M wrshoema@iu.edu
-#PBS -m abe
-#PBS -m n
-#PBS -j oe
 
-module load samtools
-module load python
 
-#declare -a strains=("B" "C" "D" "F" "J" "P" "S")
-#declare -a treats=("0" "1" "2")
-#declare -a reps=("1" "2" "3" "4" "5")
+create_timecourse=/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/create_timecourse.py
 
-declare -a treats=("0" "1" "2")
-declare -a reps=("1" "2" "3" "4" "5")
 
-mkdir -p /N/dc2/projects/muri2/Task2/PoolPopSeq/data/pileup
-mkdir -p /N/dc2/projects/muri2/Task2/PoolPopSeq/data/timecourse
+mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged
+mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/timecourse_scripts
 
-#ref=/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff
-#ref=/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.fna
-ref=/N/dc2/projects/muri2/Task2/PoolPopSeq/data/rebreseq/Sample_L0B1-100/data/reference.fasta
-samtools faidx $ref
+declare -a strains=("F")
+declare -a treats=("0")
+declare -a reps=("2" "3")
+
+#declare -a treats=("0")
+#declare -a reps=("1")
+
+declare -a pops=()
 
 for treat in "${treats[@]}"
 do
-  for rep in "${reps[@]}"
+  for strain in "${strains[@]}"
   do
-    pop="Sample_L${treat}B${rep}"
-    bams="/N/dc2/projects/muri2/Task2/PoolPopSeq/data/rebreseq/${pop}"*"/data/reference.bam"
-    out="/N/dc2/projects/muri2/Task2/PoolPopSeq/data/pileup/${pop}.pileup"
-    samtools mpileup -q10 -f ${ref} ${bams} > ${out}
-    out_timecourse="/N/dc2/projects/muri2/Task2/PoolPopSeq/data/timecourse/${pop}_timecourse.txt"
-    cat ${out} | python /N/dc2/projects/muri2/Task2/PoolPopSeq/bin/create_timecourse.py ${pop} > ${out_timecourse}
-    rm ${out}
+    for rep in "${reps[@]}"
+    do
+      pops+=("${treat}${strain}${rep}")
+    done
   done
 done
+
+
+for pop in "${pops[@]}"
+do
+  bash_out="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/bash/timecourse_scripts/${pop}_timecourse.sh"
+  if [ -f $bash_out ]; then
+    rm $bash_out
+  fi
+
+  declare -a times=()
+  for pop_sample in "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq/${pop}_"*"/data/reference.bam"
+  do
+    time="$(echo "$pop_sample" | cut -d "/" -f10-10 | cut -d "_" -f2-2)"
+    times+=("${time}")
+  done
+
+  bam_files="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq/${pop}_"*"/data/reference.bam"
+  ref="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/rebreseq/${pop}_100/data/reference.fasta"
+  out="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}.pileup"
+  if [ -f $out ]; then
+    rm $out
+  fi
+
+  out_timecourse="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/timecourse_merged/${pop}_timecourse.txt"
+  if [ -f $out_timecourse ]; then
+    rm $out_timecourse
+  fi
+
+  echo '#!/bin/bash' >> $bash_out
+  echo '#PBS -k o' >> $bash_out
+  echo '#PBS -l nodes=1:ppn=8,vmem=50gb,walltime=12:00:00' >> $bash_out
+  echo '#PBS -M wrshoema@iu.edu' >> $bash_out
+  echo '#PBS -m abe' >> $bash_out
+  echo '#PBS -j oe' >> $bash_out
+  echo '' >> $bash_out
+  echo 'module load samtools' >> $bash_out
+  echo 'module unload python' >> $bash_out
+  echo 'module load python/2.7.16' >> $bash_out
+  echo "samtools mpileup -q10 -f ${ref} ${bam_files} > ${out}" >> $bash_out
+  echo "cat ${out} | python ${create_timecourse} ${pop} ${times[@]} > ${out_timecourse}" >> $bash_out
+
+  echo "${pop}"
+  echo "${times[@]}"
+  qsub $bash_out
+done
+
+
+
+#for file in .* *;
+#  do
+#    echo $file
+#    bzcat $file | head -10;
+#done

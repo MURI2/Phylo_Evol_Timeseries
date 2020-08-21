@@ -247,9 +247,9 @@ inline double calculate_max_run(Trajectory const & trajectory){
     }
     double avg_frequency = total_alts/total_depths;
     // cap it at a certain value
-    avg_frequency = (avg_frequency < 0.5) ? avg_frequency : 0.5;
+    avg_frequency = (avg_frequency < 0.2) ? avg_frequency : 0.5;
 
-    if(num_zero_timepoints > 0.3*num_timepoints){
+    if(num_zero_timepoints > 0.2*num_timepoints){
         // zero is close to median, weight avg toward that
         avg_frequency = avg_frequency*exp(-(num_zero_timepoints-0.3*num_timepoints)/5)/(1+exp(-(num_zero_timepoints-0.3*num_timepoints)/5));
     }
@@ -366,7 +366,7 @@ inline double calculate_relaxation_time(Trajectory const & trajectory, bool is_b
 
     //std::cout << avg_f << std::endl;
 
-    if(num_zero_timepoints > 0.3*num_timepoints){
+    if(num_zero_timepoints > 0.2*num_timepoints){
         if(is_bootstrap){
             return trajectory.size();
         }

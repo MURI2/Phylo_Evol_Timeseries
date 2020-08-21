@@ -1,8 +1,9 @@
 '''
-This script was originally written by B. Good for the publication *insert here*.
-
-This script has been modified with permission
-
+This script was originally written by B.H. Good for the publication
+The dynamics of molecular evolution over 60,000 generations
+Nature volume 551, pages 45-50, doi:10.1038/nature24287
+This script has been modified with permission and is free for use
+under a GNU General Public License v2.0
 '''
 
 
@@ -17,45 +18,20 @@ This script has been modified with permission
 
 import numpy
 import sys
+#import population_parameters
 from operator import itemgetter, attrgetter, methodcaller
-import imp
-import os
+#from parse_file import get_repeat_idx, get_closest_repeat_idx, parse_repeat_list
 from math import fabs
 
-parse_file = imp.load_source('parse_file', '/N/dc2/projects/muri2/Task2/PoolPopSeq/bin/samtools/parse_file.py')
-
-#from parse_file import parse_repeat_list, get_closest_repeat_idx
-
-P_gbk = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Pseudomonas_sp_KBS0710/G-Chr1.gbk'
-D_gbk = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Deinococcus_radiodurans_BAA816/GCA_000008565.1_ASM856v1_genomic.gbff'
-B_gbk = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Bacillus_subtilis_NCIB_3610/GCA_002055965.1_ASM205596v1_genomic.gbff'
-C_gbk = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Caulobacter_crescentus_NA1000/GCA_000022005.1_ASM2200v1_genomic.gbff'
-F_gbk = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Pedobacter_sp_KBS0701/G-Chr1.gbk'
-J_gbk = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/reference_assemblies_task2/Janthinobacterium_sp_KBS0711/KBS0711_2015_SoilGenomes_Annotate/G-Chr1.gbk'
-
 # File containing the reference fasta file
-reference_filename = sys.argv[1]
+#reference_filename = sys.argv[1]
+# File containing the reference gbk/gbff file
+#reference_gbk_filename = sys.argv[2]
 # The population to compile timecourses for
-population = sys.argv[2]
+population = sys.argv[1]
 # The output (gd) files from breseq
-gd_filenames = sys.argv[3:]
+gd_filenames = sys.argv[2:]
 
-print gd_filenames
-
-taxon = population[-2]
-
-if (taxon == 'B') or (taxon == 'S'):
-    gbk = B_gbk
-elif taxon == 'C':
-    gbk = C_gbk
-elif taxon == 'D':
-    gbk = D_gbk
-elif taxon == 'F':
-    gbk = F_gbk
-elif taxon == 'J':
-    gbk = J_gbk
-elif taxon == 'P':
-    gbk = P_gbk
 
 # How far can two simple indels be before they are merged
 INDEL_EDGE_TOLERANCE = 0
@@ -63,6 +39,7 @@ INDEL_EDGE_TOLERANCE = 0
 INDEL_LENGTH_TOLERANCE = 100
 # How far can two similar IS junctions be before they are merged
 REPEAT_EDGE_TOLERANCE = 20
+
 # How far can two similar inversion elements be before they are merged
 OTHER_EDGE_TOLERANCE = 20
 
@@ -71,47 +48,36 @@ INDEL = 0
 REPEAT = 1
 OTHER = 2
 
-# Construct the list of samples for this population
-times = ['D100', 'D200', 'D300']
-
-full_sample_times = []
-full_sample_list = []
-
-for time in times:
-    time_path = '/N/dc2/projects/muri2/Task2/PoolPopSeq/data/breseq_2nd_run_fa/' \
-        + time + '/' + population + '-' + time[1:] + '/data/reference.bam'
-    if os.path.isfile(time_path):
-        full_sample_times.append(time)
-        full_sample_list.append(population + '-' + time[1:])
 
 
 sample_list = []
 gd_filename_map = {}
 #parse sample names from filenames
 for gd_filename in gd_filenames:
-    sample_name = gd_filename.split("/")[10].strip()
+    sample_name = gd_filename.split("/")[9].strip()
+    if sample_name.startswith(population):
+        sample_name = sample_name.split("_",1)[1]
     sample_list.append(sample_name)
     gd_filename_map[sample_name] = gd_filename
 
-sample_times = [full_sample_times[full_sample_list.index(sample)] for sample in sample_list]
 
+sample_list = sorted(sample_list)
+sample_list.sort(key=int)
 # make sure the list is sorted
-sample_times, sample_list = (list(x) for x in zip(*sorted(zip(sample_times,sample_list))))
 
-sample_times_set = sorted(set(sample_times))
 
 # Load reference fasta
-fasta_file = open(reference_filename,"r")
-fasta_file.readline() # header
-reference_sequence = []
-for line in fasta_file:
-    reference_sequence.append(line.strip())
-fasta_file.close()
-reference_sequence = "".join(reference_sequence)
+#fasta_file = open(reference_filename,"r")
+#fasta_file.readline() # header
+#reference_sequence = []
+#for line in fasta_file:
+#    reference_sequence.append(line.strip())
+#fasta_file.close()
+#reference_sequence = "".join(reference_sequence)
 
 mutation_map = {}
-repeat_data = parse_file.parse_repeat_list(filename=gbk)
-repeat_names, repeat_starts, repeat_ends, repeat_complements = repeat_data
+#repeat_data = parse_repeat_list(reference_gbk_filename)
+#repeat_names, repeat_starts, repeat_ends, repeat_complements = repeat_data
 
 mutation_str_map = {'short':{}, 'long':{}}
 str_mutation_map = {'short':{}, 'long':{}}
@@ -193,10 +159,11 @@ def get_registered_mutation_string(mutation, version='long'):
     return mutation_string
 
 # parse junctions from rebreseq files
-for t,sample_name in zip(sample_times, sample_list):
-    #print t, sample_name, gd_filename_map[sample_name]
-    if not t in mutation_map:
-        mutation_map[t] = {}
+# sample name is just days here
+
+for sample_name in sample_list:
+    if not sample_name in mutation_map:
+        mutation_map[sample_name] = {}
     gd_file = open(gd_filename_map[sample_name],"r")
     sys.stderr.write("%s\n" % sample_name)
 
@@ -204,6 +171,7 @@ for t,sample_name in zip(sample_times, sample_list):
     initial_indel_list = []
 
     for line in gd_file:
+
 
         # we are only looking at JC evidence here
         if not line.startswith('JC'):
@@ -225,90 +193,24 @@ for t,sample_name in zip(sample_times, sample_list):
             # we can't do anything about junctions with both ends in repeat regions
             continue
 
-        elif named_items['side_1_annotate_key'] == 'repeat':
-
-            # side 1 is a repeat and side 2 is not
-            involves_repeat = True
-            # get gene position from side 2
-            position = long(unnamed_items[7])
-            # get strand position from side 2
-            strand = long(unnamed_items[8])
-            R = float(named_items['side_2_read_count'])
-            wR = 1.0/(1+float(named_items['side_2_possible_overlap_registers']))
-
-            # repeat stuff
-            repeat_position = long(unnamed_items[4])
-            idx = parse_file.get_closest_repeat_idx(repeat_position, repeat_data)
-
-            repeat_name = repeat_names[idx].split(":")[1]
-            repeat_complement = repeat_complements[idx]
-
-            # find out whether we are near start or finish
-            distances = numpy.fabs( numpy.array([repeat_starts[idx], repeat_ends[idx]]) - repeat_position )
-            is_end = distances.argmin()
-            if repeat_complement:
-                is_end = not is_end
-            if is_end:
-                repeat_end = 'end'
-            else:
-                repeat_end = 'start'
-
-            mutation = (key, REPEAT, position, strand, repeat_name, repeat_end)
-
-            A = float(named_items['new_junction_read_count'])
-            wA = 1.0/(1+float(named_items['junction_possible_overlap_registers']))
-
-            initial_sv_list.append( (mutation, wA, A, wR, R) )
-
-
-        elif named_items['side_2_annotate_key'] == 'repeat':
-
-            # side 2 is a repeat and side 1 is not
-
-            # get position from side 1
-            position = long(unnamed_items[4])
-            # get strand from side 1
-            strand = long(unnamed_items[5])
-            R = float(named_items['side_1_read_count'])
-            wR = 1.0/(1+float(named_items['side_1_possible_overlap_registers']))
-
-            # repeat stuff
-            repeat_position = long(unnamed_items[7])
-            idx = parse_file.get_closest_repeat_idx(repeat_position, repeat_data)
-
-            repeat_name = repeat_names[idx].split(":")[1]
-            repeat_complement = repeat_complements[idx]
-
-            # find out whether we are near start or finish
-            distances = numpy.fabs( numpy.array([repeat_starts[idx], repeat_ends[idx]]) - repeat_position )
-            is_end = distances.argmin()
-            if repeat_complement:
-                is_end = not is_end
-            if is_end:
-                repeat_end = 'end'
-            else:
-                repeat_end = 'start'
-
-            mutation = (key, REPEAT, position, strand, repeat_name, repeat_end)
-
-            A = float(named_items['new_junction_read_count'])
-            wA = 1.0/(1+float(named_items['junction_possible_overlap_registers']))
-
-            initial_sv_list.append( (mutation, wA, A, wR, R) )
-
         else:
             # neither side is a repeat
             position_1 = long(unnamed_items[4])
             strand_1 = long(unnamed_items[5])
             position_2 = long(unnamed_items[7])
             strand_2 = long(unnamed_items[8])
-            R1 = float(named_items['side_1_read_count'])
-            w1 = 1.0/(1+float(named_items['side_1_possible_overlap_registers']))
-            R2 = float(named_items['side_2_read_count'])
-            w2 = 1.0/(1+float(named_items['side_2_possible_overlap_registers']))
 
-            wR = w1+w2
-            R = (w1*R1+w2*R2)/wR
+            try:
+                R1 = float(named_items['side_1_read_count'])
+                w1 = 1.0/(1+float(named_items['side_1_possible_overlap_registers']))
+                R2 = float(named_items['side_2_read_count'])
+                w2 = 1.0/(1+float(named_items['side_2_possible_overlap_registers']))
+
+                wR = w1+w2
+                R = (w1*R1+w2*R2)/wR
+
+            except ValueError:
+                continue
 
             # make sure smaller position is position 1
             # (should already be true?)
@@ -353,8 +255,8 @@ for t,sample_name in zip(sample_times, sample_list):
 
     # condense indel list
     merged_indel_map = {}
+    contig_merged_indel_map = {}
     for mutation, A, R in initial_indel_list:
-
         # don't bias averages from things that
         # truly are not there
         # Q: for indels, how do these things even get here?
@@ -382,8 +284,11 @@ for t,sample_name in zip(sample_times, sample_list):
 
         merged_indel_map[mutation_string] = (new_n,new_A, new_R)
 
+        contig_merged_indel_map[mutation_string] = mutation[0].split('__')[0]
+
     # now condense sv list
     merged_mutation_map = {}
+    contig_merged_mutation_map = {}
     for mutation, wA, A, wR, R in initial_sv_list:
 
         # if no reads, don't even include it!
@@ -403,11 +308,13 @@ for t,sample_name in zip(sample_times, sample_list):
         new_R = (old_wR*old_R + wR*R) / (new_wR)
         merged_mutation_map[mutation_string] = (new_n,new_wA, new_A, new_wR, new_R)
 
+        contig_merged_mutation_map[mutation_string] = mutation[0].split('__')[0]
+
 
     # account for weird normalization issues for non-indels
     renormalized_mutation_map = {}
+    contig_renormalized_mutation_map = {}
     for mutation_string in merged_mutation_map.keys():
-
 
         short_mutation_string = get_registered_mutation_string(get_registered_mutation(mutation_string),version='short')
 
@@ -415,11 +322,15 @@ for t,sample_name in zip(sample_times, sample_list):
 
         if short_mutation_string not in renormalized_mutation_map:
             renormalized_mutation_map[short_mutation_string] = {}
+            contig_renormalized_mutation_map[short_mutation_string] = {}
         renormalized_mutation_map[short_mutation_string][mutation_string] = merged_mutation_map[mutation_string]
 
+        contig_renormalized_mutation_map[short_mutation_string][mutation_string] = contig_merged_mutation_map[mutation_string]
         #sys.stderr.write("%s %s\n" % (mutation_string, short_mutation_string))
 
     for short_mutation_string in renormalized_mutation_map.keys():
+        #sys.stderr.write("%s\n" % short_mutation_string)
+
         # calculate renormalized wD, D
 
         # first count the total n,A, and wA
@@ -447,6 +358,7 @@ for t,sample_name in zip(sample_times, sample_list):
 
         for mutation_string in renormalized_mutation_map[short_mutation_string].keys():
             n,wA,A,wR,R = renormalized_mutation_map[short_mutation_string][mutation_string]
+
             location = long(mutation_string.split("_")[1])
             alt = A
 
@@ -455,24 +367,27 @@ for t,sample_name in zip(sample_times, sample_list):
             depth = (Atot*wAtot/ntot + R*wR/n)/(wA/n)
             #sys.stderr.write("%s %g %g\n" % (mutation_string, alt, depth))
 
-            if mutation_string in mutation_map[t]:
+            if mutation_string in mutation_map[sample_name]:
                 # independently sequenced same timepoint: add coverage up
-                old_mutation, old_alt, old_depth = mutation_map[t][mutation_string]
+                old_mutation, old_alt, old_depth = mutation_map[sample_name][mutation_string]
                 alt = old_alt + alt
                 depth = old_depth + depth
 
-            mutation_map[t][mutation_string] = (("REL606", location, mutation_string),  alt, depth)
+            contig = contig_renormalized_mutation_map[short_mutation_string][mutation_string]
+
+            mutation_map[sample_name][mutation_string] = ((contig, location, mutation_string),  alt, depth)
 
     for indel_string in merged_indel_map.keys():
         location = long(indel_string.split("_")[1])
         n,A,R = merged_indel_map[indel_string]
         D = A+R
-        if indel_string in mutation_map[t]:
+        if indel_string in mutation_map[sample_name]:
             # independently sequenced same timepoint: add coverage up
-            old_mutation, old_A, old_D = mutation_map[t][indel_string]
+            old_mutation, old_A, old_D = mutation_map[sample_name][indel_string]
             A = old_A + A
             D = old_D + D
-        mutation_map[t][indel_string] = (("REL606", location, indel_string),  A, D)
+
+        mutation_map[sample_name][indel_string] = ((contig_merged_indel_map[indel_string], location, indel_string),  A, D)
 
 
 mutation_timecourse_map = {}
@@ -489,7 +404,7 @@ for mutation in sorted(mutation_timecourse_map.keys(), key=itemgetter(1)):
     times = []
     alts = []
     depths = []
-    for t in sample_times_set:
+    for t in sample_list:
         times.append(t)
         if t in mutation_timecourse_map[mutation]:
             alt = mutation_timecourse_map[mutation][t][0]
@@ -510,10 +425,6 @@ for mutation in sorted(mutation_timecourse_map.keys(), key=itemgetter(1)):
         # a simple indel
         rebreseq_indels[(chromosome,location)] = (chromosome,location,"indel;"+(";".join(subitem for subitem in indel_alleles[allele_str])),times,alts,depths)
 
-#if ('REL606', 4558685) in rebreseq_indels:
-#    sys.stderr.write("In rebreseq indels!\n")
-#else:
-#    sys.stderr.write("Not in rebreseq indels!\n")
 
 # parse through trajectories from mpileup file
 for line in sys.stdin:
@@ -599,7 +510,7 @@ output_list = []
 # now print the rest
 for chromosome,location,allele,times,alts,depths in rebreseq_indels.values():
     if (alts >= 2).sum() > 1 and ((alts>=2)*(depths>=10)*(alts>=(0.05*depths))).sum()>0: # recording condition
-        time_strs = ["%g" % t for t in times]
+        time_strs = ["%g" % float(t) for t in times]
         alt_strs = ['%g' % a for a in alts]
         depth_strs = ['%0.1f' % d for d in depths]
         output_string = ", ".join([chromosome, str(location), allele, " ".join(time_strs), " ".join(alt_strs), " ".join(depth_strs)])
@@ -608,7 +519,7 @@ for chromosome,location,allele,times,alts,depths in rebreseq_indels.values():
 # now print the rest
 for chromosome,location,allele,times,alts,depths in rebreseq_junctions.values():
     if (alts >= 2).sum() > 1 and ((alts>=2)*(depths>=10)*(alts>=(0.05*depths))).sum()>0: # recording condition
-        time_strs = ["%g" % t for t in times]
+        time_strs = ["%g" % float(t) for t in times]
         alt_strs = ['%g' % a for a in alts]
         depth_strs = ['%0.1f' % d for d in depths]
         output_string =  ", ".join([chromosome, str(location), allele, " ".join(time_strs), " ".join(alt_strs), " ".join(depth_strs)])
