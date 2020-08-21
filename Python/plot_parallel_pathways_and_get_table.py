@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 
 random.seed(123456789)
 
-iter=1000
+iter=10000
 
 MCR = 1
 
@@ -68,8 +68,10 @@ for taxon in taxa:
                 maple_annotation_dict[maple_name] = {}
                 maple_annotation_dict[maple_name]['type'] = items[1]
                 maple_annotation_dict[maple_name]['description'] = items[2]
-                maple_annotation_dict[maple_name]['count'] = [taxon]
-            else:
+                maple_annotation_dict[maple_name]['count'] = []
+
+            if taxon not in maple_annotation_dict[maple_name]['count']:
+
                 maple_annotation_dict[maple_name]['count'].append(taxon)
 
             maple_matrix = open(pt.get_path() + '/data/reference_assemblies_task2/MAPLE/%s_MAPLE_result/KAAS/%s_matrix.txt' % (taxon, maple_name) , 'r')
@@ -95,6 +97,11 @@ for taxon in taxa:
     for maple, kegg_genes in maple_to_kegg_all[taxon].items():
         for kegg_gene in kegg_genes:
             kegg_to_maple_all[taxon][kegg_gene] = maple
+
+
+# filter kegg_to_maple_all to only include MAPLE modules
+# with maple_annotation_dict[maple_name]['count'] = 6
+
 
 
 
@@ -123,13 +130,12 @@ for treatment in treatments:
                 kegg_annotation = protein_to_kegg_all[taxon][protein_id]
                 if kegg_annotation in kegg_to_maple_all[taxon]:
 
-                    kegg_list.append(kegg_annotation)
-                # get maple genes
-                #    if kegg_to_maple_all[taxon][kegg_annotation] in maple_count_dict:
-                #        maple_count_dict[kegg_to_maple_all[taxon][kegg_annotation]] += 1
-                    maple_list.append(kegg_to_maple_all[taxon][kegg_annotation])
-                #    else:
-                #        maple_count_dict[kegg_to_maple_all[taxon][kegg_annotation]] = 1
+                    maple_annotation = kegg_to_maple_all[taxon][kegg_annotation]
+                    if len(maple_annotation_dict[maple_annotation]['count']) == 6:
+
+                        kegg_list.append(kegg_annotation)
+
+                        maple_list.append(maple_annotation)
 
         significant_genes.close()
 
@@ -147,8 +153,8 @@ for treatment in treatments:
 
     if (treatment == '1'):
         taxa_ =  ['B','C','D','F','P']
-    elif (treatment == '2'):
-        taxa_ =  ['B','C','D','J','P']
+    #elif (treatment == '2'):
+    #    taxa_ =  ['B','C','D','J','P']
     else:
         taxa_ =  pt.taxa
 
@@ -199,8 +205,6 @@ for treatment in treatments:
 
     if (treatment == '1'):
         taxa_ =  ['B','C','D','F','P']
-    elif (treatment == '2'):
-        taxa_ =  ['B','C','D','J','P']
     else:
         taxa_ =  pt.taxa
 
@@ -259,7 +263,7 @@ for treatment_idx, treatment in enumerate(treatments):
     ax.plot(range(1, len(observed_intersection_dict[treatment])+1), observed_intersection_dict[treatment], 'o-', alpha=1, c='k',lw=2,zorder=2)
 
     #ax.set_yscale('log', basey=10)
-    ax.set_xlim(0.3, 6.4)
+    ax.set_xlim(0.8, 6.4)
     #ax.set_title( str(10**int(treatment)) + '-day', fontsize=20 )
     if treatment == '0':
         title = '1-Day'
@@ -311,7 +315,7 @@ F, p = pt.run_permanova(df_pc.values, number_treatment_reps)
 ax_pca.text(0.8, 0.9, r'$F$=' + str(round(F,2)), fontsize = 14, transform=ax_pca.transAxes)
 ax_pca.text(0.8, 0.83, r'$P\nless 0.05$', fontsize = 14, transform=ax_pca.transAxes)
 
-ax_pca.text(0, 1.1, 'd', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
+ax_pca.text(0, 1.03, 'd', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
 
 fig.text(0.05, 0.5, 'Number of MAPLE modules with\nsignificant multiplicity', ha='center', va='center', rotation='vertical', fontsize=15)
 
@@ -378,9 +382,9 @@ for maple_i, maple_i_dict in maple_dict_count.items():
         out_1 = '0/5'
 
     if '2' in maple_i_dict:
-        out_2 = str(len(maple_i_dict['2'])) + '/5'
+        out_2 = str(len(maple_i_dict['2'])) + '/6'
     else:
-        out_2 = '0/5'
+        out_2 = '0/6'
 
     convergence_table.write(", ".join([maple_i, type, description, out_0, out_1, out_2 ]) + '\n' )
 

@@ -139,8 +139,8 @@ def plot_mutation_trajectory_taxon(taxon):
 
 
 
-
-for taxon in ['B','D','F','J','P','S']:
+#['B','D','F','J','P','S']
+for taxon in ['C']:
     #plot_within_taxon_paralleliism(taxon)
     if (taxon != 'S'):
         plot_mutation_trajectory_taxon(taxon)

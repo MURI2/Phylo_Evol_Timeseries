@@ -22,6 +22,7 @@ taxa = ['B','C','D','F','J','P']
 treatments = ['0', '1', '2']
 replicates = ['1','2','3','4','5']
 
+sub_plot_labels = ['a','b','c', 'd','e','f', 'g','h','i']
 
 samples_to_remove = {'1B4':[900],
                         '1B5':[1000],
@@ -43,7 +44,7 @@ samples_to_remove = {'1B4':[900],
 #populations_to_ignore = ['1D4', '2P4', '2P5', '2F1', '2F2', '2F3', '0J2', '1J3'] # ['1C1']
 populations_to_ignore = ['0F3', '2F1', '2F2', '2F3', '0J2', '1J1', '1J2', '1J3', '1J4', '1J5', '1P5'] # ['1C1']
 
-treatment_taxa_to_ignore = ['2F', '1J']
+treatment_taxa_to_ignore = ['1J']
 
 
 
@@ -60,7 +61,7 @@ latex_formal_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \; \mathrm{NCIB \, 3
 
 
 
-latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \, \mathrm{wt} $',
+latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis}  $',
                 'S': r'$\mathit{Bacillus\, subtilis} \, \Delta \mathrm{spo0A} $',
                 'C': r'$\mathit{Caulobacter \, crescentus}$',
                 'D': r'$\mathit{Deinococcus \, radiodurans}$',
@@ -79,8 +80,17 @@ latex_bold_dict = {'B': r'$\mathbf{\mathit{Bacillus\, subtilis} \, \mathrm{wt} }
 
 
 
-latex_genus_dict = {  'B': r'$\mathit{Bacillus} \, \mathrm{wt} $',
-                'S': r'$\mathit{Bacillus} \, \Delta \mathrm{spo0A} $',
+#latex_genus_dict = {  'B': r'$\mathit{Bacillus} \, \mathrm{wt} $',
+#                'S': r'$\mathit{Bacillus} \, \Delta \mathrm{spo0A} $',
+#                'C': r'$\mathit{Caulobacter}$',
+#                'D': r'$\mathit{Deinococcus}$',
+#                'P': r'$\mathit{Pseudomonas}$',
+#                'F': r'$\mathit{Pedobacter}$',
+#                'J': r'$\mathit{Janthinobacterium}$'
+#                }
+
+
+latex_genus_dict = {  'B': r'$\mathit{Bacillus} $',
                 'C': r'$\mathit{Caulobacter}$',
                 'D': r'$\mathit{Deinococcus}$',
                 'P': r'$\mathit{Pseudomonas}$',
@@ -88,13 +98,24 @@ latex_genus_dict = {  'B': r'$\mathit{Bacillus} \, \mathrm{wt} $',
                 'J': r'$\mathit{Janthinobacterium}$'
                 }
 
+
+#latex_genus_bold_dict = {'B': r'$\mathbf{\mathit{Bacillus} }$',
+#                'S': r'$\mathbf{\mathit{Bacillus} \, \Delta \mathrm{spo0A}} $',
+#                'C': r'$\mathbf{\mathit{Caulobacter}}$',
+#                'D': r'$\mathbf{\mathit{Deinococcus}}$',
+#                'P': r'$\mathbf{\mathit{Pseudomonas}}$',
+#                'F': r'$\mathbf{\mathit{Pedobacter}}$',
+#                'J': r'$\mathbf{\mathit{Janthinobacterium} }$'}
+
+
 latex_genus_bold_dict = {'B': r'$\mathbf{\mathit{Bacillus} }$',
-                'S': r'$\mathbf{\mathit{Bacillus} \, \Delta \mathrm{spo0A}} $',
                 'C': r'$\mathbf{\mathit{Caulobacter}}$',
                 'D': r'$\mathbf{\mathit{Deinococcus}}$',
                 'P': r'$\mathbf{\mathit{Pseudomonas}}$',
                 'F': r'$\mathbf{\mathit{Pedobacter}}$',
                 'J': r'$\mathbf{\mathit{Janthinobacterium} }$'}
+
+
 
 
 genus_dict = {'B':'Bacillus',
@@ -104,6 +125,14 @@ genus_dict = {'B':'Bacillus',
             'J':'Janthinobacterium',
             'P':'Pseudomonas'}
 
+
+def get_p_value_latex(p_value, alpha=0.05):
+
+    if p_value < alpha:
+        return r'$\mathrm{p} < 0.05$'
+
+    else:
+        return r'$\mathrm{p} \nless 0.05$'
 
 
 

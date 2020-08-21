@@ -16,7 +16,8 @@ random.seed(123456789)
 
 iter=1000
 
-taxa=['B', 'C', 'D', 'F', 'J', 'P']#pt.taxa
+#taxa=['B', 'C', 'D', 'F', 'J', 'P']#pt.taxa
+taxa=['C']
 #taxa.remove('S')
 
 treatments=pt.treatments
@@ -180,9 +181,9 @@ for taxon in taxa:
         for gene in list(gene_dict_copy):
             gene_dict_copy[gene]['1'] = -1
 
-    if taxon == 'F':
-        for gene in list(gene_dict_copy):
-            gene_dict_copy[gene]['2'] = -1
+    #if taxon == 'F':
+    #    for gene in list(gene_dict_copy):
+    #        gene_dict_copy[gene]['2'] = -1
 
     gene_values = []
     gene_names = []
@@ -207,12 +208,18 @@ fig = plt.figure(figsize = (12, 24))
 #fig = plt.figure(figsize=(6,3))
 #fig, ax = plt.subplots(figsize=(2,7))
 
-cols = {0:'lightgrey',1:'orangered',2:'deepskyblue',-1:'black'}
+#cols = {0:'lightgrey',1:'orangered',2:'deepskyblue',-1:'black'}
+cols = {0:'lightgrey',1:'orangered',2:'deepskyblue'}
 cvr = colors.ColorConverter()
 tmp = sorted(cols.keys())
 cols_rgb = [cvr.to_rgb(cols[k]) for k in tmp]
 intervals = np.asarray(tmp + [tmp[-1]+1]) - 0.5
 cmap, norm = colors.from_levels_and_colors(intervals,cols_rgb)
+
+legend_elements = [Patch(color='lightgrey', label=r'$n_{mut} < 3$'),
+                    Patch(color='orangered', label=r'$P\nless P^{*}$'),
+                    Patch(color='deepskyblue', label=r'$P < P^{*}$')]
+#Patch(color='black', label="No data")
 
 total_count = 0
 for row_idx in range(2):
@@ -238,12 +245,6 @@ for row_idx in range(2):
 
         ax.set_yticklabels(gene_names, minor=False, fontsize=5)
         ax.set_xticklabels(['1-Day', '10-Days', '100-Days'], minor=False, fontsize=5.5)
-
-
-        legend_elements = [Patch(color='lightgrey', label=r'$n_{mut} < 3$'),
-                            Patch(color='orangered', label=r'$P\nless P^{*}$'),
-                            Patch(color='deepskyblue', label=r'$P < P^{*}$'),
-                            Patch(color='black', label="No data")]
 
         if total_count == 1:
             plt.legend(handles=legend_elements, bbox_to_anchor=(-0.65,1.12), loc="upper left", fontsize=8)

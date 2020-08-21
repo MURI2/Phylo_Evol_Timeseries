@@ -6,24 +6,16 @@ import numpy
 
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+import matplotlib.gridspec as gridspec
 
+import statsmodels.stats.multitest as multitest
 import scipy.stats as stats
-
-
-latex_dict = {  'B': r'$\mathit{Bacillus\, subtilis} \, \mathrm{wt} $',
-                'S': r'$\mathit{Bacillus\, subtilis} \, \Delta \mathrm{spo0A} $',
-                'C': r'$\mathit{Caulobacter \, crescentus}$',
-                'D': r'$\mathit{Deinococcus \, radiodurans}$',
-                'P': r'$\mathit{Pseudomonas \,} \; \mathrm{sp. \, KBS0710}$',
-                'F': r'$\mathit{Pedobacter \,} \; \mathrm{sp. \, KBS0701}$',
-                'J': r'$\mathit{Janthinobacterium \,} \; \mathrm{sp. \, KBS0711}$'
-                }
-
-Lsyn, Lnon, substitution_specific_synonymous_fraction = parse_file.calculate_synonymous_nonsynonymous_target_sizes('B')
 
 treatments=pt.treatments
 replicates = pt.replicates
-taxa = ['B', 'S']
+taxa = ['B','C','D','F','J','P']
+
+sub_plot_labels = ['a','b','c', 'd','e','f', 'g','h','i']
 
 nonsynonymous_types = set(['missense','nonsense'])
 synonymous_types = set(['synonymous'])
@@ -39,9 +31,15 @@ targeted_Lnon = {}
 targeted_fixed_Lsyn = {}
 targeted_fixed_Lnon = {}
 
+taxon_Lsyn_dict = {}
+taxon_Lnon_dict = {}
+
 populations = []
 
 for taxon in taxa:
+    Lsyn, Lnon, substitution_specific_synonymous_fraction = parse_file.calculate_synonymous_nonsynonymous_target_sizes(taxon)
+    taxon_Lsyn_dict[taxon] = Lsyn
+    taxon_Lnon_dict[taxon] = Lnon
     for treatment in treatments:
         for replicate in replicates:
 
@@ -70,7 +68,9 @@ for taxon in taxa:
 
             for mutation_idx in range(0,len(mutations)):
 
-                location, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutations[mutation_idx]
+                #location, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutations[mutation_idx]
+                location, gene_name, allele, var_type, codon, position_in_codon, AAs_count,  test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutations[mutation_idx]
+
                 state_Ls = state_trajectories[mutation_idx]
 
                 good_idxs, filtered_alts, filtered_depths = timecourse_utils.mask_timepoints(times, alts, depths, var_type, cutoff_idx, depth_fold_change, depth_change_pvalue)
@@ -100,109 +100,133 @@ for taxon in taxa:
                     num_processed_mutations+=1
 
 
-print(targeted_Lsyn)
+
+#total_non_appeared = sum([non_appeared[population] for population in populations])
+#total_non_fixed = sum([non_fixed[population] for population in populations])
+#total_syn_appeared = sum([syn_appeared[population] for population in populations])
+#total_syn_fixed = sum([syn_fixed[population] for population in populations])
+
+#dnds_appeared = total_non_appeared/total_syn_appeared*Lsyn/Lnon
+#dnds_fixed = total_non_fixed/total_syn_fixed*Lsyn/Lnon
+
+#total_targeted_Lnon = sum(targeted_Lnon.values())
+#total_targeted_Lsyn = sum(targeted_Lsyn.values())
+#targeted_dnds_appeared = total_non_appeared/total_syn_appeared*total_targeted_Lsyn/total_targeted_Lnon
+#total_targeted_Lnon = sum(targeted_fixed_Lnon.values())
+#total_targeted_Lsyn = sum(targeted_fixed_Lsyn.values())
+#targeted_dnds_fixed = total_non_fixed/total_syn_fixed*total_targeted_Lsyn/total_targeted_Lnon
 
 
-total_non_appeared = sum([non_appeared[population] for population in populations])
-total_non_fixed = sum([non_fixed[population] for population in populations])
-total_syn_appeared = sum([syn_appeared[population] for population in populations])
-total_syn_fixed = sum([syn_fixed[population] for population in populations])
-
-dnds_appeared = total_non_appeared/total_syn_appeared*Lsyn/Lnon
-dnds_fixed = total_non_fixed/total_syn_fixed*Lsyn/Lnon
-
-total_targeted_Lnon = sum(targeted_Lnon.values())
-total_targeted_Lsyn = sum(targeted_Lsyn.values())
-targeted_dnds_appeared = total_non_appeared/total_syn_appeared*total_targeted_Lsyn/total_targeted_Lnon
-total_targeted_Lnon = sum(targeted_fixed_Lnon.values())
-total_targeted_Lsyn = sum(targeted_fixed_Lsyn.values())
-targeted_dnds_fixed = total_non_fixed/total_syn_fixed*total_targeted_Lsyn/total_targeted_Lnon
+#population_dnds_appeared = numpy.array([non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*Lsyn/Lnon for population in populations])
+#population_dnds_fixed = numpy.array([non_fixed[population]/(syn_fixed[population]+(syn_fixed[population]==0))*Lsyn/Lnon for population in populations])
+#targeted_population_dnds_appeared = numpy.array([non_appeared[population]/syn_appeared[population]*targeted_Lsyn[population]/targeted_Lnon[population] for population in populations])
+#targeted_population_dnds_fixed = numpy.array([non_fixed[population]/(syn_fixed[population]+(syn_fixed[population]==0))*targeted_fixed_Lsyn[population]/targeted_fixed_Lnon[population] for population in populations])
 
 
-population_dnds_appeared = numpy.array([non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*Lsyn/Lnon for population in populations])
-
-population_dnds_fixed = numpy.array([non_fixed[population]/(syn_fixed[population]+(syn_fixed[population]==0))*Lsyn/Lnon for population in populations])
-
-targeted_population_dnds_appeared = numpy.array([non_appeared[population]/syn_appeared[population]*targeted_Lsyn[population]/targeted_Lnon[population] for population in populations])
-
-targeted_population_dnds_fixed = numpy.array([non_fixed[population]/(syn_fixed[population]+(syn_fixed[population]==0))*targeted_fixed_Lsyn[population]/targeted_fixed_Lnon[population] for population in populations])
-
-
-for population in populations:
-    sys.stdout.write("%s: %d non, %d syn, dN/dS = %g, (dN/dS)* = %g\n" % (population, non_appeared[population], syn_appeared[population], non_appeared[population]/syn_appeared[population]*Lsyn/Lnon, non_appeared[population]/syn_appeared[population]*targeted_Lsyn[population]/targeted_Lnon[population]))
-    #sys.stdout.write("%s fixed: %d non, %d syn\n" % (population, non_fixed[population], syn_fixed[population]))
+#for population in populations:
+#    sys.stdout.write("%s: %d non, %d syn, dN/dS = %g, (dN/dS)* = %g\n" % (population, non_appeared[population], syn_appeared[population], non_appeared[population]/syn_appeared[population]*Lsyn/Lnon, non_appeared[population]/syn_appeared[population]*targeted_Lsyn[population]/targeted_Lnon[population]))
+#    #sys.stdout.write("%s fixed: %d non, %d syn\n" % (population, non_fixed[population], syn_fixed[population]))
 
 
 
-jitter_shift = [-0.1, 0.1]
 
-fig, ax = plt.subplots(figsize=(4,4))
+
+#fig, ax = plt.subplots(figsize=(4,6))
+fig = plt.figure(figsize = (10, 5))
+gs = gridspec.GridSpec(nrows=2, ncols=3)
 #fig = plt.figure(figsize = (12, 6))
-for treatment in ['0', '1']:
-    #ax_i = plt.subplot2grid((1, 2), (0,taxon_idx), colspan=1)
-    #ax_i.set_title( latex_dict[taxon], fontsize=17)
-    #ax_i.text(-0.1, 1.07, sub_plot_labels[treatment_idx], fontsize=22, fontweight='bold', ha='center', va='center', transform=ax_i.transAxes)
-    dnds_treatment = []
-    for taxon_idx, taxon in enumerate(taxa):
+anova_pvalues = []
+anova_F = []
+for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
+    for taxon_idx, taxon in enumerate(taxon_list):
+        dnds_samples = []
+        for treatment in treatments:
 
-        populations_plot = [ treatment+taxon + replicate for replicate in replicates ]
+            populations_plot = [ treatment+taxon+replicate for replicate in replicates if treatment+taxon+replicate not in pt.populations_to_ignore ]
+            taxon_treatment_dnds_appeared = [non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*taxon_Lsyn_dict[taxon]/taxon_Lnon_dict[taxon] for population in populations_plot]
+            if len(taxon_treatment_dnds_appeared) < 2:
+                continue
+            dnds_samples.append(taxon_treatment_dnds_appeared)
 
-        taxon_treatment_dnds_appeared = [non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*Lsyn/Lnon for population in populations_plot]
-        ax.scatter( [int(treatment) + jitter_shift[taxon_idx] ] * len(taxon_treatment_dnds_appeared), taxon_treatment_dnds_appeared , marker=pt.plot_species_marker(taxon),  linewidth=2, facecolors=pt.get_scatter_facecolor(taxon, treatment), edgecolors=pt.get_colors(treatment), s=120, zorder=2)
-        ax.errorbar(int(treatment)+ jitter_shift[taxon_idx], numpy.mean(taxon_treatment_dnds_appeared), yerr= 2*numpy.std(taxon_treatment_dnds_appeared) / numpy.sqrt(len(taxon_treatment_dnds_appeared)), linestyle='-', c = 'k', marker=pt.plot_species_marker(taxon), lw = 2.5)
-        dnds_treatment.append(taxon_treatment_dnds_appeared)
+        if taxon == 'J':
+            fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1])
 
-    t, p = stats.ttest_ind(dnds_treatment[0], dnds_treatment[1], equal_var=False)
-    #print(t, p)
+        else:
+            fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1], dnds_samples[2])
 
+        sys.stdout.write("%s: dN/dS one-way ANOVA: F = %g, P = %g\n" % (taxon, fvalue, pvalue))
 
-# to t test between treatments for each strain
-for taxon_idx, taxon in enumerate(taxa):
-
-    dnds_treatment = []
-
-    for treatment in ['0', '1']:
-
-        populations_plot = [ treatment+taxon + replicate for replicate in replicates ]
-        taxon_treatment_dnds_appeared = [non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*Lsyn/Lnon for population in populations_plot]
-        dnds_treatment.append(taxon_treatment_dnds_appeared)
-
-    t, p = stats.ttest_ind(dnds_treatment[0], dnds_treatment[1], equal_var=True)
-    print(taxon, t, p)
+        anova_pvalues.append(pvalue)
+        anova_F.append(fvalue)
 
 
+reject, pvals_corrected, alphacSidak, alphacBonf = multitest.multipletests(anova_pvalues, alpha=0.05, method='fdr_bh')
+
+
+ax_count = 0
+
+for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
+    for taxon_idx, taxon in enumerate(taxon_list):
+        ax = fig.add_subplot(gs[taxon_list_idx, taxon_idx])
+        ax.set_title(pt.latex_genus_bold_dict[taxon], fontsize=12, fontweight='bold')
+
+        dnds_samples = []
+        for treatment in treatments:
+
+            populations_plot = [ treatment+taxon+replicate for replicate in replicates if treatment+taxon+replicate not in pt.populations_to_ignore ]
+            taxon_treatment_dnds_appeared = [non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*taxon_Lsyn_dict[taxon]/taxon_Lnon_dict[taxon] for population in populations_plot]
+            if len(taxon_treatment_dnds_appeared) < 2:
+                continue
+            ax.scatter( [int(treatment)] * len(taxon_treatment_dnds_appeared), taxon_treatment_dnds_appeared,  marker=pt.plot_species_marker(taxon),  linewidth=2, facecolors=pt.get_scatter_facecolor(taxon, treatment), edgecolors=pt.get_colors(treatment), s=100, zorder=2, alpha=0.8)
+            if len(taxon_treatment_dnds_appeared) > 2:
+                ax.errorbar(int(treatment),numpy.mean(taxon_treatment_dnds_appeared), yerr= 2*numpy.std(taxon_treatment_dnds_appeared) / numpy.sqrt(len(taxon_treatment_dnds_appeared)), linestyle='-', c = 'k', marker=pt.plot_species_marker(taxon), lw = 2.5,  zorder=3)
+            #dnds_treatment.append(taxon_treatment_dnds_appeared)
+
+            dnds_samples.append(taxon_treatment_dnds_appeared)
+
+        ax.text(-0.1, 1.07, sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
+        ax.text(0.7, 0.9, r'$F=$'+ str(round( anova_F[ax_count],3) ), fontsize=10, ha='center', va='center', transform=ax.transAxes)
+        ax.text(0.7, 0.8, r'$P_{BH}=$'+ str(round(pvals_corrected[ax_count], 3)) , fontsize=10, ha='center', va='center', transform=ax.transAxes)
+
+        ax_count+=1
+
+        if taxon == 'J':
+            ax.set_xticks([0,2])
+            ax.set_xticklabels( ['1','100'] )
+            ax.set_xlim([-0.3, 2.3])
+
+            #fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1])
+
+        else:
+            ax.set_xticks([0,1,2])
+            ax.set_xticklabels( ['1','10','100'] )
+            ax.set_xlim([-0.3, 2.3])
+
+            #fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1], dnds_samples[2])
 
 
 
-
-ax.set_xlim([-0.25, 1.25])
-ax.set_ylim([0.35, 1.1])
-ax.axhline(y=1, color='k', linestyle=':', lw=2.5, alpha = 0.8, zorder=1)
-#ax_i.set_xscale('log', basex=10)
-ax.set_xlabel("Transfer time (days)", fontsize = 18)
-ax.set_ylabel("dN/dS", fontsize = 18)
-
-x_ticks = [0,1]
-ax.set_xticks(x_ticks)
-
-ax.set_xticklabels( ['1', '10'] )
-
-
-
-legend_elements = [Line2D([0], [0], color = 'none', marker='o', label=latex_dict['B'],
+legend_elements = [Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('B'), label=pt.latex_genus_dict['B'],
                     markerfacecolor='k', markersize=13),
-                Line2D([0], [0], marker='o', color='none', label=latex_dict['S'],
-                    markerfacecolor='w', markersize=13, markeredgewidth=2)]
+                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('C'), label=pt.latex_genus_dict['C'],
+                                    markerfacecolor='k', markersize=13),
+                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('D'), label=pt.latex_genus_dict['D'],
+                                    markerfacecolor='k', markersize=13),
+                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('F'), label=pt.latex_genus_dict['F'],
+                                    markerfacecolor='k', markersize=13),
+                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('J'), label=pt.latex_genus_dict['J'],
+                                    markerfacecolor='k', markersize=13),
+                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('P'), label=pt.latex_genus_dict['P'],
+                                    markerfacecolor='k', markersize=13)]
+
 # Create the figure
-ax.legend(handles=legend_elements, loc='upper right')
+#ax.legend(handles=legend_elements, loc='upper right', fontsize=10)
 
-
-
-
-
+fig.text(0.5, -0.01, "Transfer time", ha='center', va='center', fontsize=18)
+fig.text(0.05, 0.5, 'dN/dS', ha='center', va='center', rotation='vertical', fontsize=18)
 
 
 fig.subplots_adjust(hspace=0.3, wspace=0.5)
-fig_name = pt.get_path() + '/figs/plot_dn_ds.pdf'
+fig_name = pt.get_path() + '/figs/dn_ds.pdf'
 fig.savefig(fig_name, format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
 plt.close()

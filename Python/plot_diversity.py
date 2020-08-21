@@ -166,9 +166,9 @@ def mutation_regression(slope_null=-1):
                 ax.text(0.05, 0.13, r'$r^{2}=$' + str(round(r_value**2, 2)), fontsize=8, transform=ax.transAxes)
 
                 if pval < 0.05:
-                    ax.text(0.05, 0.04, r'$\mathrm{p} < 0.05$', fontsize=8, transform=ax.transAxes)
+                    ax.text(0.05, 0.04, r'$P < 0.05$', fontsize=8, transform=ax.transAxes)
                 else:
-                    ax.text(0.05, 0.04, r'$\mathrm{p} \nless 0.05$', fontsize=8, transform=ax.transAxes)
+                    ax.text(0.05, 0.04, r'$P \nless 0.05$', fontsize=8, transform=ax.transAxes)
 
 
     # then plot fixed mutations

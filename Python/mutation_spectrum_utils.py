@@ -1,3 +1,4 @@
+from __future__ import division
 from numpy.random import choice,multinomial
 import numpy
 from scipy.special import gammaln
@@ -9,7 +10,7 @@ from scipy.stats import poisson, binom
 import stats_utils
 
 
-def calculate_parallelism_statistics(convergence_matrix,allowed_populations,Lmin=0):
+def calculate_parallelism_statistics(convergence_matrix,allowed_populations,Lmin=0,fmax_min=0,fmax_max=1):
 
     allowed_populations = set(allowed_populations)
 
@@ -30,7 +31,10 @@ def calculate_parallelism_statistics(convergence_matrix,allowed_populations,Lmin
 
         for population in allowed_populations:
 
-            new_muts = len(convergence_matrix[gene_name]['mutations'][population])
+            # filter by cutoff for maximum allele Frequency
+            convergence_matrix_mutations_population_filtered = [k for k in convergence_matrix[gene_name]['mutations'][population] if (k[-1] >= fmax_min ) and (k[-1] <= fmax_max)]
+            #new_muts = len(convergence_matrix[gene_name]['mutations'][population])
+            new_muts = len(convergence_matrix_mutations_population_filtered)
 
             if new_muts > 0.5:
 
@@ -38,7 +42,7 @@ def calculate_parallelism_statistics(convergence_matrix,allowed_populations,Lmin
 
                 n += new_muts
 
-                for t,l,f,f_max in convergence_matrix[gene_name]['mutations'][population]:
+                for t,l,f,f_max in convergence_matrix_mutations_population_filtered:
                     times.append(t)
                     # get maximum allele frequency
 

@@ -20,7 +20,7 @@ import phylo_tools as pt
 ###################
 
 #taxa = pt.taxa
-taxa = ['B','S','D', 'C', 'J', 'F', 'P']
+taxa = ['B', 'D', 'C', 'J', 'F', 'P']
 treatments = pt.treatments
 replicates = pt.replicates
 
@@ -29,6 +29,8 @@ for taxon in taxa:
     gene_size_map = parse_file.create_gene_size_map(taxon)
     sys.stderr.write("Done!\n")
     for treatment in treatments:
+        if treatment+taxon == '1J':
+            continue
         populations = [treatment+ taxon + replicate for replicate in replicates]
 
         sys.stderr.write('Calculating convergence matrix for mutations...\n')
@@ -74,9 +76,8 @@ for taxon in taxa:
 
             for mutation_idx in range(0,len(mutations)):
 
-                position, gene_name, allele, var_type, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutations[mutation_idx]
+                position, gene_name, allele, var_type, codon, position_in_codon, AAs_count, test_statistic, pvalue, cutoff_idx, depth_fold_change, depth_change_pvalue, times, alts, depths, clone_times, clone_alts, clone_depths = mutations[mutation_idx]
                 #Ls = haplotype_trajectories[mutation_idx]
-
 
                 state_Ls = state_trajectories[mutation_idx]
 
@@ -111,22 +112,12 @@ for taxon in taxa:
                         overlap_fixed_count += 1
                     all_fixed_list.append((position, allele) )
 
-
                 else:
                     polymorphic_count += 1
                     if (position, allele) in all_poly_list:
                         overlap_poly_count += 1
                     all_poly_list.append((position, allele) )
 
-
-
-                if position in position_snv_dict:
-                    if allele in position_snv_dict[position]:
-                        continue
-                    else:
-                        position_snv_dict[position].append(allele)
-                else:
-                    position_snv_dict[position] = [allele]
 
                 num_processed_mutations += 1
 
