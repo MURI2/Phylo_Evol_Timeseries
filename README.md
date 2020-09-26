@@ -2,6 +2,12 @@
 
 
 
+setup environment
+
+f2py -c -m asa159 asa159.f90
+
+
+
 steps
 
 Python/clean_file_names.py
@@ -24,6 +30,8 @@ bash bash/annotate_pvalues.sh
 
 
 Process mutation trajectories
+
+
 
 
 

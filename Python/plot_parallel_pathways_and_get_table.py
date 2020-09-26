@@ -2,6 +2,9 @@ from __future__ import division
 import os, sys, copy, itertools, random
 import numpy as np
 from collections import Counter
+from itertools import combinations
+
+import scipy.stats as stats
 import pandas as pd
 
 import phylo_tools as pt
@@ -12,6 +15,8 @@ from sklearn.decomposition import PCA
 
 random.seed(123456789)
 
+import ete3
+
 iter=10000
 
 MCR = 1
@@ -19,6 +24,25 @@ MCR = 1
 treatments = ['0','1','2']
 taxa = ['B', 'C', 'D', 'F', 'J', 'P']
 maple_types = ['signature', 'complex', 'pathway', 'function']
+
+
+# Get phylogenetic distance
+
+tree = ete3.Tree(pt.get_path() + '/data/tree/RAxML_bipartitions.Task2', quoted_node_names=True, format=1)
+
+phylogenetic_distance_dict = {}
+
+tree_name_dict = {'B':'Bacillus', 'C':'Caulobacter_crescentus_NA1000',
+                'D':'Deinococcus_radiodurans_BAA-816', 'F': 'NR_025534.1',
+                'J': 'Janthinobacterium_sp_KBS0711', 'P':'KBS0710'}
+
+for taxa_pair in combinations(taxa, 2):
+
+    phylogenetic_distance =  tree.get_distance(tree_name_dict[taxa_pair[0]] , tree_name_dict[taxa_pair[1]] )
+    phylogenetic_distance_dict[taxa_pair] = phylogenetic_distance
+
+
+# Now work on kegg genes
 
 maple_annotation_dict = {}
 
@@ -249,13 +273,18 @@ X_pca = pca.fit_transform(maple_matrix_centered)
 df_pc = pd.DataFrame(data=X_pca, index=maple_matrix.index.values)
 
 
-fig = plt.figure(figsize = (10, 6))
-gs = gridspec.GridSpec(nrows=3, ncols=4)
+fig = plt.figure(figsize = (7, 6))
+#gs = gridspec.GridSpec(nrows=3, ncols=4)
+gs = gridspec.GridSpec(nrows=6, ncols=5)
+
 sub_plot_labels = ['a', 'b', 'c']
 for treatment_idx, treatment in enumerate(treatments):
 
     #ax = plt.subplot2grid((3, 5), (treatment_idx, 0), colspan=2, rowspan=1)
-    ax = fig.add_subplot(gs[treatment_idx, 0])
+
+    ax = fig.add_subplot(gs[treatment_idx*2:(treatment_idx*2)+2  , 0:2])
+
+    #ax = fig.add_subplot(gs[treatment_idx, 0])
 
     for null_i in null_intersection_size_dict[treatment]:
         ax.plot(range(1, len(null_i)+1), null_i, '-', alpha=0.1, zorder=1, c = pt.get_colors(treatment))
@@ -271,18 +300,76 @@ for treatment_idx, treatment in enumerate(treatments):
         title = '10-Days'
     elif treatment == '2':
         title = '100-Days'
-        ax.set_xlabel('Number of taxa', fontsize = 16)
+        ax.set_xlabel('Number of taxa', fontsize = 14)
     else:
         continue
-    ax.text(0.4, 0.8, title, fontsize=12, transform=ax.transAxes)
+    ax.text(0.62, 0.85, title, fontsize=10, transform=ax.transAxes)
 
     ax.text(0, 1.1, sub_plot_labels[treatment_idx], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
 
 
 # now plot PCA
 
+
+ax_phylo = fig.add_subplot(gs[0:3, 2:])
+
+ax_phylo.text(0, 1.05, 'd', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_phylo.transAxes)
+
+for treatment_idx, treatment in enumerate(treatments):
+
+    if treatment == '1':
+        taxa_iter = taxa
+        taxa_iter.remove('J')
+
+    else:
+        taxa_iter = taxa
+
+    distances = []
+    relative_intersection_size = []
+
+    for taxa_pair in combinations(taxa_iter, 2):
+
+        maple_1 = set(maple_taxon_treatment[treatment+taxa_pair[0]])
+        maple_2 = set(maple_taxon_treatment[treatment+taxa_pair[1]])
+
+        distances.append(tree.get_distance(tree_name_dict[taxa_pair[0]] , tree_name_dict[taxa_pair[1]]) )
+
+        relative_intersection_size.append(len(maple_1.intersection(maple_2)  ) / len(maple_1.union(maple_2)))
+
+    distances = np.asarray(distances)
+    relative_intersection_size = np.asarray(relative_intersection_size)
+
+    ax_phylo.scatter(distances, relative_intersection_size, c = pt.get_colors(treatment), s=50, alpha=0.8)
+
+    #relative_intersection_size_nonzero_idx = relative_intersection_size>0
+    #distances_nonzero = distances[relative_intersection_size_nonzero_idx]
+    #relative_intersection_size_nonzero = relative_intersection_size[relative_intersection_size_nonzero_idx]
+
+    slope, intercept, r_value, p_value, std_err = stats.linregress(distances, relative_intersection_size)
+    x_range =  np.linspace(0.3, 0.7, 10000)
+    y_fit_range = (slope*x_range + intercept)
+
+
+
+
+    if p_value < 0.05:
+
+        ax_phylo.plot(x_range, y_fit_range, c=pt.get_colors(treatment), lw=2.5, linestyle='--', zorder=2)
+
+        ax_phylo.text(0.8,0.9, r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+
+
+
+
+ax_phylo.set_xlabel('Phylogenetic distance' , fontsize = 10)
+ax_phylo.set_ylabel('Jaccard index of MAPLE modules' , fontsize = 10)
+
+
+
+
+
 #ax_pca = plt.subplot2grid((3, 5), (0, 1), colspan=3, rowspan=3)
-ax_pca = fig.add_subplot(gs[0:3, 1:4])
+ax_pca = fig.add_subplot(gs[3:6, 2:])
 
 ax_pca.axhline(y=0, color='k', linestyle=':', alpha = 0.8, zorder=1)
 ax_pca.axvline(x=0, color='k', linestyle=':', alpha = 0.8, zorder=1)
@@ -307,21 +394,21 @@ for treatment in treatments:
 
 
 
-ax_pca.set_xlabel('PC 1 (' + str(round(pca.explained_variance_ratio_[0]*100,2)) + '%)' , fontsize = 16)
-ax_pca.set_ylabel('PC 2 (' + str(round(pca.explained_variance_ratio_[1]*100,2)) + '%)' , fontsize = 16)
+ax_pca.set_xlabel('PC 1 (' + str(round(pca.explained_variance_ratio_[0]*100,2)) + '%)' , fontsize = 12)
+ax_pca.set_ylabel('PC 2 (' + str(round(pca.explained_variance_ratio_[1]*100,2)) + '%)' , fontsize = 12)
 
 #### perform PERMANOVA
 F, p = pt.run_permanova(df_pc.values, number_treatment_reps)
-ax_pca.text(0.8, 0.9, r'$F$=' + str(round(F,2)), fontsize = 14, transform=ax_pca.transAxes)
-ax_pca.text(0.8, 0.83, r'$P\nless 0.05$', fontsize = 14, transform=ax_pca.transAxes)
+ax_pca.text(0.8, 0.9, r'$F$=' + str(round(F,2)), fontsize = 11, transform=ax_pca.transAxes)
+ax_pca.text(0.8, 0.8, r'$P\nless 0.05$', fontsize = 11, transform=ax_pca.transAxes)
 
-ax_pca.text(0, 1.03, 'd', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
+ax_pca.text(0, 1.05, 'e', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
 
-fig.text(0.05, 0.5, 'Number of MAPLE modules with\nsignificant multiplicity', ha='center', va='center', rotation='vertical', fontsize=15)
+fig.text(0.05, 0.5, 'Number of intersecting MAPLE modules\nwith significant multiplicity', ha='center', va='center', rotation='vertical', fontsize=14)
 
 fig_name = pt.get_path() + '/figs/convergence_decay.pdf'
-fig.subplots_adjust(wspace=0.55)
-fig.savefig(fig_name, format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+fig.subplots_adjust(wspace=1, hspace=1.2)
+fig.savefig(fig_name, format='pdf', bbox_inches = "tight", pad_inches = 0.5, dpi = 600)
 plt.close()
 
 

@@ -52,7 +52,9 @@ def likelihood_subsample(taxon, treatment, ntot_subsample=50, fmax_cutoff=0.8, s
 
 
 
-fmax_cutoffs = np.asarray([0,0.2,0.4,0.6,0.8])
+#fmax_cutoffs = np.asarray([0,0.2,0.4,0.6])
+fmax_cutoffs = np.asarray([0,0.1,0.2,0.3,0.4,0.5])
+
 G_dict_all = {}
 taxa=['B','C','D','F','J','P']
 treatments = ['0','1']
@@ -94,7 +96,8 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','J'],['D','F','P']]):
         if taxon == '':
             continue
         ax = fig.add_subplot(gs[taxon_list_idx, taxon_idx])
-        ax.set_xlim([-0.05,0.85])
+        #ax.set_xlim([-0.05,max(fmax_cutoffs)+0.05])
+        ax.set_xlim([-0.1,max(fmax_cutoffs)+0.1])
         ax.text(-0.2, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
         ax.set_title(pt.latex_genus_bold_dict[taxon] + ' ('+ r'$n_{total}=$' + str(ntotal_dict[taxon]) + ')' , fontsize=12)
 

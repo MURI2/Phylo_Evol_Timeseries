@@ -1,11 +1,11 @@
 Module ID, Module type, Description, 1-day, 10-day, 100-day
-M00307, Pathway, Pyruvate oxidation, 2/6, 1/5, 1/6
 M00360, FuncSet, Aminoacyl-tRNA biosynthesis, 3/6, 1/5, 3/6
+M00307, Pathway, Pyruvate oxidation, 2/6, 1/5, 1/6
 M00258, Complex, Putative ABC transport system, 4/6, 2/5, 3/6
-M00049, Pathway, Adenine ribonucleotide biosynthesis, 4/6, 2/5, 1/6
 M00083, Pathway, Fatty acid biosynthesis, 3/6, 2/5, 3/6
+M00049, Pathway, Adenine ribonucleotide biosynthesis, 4/6, 2/5, 1/6
 M00125, Pathway, Riboflavin biosynthesis, 3/6, 1/5, 1/6
-M00015, Pathway, Proline biosynthesis, 3/6, 1/5, 3/6
 M00048, Pathway, Inosine monophosphate biosynthesis, 3/6, 1/5, 3/6
-M00120, Pathway, Coenzyme A biosynthesis, 2/6, 0/5, 0/6
+M00015, Pathway, Proline biosynthesis, 3/6, 1/5, 3/6
 M00240, Complex, Iron complex transport system, 2/6, 2/5, 3/6
+M00120, Pathway, Coenzyme A biosynthesis, 2/6, 0/5, 0/6

@@ -18,3 +18,8 @@ data/timecourse_merged/
 .gitignore
 data/timecourse_depth/0B1_depth_timecourse.bz
 default.profraw
+.DS_Store
+data/.DS_Store
+data/bwa_sam_merged/
+data.zip
+environment_old.yml
