@@ -12,7 +12,10 @@ from scipy.linalg import block_diag
 from sklearn.metrics.pairwise import euclidean_distances
 
 import parse_file
-#import timecourse_utils
+#import timecourse_util
+
+from asa159 import rcont2
+
 
 
 def get_path():

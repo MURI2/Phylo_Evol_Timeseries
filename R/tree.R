@@ -1,6 +1,6 @@
 rm(list = ls())
 getwd()
-setwd("~/GitHub/Task2/PoolPopSeq/")
+setwd("~/GitHub/Phylo_Evol_Timeseries/")
 
 
 package.list <- c('ape', 'seqinr', 'phylobase', 'adephylo', 'geiger', 'picante', 'stats', 'RColorBrewer', 'caper', 'phylolm', 'pmc', 'ggplot2', 'tidyr', 'dplyr', 'phangorn', 'pander') 
@@ -10,6 +10,18 @@ for (package in package.list) {
     library(package, character.only=TRUE)
   }
 }
+
+
+library('seqinr')
+library('phytools')
+source("https://bioconductor.org/biocLite.R")
+#iocLite("ggtree")
+#install.packages("BiocManager")
+#BiocManager::install(c("Biostrings", "ggtree", "treeio"))
+#library('ggtree')
+#library('treeio')
+#library('latex2exp')
+#library('gridExtra')
 
 
 # Read Alignment File {seqinr}
@@ -27,7 +39,7 @@ image.DNAbin(window, cex.lab = 0.50)
 
 
 
-ml.bootstrap <- read.tree("./data/tree/RAxML_bipartitions.T20")
+ml.bootstrap <- read.tree("./data/tree/RAxML_bipartitions.Task2")
 par(mar = c(1,1,2,1) + 0.1)
 plot.phylo(ml.bootstrap, type = "phylogram", direction = "right", show.tip.label=TRUE,
            use.edge.length = FALSE, cex = 0.6, label.offset = 1, main = "Maximum Likelihood with Support Values")

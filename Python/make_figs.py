@@ -2050,6 +2050,14 @@ def plot_pca_B_S():
 
 
 
+def plot_gamma_migration():
+
+    #Global migration (low inocula)
+    #Parent migration (low inocula)
+
+    
+
+
 
 #plot_mutation_trajectory_B_S()
 
@@ -2075,10 +2083,10 @@ def plot_pca_B_S():
 #mutation_regression_B_S()
 
 #taxa = ['B', 'S', 'C', 'D', 'F', 'J', 'P']
-for taxon in ['C']:
-    #plot_within_taxon_paralleliism(taxon)
-    if (taxon != 'S'):
-        plot_allele_freqs_all_treats(taxon)
+#for taxon in ['C']:
+#    #plot_within_taxon_paralleliism(taxon)
+#    if (taxon != 'S'):
+#        plot_allele_freqs_all_treats(taxon)
 
 
 
