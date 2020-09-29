@@ -14,7 +14,7 @@ from sklearn.metrics.pairwise import euclidean_distances
 import parse_file
 #import timecourse_util
 
-from asa159 import rcont2
+#from asa159 import rcont2
 
 
 
