@@ -19,7 +19,10 @@ import ete3
 
 iter=10000
 
+regression_permutations = 100000
+
 MCR = 1
+
 
 treatments = ['0','1','2']
 taxa = ['B', 'C', 'D', 'F', 'J', 'P']
@@ -315,6 +318,12 @@ ax_phylo = fig.add_subplot(gs[0:3, 2:])
 
 ax_phylo.text(0, 1.05, 'd', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_phylo.transAxes)
 
+treatment_distance_dict = {}
+
+
+treatments_all = []
+relative_intersection_size_all = []
+
 for treatment_idx, treatment in enumerate(treatments):
 
     if treatment == '1':
@@ -336,6 +345,14 @@ for treatment_idx, treatment in enumerate(treatments):
 
         relative_intersection_size.append(len(maple_1.intersection(maple_2)  ) / len(maple_1.union(maple_2)))
 
+
+    treatments_all += distances
+    relative_intersection_size_all += relative_intersection_size
+
+    print(len(relative_intersection_size), len(relative_intersection_size_all))
+
+
+
     distances = np.asarray(distances)
     relative_intersection_size = np.asarray(relative_intersection_size)
 
@@ -346,23 +363,118 @@ for treatment_idx, treatment in enumerate(treatments):
     #relative_intersection_size_nonzero = relative_intersection_size[relative_intersection_size_nonzero_idx]
 
     slope, intercept, r_value, p_value, std_err = stats.linregress(distances, relative_intersection_size)
+    slope_permuted_list = []
+    for permute in range(regression_permutations):
+        distances_permuted = np.random.permutation(distances)
+        relative_intersection_size_permuted = np.random.permutation(relative_intersection_size)
+        slope_permuted, intercept_permuted, r_value_permuted, p_valu_permutede, std_err_permuted = stats.linregress(distances_permuted, relative_intersection_size_permuted)
+        slope_permuted_list.append(slope_permuted)
+
+    slope_permuted_list = np.asarray(slope_permuted_list)
+
     x_range =  np.linspace(0.3, 0.7, 10000)
     y_fit_range = (slope*x_range + intercept)
 
+    p_value_permuted = len(slope_permuted_list[slope_permuted_list<slope]) / regression_permutations
 
+    sys.stdout.write("%d-day distance-decay: slope=%f, P=%f\n" % (10**int(treatment), slope, p_value_permuted))
 
+    y_position_labels = [0.9,0.73,0.56]
 
-    if p_value < 0.05:
+    position_dict = {'0':0.9, '2':0.75}
 
+    if p_value_permuted < 0.05:
         ax_phylo.plot(x_range, y_fit_range, c=pt.get_colors(treatment), lw=2.5, linestyle='--', zorder=2)
 
-        ax_phylo.text(0.8,0.9, r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+        #ax_phylo.text(0.8,0.9, r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+        ax_phylo.text(0.8,position_dict[treatment], r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
 
 
+    #ax_pca.text(0.8, 0.8, r'$P\nless 0.05$', fontsize = 11, transform=ax_pca.transAxes)
+#    ax_plot.text(0.05, 0.04, r'$\mathrm{p} \nless 0.05$', fontsize=15, transform=ax_plot.transAxes)
 
+    treatment_distance_dict[treatment] = {}
+    treatment_distance_dict[treatment]['distances'] = distances
+    treatment_distance_dict[treatment]['relative_intersection_size'] = relative_intersection_size
+
+
+    #for treatment_2 in treatments[treatment_idx+1:]:
+    #    print(treatment_2)
 
 ax_phylo.set_xlabel('Phylogenetic distance' , fontsize = 10)
 ax_phylo.set_ylabel('Jaccard index of MAPLE modules' , fontsize = 10)
+
+treatments_all = np.asarray(treatments_all)
+relative_intersection_size_all = np.asarray(relative_intersection_size_all)
+
+print(len(relative_intersection_size_all))
+
+slope_x, intercept_x, r_value_x, p_value_x, std_err_x = stats.linregress(treatments_all, relative_intersection_size_all)
+slopes_nullll = []
+for permute_x in range(regression_permutations):
+    treatments_all_permute = np.random.permutation(treatments_all)
+    relative_intersection_size_all_permute = np.random.permutation(relative_intersection_size_all)
+
+    slope_xx, intercept_xx, r_value_xx, p_value_xx, std_err_xx = stats.linregress(treatments_all_permute, relative_intersection_size_all_permute)
+
+    slopes_nullll.append(slope_xx)
+
+slopes_nullll = np.asarray(slopes_nullll)
+
+
+print(len(slopes_nullll[slopes_nullll < slope_x]) / regression_permutations)
+
+
+# slope difference test
+for treatment_pair in combinations(treatments, 2):
+
+    distances_1 = treatment_distance_dict[treatment_pair[0]]['distances']
+    distances_2 = treatment_distance_dict[treatment_pair[1]]['distances']
+
+    relative_intersection_size_1 = treatment_distance_dict[treatment_pair[0]]['relative_intersection_size']
+    relative_intersection_size_2 = treatment_distance_dict[treatment_pair[1]]['relative_intersection_size']
+
+    merged_variables = list(zip(distances_1,relative_intersection_size_1)) + list(zip(distances_2,relative_intersection_size_2))
+    merged_variables = np.asarray(merged_variables)
+
+    sample_size_1 = len(distances_1)
+    sample_size_2 = len(distances_2)
+
+    slope_1, intercept_1, r_value_1, p_value_1, std_err_1 = stats.linregress(distances_1, relative_intersection_size_1)
+    slope_2, intercept_2, r_value_2, p_value_2, std_err_2 = stats.linregress(distances_2, relative_intersection_size_2)
+
+
+    slope_difference = abs(slope_1 - slope_2)
+
+    slope_differences_null = []
+    for permute in range(regression_permutations):
+
+        merged_variables_permuted = np.random.permutation(merged_variables)
+
+        merged_variables_permuted_1 = merged_variables_permuted[:sample_size_1]
+        merged_variables_permuted_2 = merged_variables_permuted[sample_size_1+1:]
+
+        distances_permuted_1 = [l[0] for l in merged_variables_permuted_1]
+        relative_intersection_size_permuted_1 = [l[1] for l in merged_variables_permuted_1]
+
+        distances_permuted_2 = [l[0] for l in merged_variables_permuted_2]
+        relative_intersection_size_permuted_2 = [l[1] for l in merged_variables_permuted_2]
+
+        slope_permute_1, intercept_permute_1, r_value_permute_1, p_value_permute_1, std_err_permute_1 = stats.linregress(distances_permuted_1, relative_intersection_size_permuted_1)
+
+        slope_permute_2, intercept_permute_2, r_value_permute_2, p_value_permute_2, std_err_permute_2 = stats.linregress(distances_permuted_2, relative_intersection_size_permuted_2)
+
+        slope_differences_null.append(abs(slope_permute_1-slope_permute_2))
+
+    slope_differences_null = np.asarray(slope_differences_null)
+
+    P =  len(slope_differences_null[slope_differences_null>slope_difference]) / regression_permutations
+
+    sys.stdout.write("%d vs %d-day slope difference test: |slope differnce|=%f, P=%f\n" % (10**int(treatment_pair[0]), 10**int(treatment_pair[1]), slope_difference, P))
+
+
+
+
 
 
 
