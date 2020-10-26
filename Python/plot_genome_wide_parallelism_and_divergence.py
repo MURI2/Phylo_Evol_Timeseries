@@ -16,10 +16,13 @@ import mutation_spectrum_utils
 import phylo_tools as pt
 
 
+
+
 np.random.seed(123456789)
 
+subsamples=10000
 
-def likelihood_subsample(taxon, treatment, ntot_subsample=50, fmax_cutoff=0.8, subsamples=10000):
+def likelihood_subsample(taxon, treatment, ntot_subsample=50, fmax_cutoff=0.8, fmin_cutoff=0.0, subsamples=10000):
     # ntot_subsample minimum number of mutations
 
     # Load convergence matrix
@@ -27,7 +30,7 @@ def likelihood_subsample(taxon, treatment, ntot_subsample=50, fmax_cutoff=0.8, s
 
     populations = [treatment+taxon + replicate for replicate in pt.replicates ]
 
-    gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations,fmax_min=fmax_cutoff)
+    gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations, fmax_min=fmax_cutoff)
 
     G_subsample_list = []
     for i in range(subsamples):
@@ -83,7 +86,7 @@ for taxon in taxa:
 
         for fmax_cutoff in fmax_cutoffs:
 
-            fmax_cutoff_dict = likelihood_subsample(taxon, treatment, ntot_subsample=ntotal,fmax_cutoff=fmax_cutoff)
+            fmax_cutoff_dict = likelihood_subsample(taxon, treatment, ntot_subsample=ntotal,fmax_cutoff=fmax_cutoff, subsamples=subsamples)
 
             G_dict_all[taxon][treatment][fmax_cutoff] = fmax_cutoff_dict
 
@@ -122,7 +125,7 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','J'],['D','F','P']]):
 
             ax.errorbar(fmax_cutoffs, delta_l_list, yerr = [ delta_l_list-delta_025,  delta_975-delta_l_list] , \
                     fmt = 'o', alpha = 1, barsabove = True, marker = pt.plot_species_marker(taxon), \
-                    mfc = 'white', mec = 'white', lw=3, c = 'k', zorder=1, ms=17)
+                    mfc = 'white', mec = 'white', lw=2, c = 'k', zorder=1, ms=17)
 
             ax.scatter(fmax_cutoffs, delta_l_list, marker=pt.plot_species_marker(taxon), s = 150, \
                 linewidth=3, facecolors=pt.get_scatter_facecolor(taxon, treatment), edgecolors=pt.get_colors(treatment), alpha=1, zorder=2)
@@ -161,7 +164,33 @@ treatment_pairs = [['0','1'],['0','2'],['1','2']]
 ax_divergence = fig.add_subplot(gs[2:4, 0:3])
 ax_divergence.axhline( y=0, color='k', lw=2.5, linestyle='--', alpha = 1, zorder=1)
 ax_count_divergence=0
+slopes_dict = {}
+
+record_strs = [",".join(['treatment_pair', 'taxon', 'tree_name', 'slope', 'slope_standard_error'])]
+
+
+
 for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
+
+    treatment_pair_set = (treatment_pair[0], treatment_pair[1])
+
+    slopes_dict[treatment_pair_set] = []
+
+    # get mean colors
+    ccv = ColorConverter()
+
+    color_1 = np.array(ccv.to_rgb( pt.get_colors( treatment_pair[0] ) ))
+    color_2 = np.array(ccv.to_rgb( pt.get_colors( treatment_pair[1] ) ))
+
+    mix_color = 0.7 * (color_1 + color_2)
+    mix_color = np.min([mix_color, [1.0, 1.0, 1.0]], 0)
+
+    if (treatment_pair[0] == '0') and (treatment_pair[1] == '1'):
+        #mix_color = pt.lighten_color(mix_color, amount=2.8)
+        mix_color = 'gold'
+
+    ax_count_divergence_treatment_pair = []
+    treatment_pair_slopes = []
 
     for taxon in pt.taxa:
 
@@ -178,6 +207,10 @@ for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
         slope = res.params[1]
         CI_025 = res.conf_int(0.05)[1][0]
         CI_975 = res.conf_int(0.05)[1][1]
+
+        slope_std_error = res.bse[1]
+
+        slopes_dict[treatment_pair_set].append(slope)
 
         def flip_slope_and_CIs(slope, CI_025, CI_975,null=1):
             new_slope = abs(slope-null)
@@ -196,18 +229,6 @@ for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
 
         new_slope,new_CI_025,new_CI_975 = flip_slope_and_CIs(slope, CI_025, CI_975)
 
-        # get mean colors
-        ccv = ColorConverter()
-
-        color_1 = np.array(ccv.to_rgb( pt.get_colors( treatment_pair[0] ) ))
-        color_2 = np.array(ccv.to_rgb( pt.get_colors( treatment_pair[1] ) ))
-
-        mix_color = 0.7 * (color_1 + color_2)
-        mix_color = np.min([mix_color, [1.0, 1.0, 1.0]], 0)
-
-        if (treatment_pair[0] == '0') and (treatment_pair[1] == '1'):
-            #mix_color = pt.lighten_color(mix_color, amount=2.8)
-            mix_color = 'gold'
 
         ax_divergence.errorbar(ax_count_divergence, new_slope, yerr = [ [new_slope-new_CI_025], [new_CI_975-new_slope]], \
                 fmt = 'o', alpha = 1, barsabove = True, marker = pt.plot_species_marker(taxon), \
@@ -216,12 +237,29 @@ for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
         ax_divergence.scatter(ax_count_divergence, new_slope, marker=pt.plot_species_marker(taxon), s = 250, \
             linewidth=2, facecolors=mix_color, edgecolors='k', alpha=1, zorder=3)
 
+
+        ax_count_divergence_treatment_pair.append(ax_count_divergence)
+        treatment_pair_slopes.append(new_slope)
+
         ax_count_divergence+=1
+
+        record_str = ",".join(['%s_%s' % treatment_pair_set,  str(taxon), pt.tree_name_dict[taxon], str(slope), str(slope_std_error)])
+        record_strs.append(record_str)
+
+
+    if treatment_pair_set == ('0','2'):
+        xmin_mean = (min(ax_count_divergence_treatment_pair)+0.1)/16
+        xmax_mean = (max(ax_count_divergence_treatment_pair)+1-0.1)/16
+
+    else:
+        xmin_mean = (min(ax_count_divergence_treatment_pair))/16
+        xmax_mean = (max(ax_count_divergence_treatment_pair)+1)/16
+
+    ax_divergence.axhline(y=np.mean(treatment_pair_slopes), xmin=xmin_mean, xmax=xmax_mean, color=mix_color, lw=3, linestyle='--', alpha = 1, zorder=1)
 
     if treatment_pair_idx < 2:
 
-        ax_divergence.axvline( x=ax_count_divergence-0.5, color='k', lw=2, linestyle=':', alpha = 1, zorder=1)
-
+        ax_divergence.axvline( x=ax_count_divergence-0.5, color='k', lw=2, linestyle='-', alpha = 1, zorder=2)
 
 
 #ax_divergence.set_xticks([], [])
@@ -241,9 +279,20 @@ ax_divergence.text(0.84, -0.04, '10-days vs. 100-days', fontsize=15,  ha='center
 ax_divergence.tick_params(axis='x', labelsize=14, length = 0)
 
 
-ax_divergence.set_ylabel("Deviation of multiplicity slope from\nnull expectation, " + r'$\left | \beta_{1} - 1 \right |$' , fontsize = 18)
+ax_divergence.set_ylabel("Degree of divergent evolution, " + r'$\left | \beta_{1} - 1 \right |$' , fontsize = 16)
 
 ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+
+
+ax_divergence.text(0.79, 0.93, '$t_{ \mathrm{1\, vs \, 10, \, 1\, vs \, 100} } = %.3f , $' % (0.0367789), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.92, 0.93, r'$ P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+
+ax_divergence.text(0.80, 0.88, '$t_{ \mathrm{1\, vs \, 10, \, 10\, vs \, 100} } = %.2f , $' % (-0.334594), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.94, 0.88, r'$P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+
+ax_divergence.text(0.80, 0.83, '$t_{ \mathrm{1\, vs \, 100, \, 10\, vs \, 100} } = %.2f , $' % (-0.37743), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.944, 0.83, r'$P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+
 
 
 
@@ -251,3 +300,14 @@ fig.subplots_adjust(hspace=0.35,wspace=0.3) #hspace=0.3, wspace=0.5
 fig_name = pt.get_path() + "/figs/G_score_vs_fmax_subsample_divergence.pdf"
 fig.savefig(fig_name, format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
 plt.close()
+
+
+
+sys.stderr.write("Done with figure!\n")
+
+sys.stderr.write("Writing intermediate file for phylogenetic t-test...\n")
+file = open(pt.get_path()+'/data/divergence_slopes.csv',"w")
+record_str = "\n".join(record_strs)
+file.write(record_str)
+file.close()
+sys.stderr.write("Done!\n")

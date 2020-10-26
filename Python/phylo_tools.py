@@ -27,6 +27,12 @@ replicates = ['1','2','3','4','5']
 
 sub_plot_labels = ['a','b','c', 'd','e','f', 'g','h','i']
 
+
+tree_name_dict = {'B':'Bacillus', 'C':'Caulobacter_crescentus_NA1000',
+                'D':'Deinococcus_radiodurans_BAA-816', 'F': 'NR_025534.1',
+                'J': 'Janthinobacterium_sp_KBS0711', 'P':'KBS0710'}
+
+
 samples_to_remove = {'1B4':[900],
                         '1B5':[1000],
                         '0C1':[900],

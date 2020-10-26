@@ -13,9 +13,10 @@ import matplotlib.gridspec as gridspec
 
 from sklearn.decomposition import PCA
 
+import ete3
+
 random.seed(123456789)
 
-import ete3
 
 iter=10000
 
@@ -35,13 +36,11 @@ tree = ete3.Tree(pt.get_path() + '/data/tree/RAxML_bipartitions.Task2', quoted_n
 
 phylogenetic_distance_dict = {}
 
-tree_name_dict = {'B':'Bacillus', 'C':'Caulobacter_crescentus_NA1000',
-                'D':'Deinococcus_radiodurans_BAA-816', 'F': 'NR_025534.1',
-                'J': 'Janthinobacterium_sp_KBS0711', 'P':'KBS0710'}
+
 
 for taxa_pair in combinations(taxa, 2):
 
-    phylogenetic_distance =  tree.get_distance(tree_name_dict[taxa_pair[0]] , tree_name_dict[taxa_pair[1]] )
+    phylogenetic_distance =  tree.get_distance(pt.tree_name_dict[taxa_pair[0]] , pt.tree_name_dict[taxa_pair[1]] )
     phylogenetic_distance_dict[taxa_pair] = phylogenetic_distance
 
 
@@ -341,16 +340,13 @@ for treatment_idx, treatment in enumerate(treatments):
         maple_1 = set(maple_taxon_treatment[treatment+taxa_pair[0]])
         maple_2 = set(maple_taxon_treatment[treatment+taxa_pair[1]])
 
-        distances.append(tree.get_distance(tree_name_dict[taxa_pair[0]] , tree_name_dict[taxa_pair[1]]) )
+        distances.append(tree.get_distance(pt.tree_name_dict[taxa_pair[0]] , pt.tree_name_dict[taxa_pair[1]]) )
 
         relative_intersection_size.append(len(maple_1.intersection(maple_2)  ) / len(maple_1.union(maple_2)))
 
 
     treatments_all += distances
     relative_intersection_size_all += relative_intersection_size
-
-    print(len(relative_intersection_size), len(relative_intersection_size_all))
-
 
 
     distances = np.asarray(distances)
@@ -381,25 +377,27 @@ for treatment_idx, treatment in enumerate(treatments):
 
     y_position_labels = [0.9,0.73,0.56]
 
-    position_dict = {'0':0.9, '2':0.75}
+    position_dict_y = {'0':0.92, '1':0.80, '2':0.68}
+    position_dict_x = {'0':0.75, '1':0.73, '2':0.75}
 
     if p_value_permuted < 0.05:
         ax_phylo.plot(x_range, y_fit_range, c=pt.get_colors(treatment), lw=2.5, linestyle='--', zorder=2)
 
         #ax_phylo.text(0.8,0.9, r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
-        ax_phylo.text(0.8,position_dict[treatment], r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+        ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P <0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+
+    else:
+
+        ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P \nless 0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
 
 
-    #ax_pca.text(0.8, 0.8, r'$P\nless 0.05$', fontsize = 11, transform=ax_pca.transAxes)
-#    ax_plot.text(0.05, 0.04, r'$\mathrm{p} \nless 0.05$', fontsize=15, transform=ax_plot.transAxes)
 
     treatment_distance_dict[treatment] = {}
     treatment_distance_dict[treatment]['distances'] = distances
     treatment_distance_dict[treatment]['relative_intersection_size'] = relative_intersection_size
 
 
-    #for treatment_2 in treatments[treatment_idx+1:]:
-    #    print(treatment_2)
+
 
 ax_phylo.set_xlabel('Phylogenetic distance' , fontsize = 10)
 ax_phylo.set_ylabel('Jaccard index of MAPLE modules' , fontsize = 10)
@@ -407,7 +405,6 @@ ax_phylo.set_ylabel('Jaccard index of MAPLE modules' , fontsize = 10)
 treatments_all = np.asarray(treatments_all)
 relative_intersection_size_all = np.asarray(relative_intersection_size_all)
 
-print(len(relative_intersection_size_all))
 
 slope_x, intercept_x, r_value_x, p_value_x, std_err_x = stats.linregress(treatments_all, relative_intersection_size_all)
 slopes_nullll = []
@@ -421,8 +418,6 @@ for permute_x in range(regression_permutations):
 
 slopes_nullll = np.asarray(slopes_nullll)
 
-
-print(len(slopes_nullll[slopes_nullll < slope_x]) / regression_permutations)
 
 
 # slope difference test
