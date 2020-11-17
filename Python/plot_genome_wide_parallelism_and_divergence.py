@@ -22,6 +22,149 @@ np.random.seed(123456789)
 
 subsamples=10000
 
+
+
+
+def calculate_parallelism_statistics_partition(taxon, treatment, fmax_partition=0.5):
+
+    convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
+
+    populations = [treatment+taxon + replicate for replicate in pt.replicates ]
+
+    significant_genes = []
+
+    significant_multiplicity_taxon_path = pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+taxon)
+    #if os.path.exists(significant_multiplicity_taxon_path) == False:
+    #    continue
+    significant_multiplicity_taxon = open(significant_multiplicity_taxon_path, "r")
+    for i, line in enumerate( significant_multiplicity_taxon ):
+        if i == 0:
+            continue
+        line = line.strip()
+        items = line.split(",")
+        if items[0] not in significant_genes:
+            significant_genes.append(items[0])
+
+    # Now calculate gene counts
+    #Ltot = 0
+    #Ngenes = 0
+    ntot_less = 0
+    ntot_greater = 0
+    fmax_true_false = []
+    positions = [0]
+    n_greater_all = []
+    n_less_all = []
+    for gene_name in sorted(convergence_matrix.keys()):
+
+        if gene_name not in significant_genes:
+            continue
+
+        #L = max([convergence_matrix[gene_name]['length'],Lmin])
+        n_less = 0
+        n_greater = 0
+        #num_pops = 0
+
+        for population in populations:
+
+            # filter by cutoff for maximum allele Frequency
+            convergence_matrix_mutations_population_filtered_greater = [k for k in convergence_matrix[gene_name]['mutations'][population] if (k[-1] >= fmax_partition ) ]
+            convergence_matrix_mutations_population_filtered_less = [k for k in convergence_matrix[gene_name]['mutations'][population] if (k[-1] < fmax_partition ) ]
+
+            new_muts_greater = len(convergence_matrix_mutations_population_filtered_greater)
+            new_muts_less = len(convergence_matrix_mutations_population_filtered_less)
+
+            #fmax_greater =
+
+            if (new_muts_greater > 0) and (new_muts_less > 0):
+
+                n_greater += new_muts_greater
+                n_less += new_muts_less
+
+                #num_pops += 1
+                #n += new_muts
+                #for t,l,f,f_max in convergence_matrix_mutations_population_filtered_greater:
+                #    times.append(t)
+                #    # get maximum allele frequency
+
+        if (n_greater == 0) or (new_muts_less == 0):
+            continue
+
+        fmax_true_false.extend([True] * n_greater)
+        fmax_true_false.extend([False] * n_less)
+
+        ntot_less += n_less
+        ntot_greater += n_greater
+
+
+        n_greater_all.append(n_greater)
+        n_less_all.append(n_less)
+
+
+        positions.append(ntot_less+ntot_greater)
+
+
+    n_less_all = np.asarray(n_less_all)
+    n_greater_all = np.asarray(n_greater_all)
+    n_all = n_less_all + n_greater_all
+
+    positions = np.asarray(positions)
+    fmax_true_false = np.asarray(fmax_true_false)
+
+
+    ntot = ntot_less + ntot_greater
+
+    likelihood_partition = sum((n_less_all*np.log((n_less_all*ntot)/(ntot_less*n_all) )) + (n_greater_all*np.log((n_greater_all*ntot)/(ntot_greater*n_all) )))
+
+    print("likelihood", fmax_partition, likelihood_partition)
+
+    null_likelihood_partition = []
+
+    for i in range(1000):
+
+        fmax_true_false_permute = np.random.permutation(fmax_true_false)
+
+        #print(fmax_true_false_permute)
+
+        n_less_permute_all = []
+        n_greater_permute_all = []
+
+        for gene_idx in range(len(positions)-1):
+
+            gene_fmax_permute = fmax_true_false_permute[positions[gene_idx]:positions[gene_idx+1]]
+
+            n_greater_permute = len(gene_fmax_permute[gene_fmax_permute==True])
+            n_less_permute = len(gene_fmax_permute[gene_fmax_permute!=True])
+
+            if (n_greater_permute > 0 ) and (n_less_permute > 0):
+
+                n_greater_permute_all.append(n_greater_permute)
+                n_less_permute_all.append(n_less_permute)
+
+        n_less_permute_all = np.asarray(n_less_permute_all)
+        n_greater_permute_all = np.asarray(n_greater_permute_all)
+
+        n_permute_all = n_less_permute_all + n_greater_permute_all
+
+        ntot_less_permute = len(n_less_permute_all)
+        ntot_greater_permute = len(n_greater_permute_all)
+
+        ntot_permute = ntot_less_permute + ntot_greater_permute
+
+
+        likelihood_partition_permute = sum((n_less_permute_all*np.log((n_less_permute_all*ntot_permute)/(ntot_less_permute*n_permute_all) )) + (n_greater_permute_all*np.log((n_greater_permute_all*ntot_permute)/(ntot_greater_permute*n_permute_all) )))
+
+        null_likelihood_partition.append(likelihood_partition_permute)
+
+    null_likelihood_partition = np.asarray(null_likelihood_partition)
+
+    #print((likelihood_partition - np.mean(null_likelihood_partition) ) / np.std(null_likelihood_partition) )
+
+    #print(fmax_true_false)
+
+
+
+
+
 def likelihood_subsample(taxon, treatment, ntot_subsample=50, fmax_cutoff=0.8, fmin_cutoff=0.0, subsamples=10000):
     # ntot_subsample minimum number of mutations
 
@@ -55,12 +198,41 @@ def likelihood_subsample(taxon, treatment, ntot_subsample=50, fmax_cutoff=0.8, f
 
 
 
+def calculate_likelihood_ratio_fmax(taxon, treatment, ntot_subsample=50, fmax_partition=0.8, subsamples=10000):
+
+    convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
+
+    populations = [treatment+taxon + replicate for replicate in pt.replicates ]
+
+    gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations, fmax_min=fmax_cutoff)
+
+    G_subsample_list = []
+
+
+
+
 #fmax_cutoffs = np.asarray([0,0.2,0.4,0.6])
-fmax_cutoffs = np.asarray([0,0.1,0.2,0.3,0.4,0.5])
+#fmax_cutoffs = np.asarray([0,0.1,0.2,0.3,0.4,0.5])
+fmax_cutoffs = np.asarray([0.05, 0.1, 0.15,0.2,0.25,0.3])
 
 G_dict_all = {}
 taxa=['B','C','D','F','J','P']
 treatments = ['0','1']
+#for taxon in taxa:
+
+#    sys.stdout.write("Sub-sampling taxon: %s\n" % (taxon))
+
+#    for treatment in treatments:
+
+#        if treatment+taxon in pt.treatment_taxa_to_ignore:
+#            continue
+
+#        for fmax_cutoff in fmax_cutoffs:
+#
+#            calculate_parallelism_statistics_partition(taxon, treatment, fmax_partition=fmax_cutoff)
+
+
+
 ntotal_dict = {}
 for taxon in taxa:
 
@@ -91,6 +263,7 @@ for taxon in taxa:
             G_dict_all[taxon][treatment][fmax_cutoff] = fmax_cutoff_dict
 
 
+
 fig = plt.figure(figsize = (9, 12))
 gs = gridspec.GridSpec(nrows=4, ncols=3)
 ax_count=0
@@ -100,7 +273,7 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','J'],['D','F','P']]):
             continue
         ax = fig.add_subplot(gs[taxon_list_idx, taxon_idx])
         #ax.set_xlim([-0.05,max(fmax_cutoffs)+0.05])
-        ax.set_xlim([-0.1,max(fmax_cutoffs)+0.1])
+        ax.set_xlim([-0.03,max(fmax_cutoffs)+0.05])
         ax.text(-0.2, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
         ax.set_title(pt.latex_genus_bold_dict[taxon] + ' ('+ r'$n_{total}=$' + str(ntotal_dict[taxon]) + ')' , fontsize=12)
 
@@ -285,14 +458,18 @@ ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontw
 
 
 ax_divergence.text(0.79, 0.93, '$t_{ \mathrm{1\, vs \, 10, \, 1\, vs \, 100} } = %.3f , $' % (0.0367789), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
-ax_divergence.text(0.92, 0.93, r'$ P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+#ax_divergence.text(0.92, 0.93, r'$ P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.925, 0.93, '$P = %.3f$' % (0.974), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+
 
 ax_divergence.text(0.80, 0.88, '$t_{ \mathrm{1\, vs \, 10, \, 10\, vs \, 100} } = %.2f , $' % (-0.334594), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
-ax_divergence.text(0.94, 0.88, r'$P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+#ax_divergence.text(0.94, 0.88, r'$P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.945, 0.88, '$P = %.3f$' % (0.769762), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+
 
 ax_divergence.text(0.80, 0.83, '$t_{ \mathrm{1\, vs \, 100, \, 10\, vs \, 100} } = %.2f , $' % (-0.37743), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
-ax_divergence.text(0.944, 0.83, r'$P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
-
+#ax_divergence.text(0.944, 0.83, r'$P \nless 0.05 $', fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.95, 0.83, '$P = %.3f$' % (0.742142), fontsize=9,  ha='center', va='center', transform=ax_divergence.transAxes)
 
 
 

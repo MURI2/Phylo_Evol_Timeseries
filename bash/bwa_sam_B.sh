@@ -33,7 +33,7 @@ mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bPTR
 #declare -a times=("100")
 
 #declare -a strains=("S")
-declare -a strains=("D")
+declare -a strains=("B")
 declare -a treats=("0" "1" "2")
 declare -a reps=("1" "2" "3" "4" "5")
 declare -a times=("100" "200" "300" "400" "500" "600" "700" "800" "900" "1000")
@@ -72,13 +72,19 @@ do
     samtools merge - "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bwa_bam/"*"_${sample}_"*".bam" \
         | samtools sort - | samtools view -h -o $bwa_sam_merged_out
 
+    bwa_coverage="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bacillus_bam_coverage/Sample_${sample}.csv"
+
+    samtools depth $bwa_sam_merged_out > $bwa_coverage
+
+
+
     #/N/u/wrshoema/Carbonate/.local/bin/iRep -f $ref -s $bwa_sam_merged_out \
     #    -o "Sample_${sample}.iRep"
 
-    /N/u/wrshoema/Carbonate/.local/bin/bPTR -f $ref -s $bwa_sam_merged_out \
-        -m gc_skew -p 10000 -ff \
-        -plot "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bPTR/Sample_${sample}.bPTR.pdf" \
-        -o "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bPTR/Sample_${sample}.bPTR.tsv"
+    #/N/u/wrshoema/Carbonate/.local/bin/bPTR -f $ref -s $bwa_sam_merged_out \
+    #    -m gc_skew -p 10000 -ff \
+    #    -plot "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bPTR/Sample_${sample}.bPTR.pdf" \
+    #    -o "/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/bPTR/Sample_${sample}.bPTR.tsv"
 
   else
     continue

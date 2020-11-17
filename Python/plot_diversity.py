@@ -142,10 +142,11 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
             t, p_value = stats.ttest_ind(treatment_1, treatment_2)
             ax.text(0.5, 0.9, r'$t=$' + str(round(t, 2)), fontsize=8, transform=ax.transAxes)
 
-            if p_value < 0.05:
-                ax.text(0.5, 0.8, r'$P < 0.05$', fontsize=9, transform=ax.transAxes)
-            else:
-                ax.text(0.5, 0.8, r'$P \nless 0.05$', fontsize=9, transform=ax.transAxes)
+            #if p_value < 0.05:
+            #    ax.text(0.5, 0.8, r'$P < 0.05$', fontsize=9, transform=ax.transAxes)
+            #else:
+            #    ax.text(0.5, 0.8, r'$P \nless 0.05$', fontsize=9, transform=ax.transAxes)
+            ax.text(0.5, 0.8, r'$P = $'+ str(round(p_value, 3)), fontsize=9, transform=ax.transAxes)
 
 
         else:
@@ -191,10 +192,13 @@ for taxon_idx, taxon in enumerate(['B','C','D', 'F','P']):
 
     taxon_x = text_position_dict[taxon][0]
     taxon_y = text_position_dict[taxon][1] - 0.1
-    if p_value < 0.05:
-        taxon_axis_dict[taxon].text(taxon_x, taxon_y, r'$P_{BH} < 0.05$', fontsize=9, transform=taxon_axis_dict[taxon].transAxes)
-    else:
-        taxon_axis_dict[taxon].text(taxon_x, taxon_y, r'$P_{BH} \nless 0.05$', fontsize=9, transform=taxon_axis_dict[taxon].transAxes)
+    #if p_value < 0.05:
+    #    taxon_axis_dict[taxon].text(taxon_x, taxon_y, r'$P_{BH} < 0.05$', fontsize=9, transform=taxon_axis_dict[taxon].transAxes)
+    #else:
+    #    taxon_axis_dict[taxon].text(taxon_x, taxon_y, r'$P_{BH} \nless 0.05$', fontsize=9, transform=taxon_axis_dict[taxon].transAxes)
+
+    #taxon_axis_dict[taxon].text(taxon_x, taxon_y, r'$P_{BH} < $' + str(round(p_value, 3)), fontsize=9, transform=taxon_axis_dict[taxon].transAxes)
+    taxon_axis_dict[taxon].text(taxon_x, taxon_y, r'$P_{{BH}} < 10^{{{}}}$'.format(str( int(np.log10(p_value)) )), fontsize=9, transform=taxon_axis_dict[taxon].transAxes)
 
 
 

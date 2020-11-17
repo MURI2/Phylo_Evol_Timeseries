@@ -1,5 +1,5 @@
 from __future__ import division
-import os, sys, copy, itertools, random
+import os, sys, copy, itertools, random, math
 import numpy as np
 from collections import Counter
 from itertools import combinations
@@ -16,7 +16,9 @@ from sklearn.decomposition import PCA
 import ete3
 
 random.seed(123456789)
+np.seed(123456789)
 
+significant_digits=3
 
 iter=10000
 
@@ -377,18 +379,19 @@ for treatment_idx, treatment in enumerate(treatments):
 
     y_position_labels = [0.9,0.73,0.56]
 
+    position_dict_x = {'0':0.71, '1':0.73, '2':0.74}
     position_dict_y = {'0':0.92, '1':0.80, '2':0.68}
-    position_dict_x = {'0':0.75, '1':0.73, '2':0.75}
 
     if p_value_permuted < 0.05:
         ax_phylo.plot(x_range, y_fit_range, c=pt.get_colors(treatment), lw=2.5, linestyle='--', zorder=2)
 
-        #ax_phylo.text(0.8,0.9, r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
-        ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P <0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    #    #ax_phylo.text(0.8,0.9, r'$y \sim x^{{{}}}$'.format(str( round(slope, 3) )), fontsize=12, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    #    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P <0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    #else:
+    #    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P \nless 0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    rounded_p_value_permuted =  round(p_value_permuted, significant_digits - int(math.floor(math.log10(abs(p_value_permuted)))) - 1)
 
-    else:
-
-        ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P \nless 0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P = {{{}}}$'.format(str( round(slope, 3) ),  str(rounded_p_value_permuted) ) , fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
 
 
 
@@ -505,9 +508,13 @@ ax_pca.set_xlabel('PC 1 (' + str(round(pca.explained_variance_ratio_[0]*100,2)) 
 ax_pca.set_ylabel('PC 2 (' + str(round(pca.explained_variance_ratio_[1]*100,2)) + '%)' , fontsize = 12)
 
 #### perform PERMANOVA
-F, p = pt.run_permanova(df_pc.values, number_treatment_reps)
-ax_pca.text(0.8, 0.9, r'$F$=' + str(round(F,2)), fontsize = 11, transform=ax_pca.transAxes)
-ax_pca.text(0.8, 0.8, r'$P\nless 0.05$', fontsize = 11, transform=ax_pca.transAxes)
+F, P = pt.run_permanova(df_pc.values, number_treatment_reps)
+rounded_F =  round(F, significant_digits - int(math.floor(math.log10(abs(F)))) - 1)
+rounded_P =  round(P, significant_digits - int(math.floor(math.log10(abs(P)))) - 1)
+
+ax_pca.text(0.77, 0.9, r'$F$=' + str(round(rounded_F,3)), fontsize = 11, transform=ax_pca.transAxes)
+#ax_pca.text(0.8, 0.8, r'$P\nless 0.05$', fontsize = 11, transform=ax_pca.transAxes)
+ax_pca.text(0.765, 0.8, r'$P=$' +str(round(rounded_P,3)), fontsize = 11, transform=ax_pca.transAxes)
 
 ax_pca.text(0, 1.05, 'e', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
 
