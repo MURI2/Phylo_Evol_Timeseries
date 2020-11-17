@@ -71,6 +71,9 @@ def calculate_parallelism_statistics(convergence_matrix,allowed_populations,Lmin
 
     return gene_statistics
 
+
+
+
 def calculate_g_scores(gene_statistics, allowed_genes=None):
     # Calculate g score for each gene, i.e.
     # log(n_observed/n_expected)
