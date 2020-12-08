@@ -11,6 +11,7 @@ from matplotlib.ticker import FormatStrFormatter
 from matplotlib.patches import Ellipse
 import matplotlib.transforms as transforms
 import matplotlib.gridspec as gridspec
+from matplotlib.lines import Line2D
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -18,12 +19,10 @@ from sklearn.decomposition import PCA
 import scipy.stats as stats
 import statsmodels.stats.multitest as multitest
 
-
 np.random.seed(123456789)
 
-iter=10000
-
-iter_corr= 10000
+iter=10
+iter_corr= 10
 
 spectra_latex_dict = {'AT_GC':r'$\mathrm{A}:\mathrm{T} \rightarrow  \mathrm{G}:\mathrm{C}$',
                     'AT_CG':r'$\mathrm{A}:\mathrm{T} \rightarrow  \mathrm{C}:\mathrm{G}$',
@@ -253,6 +252,10 @@ for taxon in taxa:
     taxon_Lsyn_dict[taxon] = Lsyn
     taxon_Lnon_dict[taxon] = Lnon
     for treatment in treatments:
+
+        nonsynonymous_fmax_all = []
+        synonymous_fmax_all = []
+
         for replicate in replicates:
 
             population = treatment + taxon + replicate
@@ -306,20 +309,27 @@ for taxon in taxa:
                     non_fixed[population]+=fixed_weight
                     num_processed_mutations+=1
 
+                    nonsynonymous_fmax_all.append(max(freqs))
+
                 elif var_type in synonymous_types:
                     syn_appeared[population]+=1
                     syn_fixed[population]+=fixed_weight
                     num_processed_mutations+=1
 
+                    synonymous_fmax_all.append(max(freqs))
+
+        #print(synonymous_fmax_all)
 
 
 
 
-fig = plt.figure(figsize = (12, 9))
-gs = gridspec.GridSpec(nrows=3, ncols=4)
+fig = plt.figure(figsize = (9, 6))
+gs = gridspec.GridSpec(nrows=2, ncols=3)
 anova_pvalues = []
 anova_F = []
 mutation_spectra_list = [['AT_GC','AT_CG','AT_TA'],['GC_AT','GC_TA','GC_CG']]
+
+axes = []
 
 for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
 
@@ -335,7 +345,8 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
         #set_time = set_time_dict[taxon]
 
         #ax = fig.add_subplot(gs[taxon_idx*2:(taxon_idx*2)+2, taxon_list_idx])
-        ax_pca = fig.add_subplot(gs[taxon_idx, taxon_list_idx])
+        ax_pca = fig.add_subplot(gs[taxon_list_idx, taxon_idx ])
+        axes.append(ax_pca)
 
         ax_pca.set_title(pt.latex_genus_bold_dict[taxon], fontsize=12, fontweight='bold' )
 
@@ -377,14 +388,43 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
         all_subplot_counts += 1
 
 
+
+#plt.plot([0.49, 0.49], [0, 1], color='k', ls=':', lw=5,transform=plt.gcf().transFigure, clip_on=False)
+
+
+fig.text(0.5, -0.01, 'PC 1 (' + str(round(pca_.explained_variance_ratio_[0]*100,2)) + '%)', ha='center', va='center', fontsize=18)
+fig.text(-0.01, 0.5, 'PC 2 (' + str(round(pca_.explained_variance_ratio_[1]*100,2)) + '%)', ha='center', va='center', rotation='vertical', fontsize=18)
+
+
+custom_lines = [Line2D([0], [0], marker='o', markersize=10, color='w', markerfacecolor=pt.colors_dict['0']),
+                Line2D([0], [0], marker='o', markersize=10, color='w', markerfacecolor=pt.colors_dict['1']),
+                Line2D([0], [0], marker='o', markersize=10, color='w', markerfacecolor=pt.colors_dict['2'])]
+
+
+
+axes[0].legend(custom_lines, ['1-day', '10-days', '100-day'], loc= 'upper right')
+
+
+fig.subplots_adjust(hspace=0.4, wspace=0.6) #hspace=0.3, wspace=0.5
+fig.tight_layout()
+fig.savefig(pt.get_path() + '/figs/mutation_spectra_pca.pdf', format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+plt.close()
+
+
+
+
+
+
 reject, pvals_corrected, alphacSidak, alphacBonf = multitest.multipletests(anova_pvalues, alpha=0.05, method='fdr_bh')
 
-
+fig = plt.figure(figsize = (9, 6))
+gs = gridspec.GridSpec(nrows=2, ncols=3)
+all_subplot_counts = 0
 dn_ds_count = 0
 for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
     for taxon_idx, taxon in enumerate(taxon_list):
 
-        ax = fig.add_subplot(gs[taxon_idx, taxon_list_idx+2])
+        ax = fig.add_subplot(gs[taxon_list_idx, taxon_idx])
         ax.set_title(pt.latex_genus_bold_dict[taxon], fontsize=12, fontweight='bold')
         dnds_samples = []
         for treatment in treatments:
@@ -415,7 +455,6 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
             ax.set_xlim([-0.3, 2.3])
 
             #fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1])
-
         else:
             ax.set_xticks([0,1,2])
             ax.set_xticklabels( ['1','10','100'] )
@@ -425,21 +464,13 @@ for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
 
 
 
-
-
-
-plt.plot([0.49, 0.49], [0, 1], color='k', ls=':', lw=5,transform=plt.gcf().transFigure, clip_on=False)
-
-
-fig.text(0.25, -0.01, 'PC 1 (' + str(round(pca_.explained_variance_ratio_[0]*100,2)) + '%)', ha='center', va='center', fontsize=18)
-fig.text(-0.01, 0.5, 'PC 2 (' + str(round(pca_.explained_variance_ratio_[1]*100,2)) + '%)', ha='center', va='center', rotation='vertical', fontsize=18)
-
-
-
 fig.subplots_adjust(hspace=0.4, wspace=0.6) #hspace=0.3, wspace=0.5
 fig.tight_layout()
-fig.savefig(pt.get_path() + '/figs/mutation_spectra_pca.pdf', format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+fig.savefig(pt.get_path() + '/figs/dn_ds.pdf', format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
 plt.close()
+
+
+
 
 
 

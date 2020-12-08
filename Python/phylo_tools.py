@@ -14,7 +14,10 @@ from sklearn.metrics.pairwise import euclidean_distances
 import parse_file
 #import timecourse_util
 
-#from asa159 import rcont2
+
+def round_sf(number, significant):
+    return round(number, significant - len(str(number)))
+
 
 
 
@@ -27,6 +30,7 @@ replicates = ['1','2','3','4','5']
 
 sub_plot_labels = ['a','b','c', 'd','e','f', 'g','h','i']
 
+colors_dict = {'0':'#87CEEB', '1': '#FFA500', '2':'#FF6347'}
 
 tree_name_dict = {'B':'Bacillus', 'C':'Caulobacter_crescentus_NA1000',
                 'D':'Deinococcus_radiodurans_BAA-816', 'F': 'NR_025534.1',

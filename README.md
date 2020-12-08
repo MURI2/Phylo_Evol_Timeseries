@@ -4,7 +4,9 @@
 
 setup environment
 
-f2py -c -m asa159 asa159.f90
+packages
+
+phik, numoy
 
 
 

@@ -43,6 +43,10 @@ populations = []
 
 for taxon in taxa:
     for treatment in treatments:
+
+        nonsynonymous_fmax_all = []
+        synonymous_fmax_all = []
+
         for replicate in replicates:
 
             population = treatment + taxon + replicate
@@ -94,13 +98,16 @@ for taxon in taxa:
                     non_fixed[population]+=fixed_weight
                     num_processed_mutations+=1
 
+                    nonsynonymous_fmax_all.append(max(freqs))
+
                 elif var_type in synonymous_types:
                     syn_appeared[population]+=1
                     syn_fixed[population]+=fixed_weight
                     num_processed_mutations+=1
 
+                    synonymous_fmax_all.append(max(freqs))
 
-print(targeted_Lsyn)
+        print(synonymous_fmax_all)
 
 
 total_non_appeared = sum([non_appeared[population] for population in populations])
