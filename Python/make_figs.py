@@ -77,6 +77,137 @@ latex_bold_dict = {'B': r'$\mathbf{\mathit{Bacillus\, subtilis} \, \mathrm{wt} }
 
 
 
+def old_fig():
+    fig = plt.figure(figsize = (12, 9))
+    gs = gridspec.GridSpec(nrows=3, ncols=4)
+    anova_pvalues = []
+    anova_F = []
+    mutation_spectra_list = [['AT_GC','AT_CG','AT_TA'],['GC_AT','GC_TA','GC_CG']]
+
+    for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
+
+        for taxon_idx, taxon in enumerate(taxon_list):
+
+            dnds_samples = []
+
+            if taxon == 'J':
+                treatments = ['0','2']
+            else:
+                treatments = pt.treatments
+
+            #set_time = set_time_dict[taxon]
+
+            #ax = fig.add_subplot(gs[taxon_idx*2:(taxon_idx*2)+2, taxon_list_idx])
+            #ax_pca = fig.add_subplot(gs[taxon_idx, taxon_list_idx])
+            ax_pca = fig.add_subplot(gs[taxon_list_idx, taxon_idx ])
+
+            ax_pca.set_title(pt.latex_genus_bold_dict[taxon], fontsize=12, fontweight='bold' )
+
+            for treatment in treatments:
+
+                PCs_ = principalComponents_df[principalComponents_df.index.str.contains(treatment+taxon)]
+
+                ax_pca.axhline(y=0, color='k', linestyle=':', alpha = 0.8, zorder=1)
+                ax_pca.axvline(x=0, color='k', linestyle=':', alpha = 0.8, zorder=1)
+                ax_pca.scatter(0, 0, marker = "o", edgecolors='none', c = 'darkgray', s = 120, zorder=2)
+
+                ax_pca.scatter(PCs_.PC1.values, PCs_.PC2.values, \
+                        c=pt.get_colors(treatment), marker=pt.plot_species_marker(taxon), s = 70, \
+                        edgecolors=pt.get_colors(treatment), linewidth = 0.6, alpha = 0.8, zorder=4)#, edgecolors='none'
+
+                pt.confidence_ellipse(PCs_.PC1.values, PCs_.PC2.values, ax_pca,
+                    n_std=2, edgecolor=pt.get_colors(treatment), linestyle='--', lw=4, zorder=3)
+
+                # dn/ds
+                populations_plot = [ treatment+taxon+replicate for replicate in replicates if treatment+taxon+replicate not in pt.populations_to_ignore ]
+                taxon_treatment_dnds_appeared = [non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*taxon_Lsyn_dict[taxon]/taxon_Lnon_dict[taxon] for population in populations_plot]
+                if len(taxon_treatment_dnds_appeared) < 2:
+                    continue
+                dnds_samples.append(taxon_treatment_dnds_appeared)
+
+            if taxon == 'J':
+                fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1])
+
+            else:
+                fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1], dnds_samples[2])
+
+            sys.stdout.write("%s: dN/dS one-way ANOVA: F = %g, P = %g\n" % (taxon, fvalue, pvalue))
+
+            anova_pvalues.append(pvalue)
+            anova_F.append(fvalue)
+
+            ax_pca.text(-0.1, 1.07, sub_plot_labels[all_subplot_counts], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
+
+            all_subplot_counts += 1
+
+
+    reject, pvals_corrected, alphacSidak, alphacBonf = multitest.multipletests(anova_pvalues, alpha=0.05, method='fdr_bh')
+
+
+    dn_ds_count = 0
+    for taxon_list_idx, taxon_list in enumerate([['B','C','D'],['F','J','P']]):
+        for taxon_idx, taxon in enumerate(taxon_list):
+
+            ax = fig.add_subplot(gs[taxon_list_idx, taxon_idx ])
+            ax.set_title(pt.latex_genus_bold_dict[taxon], fontsize=12, fontweight='bold')
+            dnds_samples = []
+            for treatment in treatments:
+
+                populations_plot = [ treatment+taxon+replicate for replicate in replicates if treatment+taxon+replicate not in pt.populations_to_ignore ]
+                taxon_treatment_dnds_appeared = [non_appeared[population]/(syn_appeared[population]+(syn_appeared[population]==0))*taxon_Lsyn_dict[taxon]/taxon_Lnon_dict[taxon] for population in populations_plot]
+                if len(taxon_treatment_dnds_appeared) < 2:
+                    continue
+                ax.scatter( [int(treatment)] * len(taxon_treatment_dnds_appeared), taxon_treatment_dnds_appeared,  marker=pt.plot_species_marker(taxon),  linewidth=2, facecolors=pt.get_scatter_facecolor(taxon, treatment), edgecolors=pt.get_colors(treatment), s=100, zorder=2, alpha=0.8)
+                if len(taxon_treatment_dnds_appeared) > 2:
+                    ax.errorbar(int(treatment),np.mean(taxon_treatment_dnds_appeared), yerr= 2*np.std(taxon_treatment_dnds_appeared) / np.sqrt(len(taxon_treatment_dnds_appeared)), linestyle='-', c = 'k', marker=pt.plot_species_marker(taxon), lw = 2.5,  zorder=3)
+                #dnds_treatment.append(taxon_treatment_dnds_appeared)
+
+                dnds_samples.append(taxon_treatment_dnds_appeared)
+
+            ax.set_ylabel('pN/pS', fontsize = 12)
+
+            ax.text(-0.1, 1.07, sub_plot_labels[all_subplot_counts], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
+            ax.text(0.7, 0.9, r'$F=$'+ str(round( anova_F[dn_ds_count],3) ), fontsize=10, ha='center', va='center', transform=ax.transAxes)
+            ax.text(0.7, 0.8, r'$P_{BH}=$'+ str(round(pvals_corrected[dn_ds_count], 3)) , fontsize=10, ha='center', va='center', transform=ax.transAxes)
+
+            all_subplot_counts+=1
+            dn_ds_count += 1
+
+            if taxon == 'J':
+                ax.set_xticks([0,2])
+                ax.set_xticklabels( ['1','100'] )
+                ax.set_xlim([-0.3, 2.3])
+
+                #fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1])
+
+            else:
+                ax.set_xticks([0,1,2])
+                ax.set_xticklabels( ['1','10','100'] )
+                ax.set_xlim([-0.3, 2.3])
+
+                #fvalue, pvalue = stats.f_oneway(dnds_samples[0], dnds_samples[1], dnds_samples[2])
+
+
+
+
+
+
+    plt.plot([0.49, 0.49], [0, 1], color='k', ls=':', lw=5,transform=plt.gcf().transFigure, clip_on=False)
+
+
+    fig.text(0.25, -0.01, 'PC 1 (' + str(round(pca_.explained_variance_ratio_[0]*100,2)) + '%)', ha='center', va='center', fontsize=18)
+    fig.text(-0.01, 0.5, 'PC 2 (' + str(round(pca_.explained_variance_ratio_[1]*100,2)) + '%)', ha='center', va='center', rotation='vertical', fontsize=18)
+
+
+
+    fig.subplots_adjust(hspace=0.4, wspace=0.6) #hspace=0.3, wspace=0.5
+    fig.tight_layout()
+    fig.savefig(pt.get_path() + '/figs/mutation_spectra_pca.pdf', format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
+    plt.close()
+
+
+
+
 
 
 
@@ -2055,7 +2186,7 @@ def plot_gamma_migration():
     #Global migration (low inocula)
     #Parent migration (low inocula)
 
-    
+
 
 
 

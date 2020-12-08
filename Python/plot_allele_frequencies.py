@@ -39,7 +39,13 @@ def plot_allele_freqs_all_treats(strain):
             times = np.asarray([float(x.strip().split(':')[1]) for x in first_line_items[16::2]])
             times = np.insert(times, 0, 0, axis=0)
 
-            times_to_ignore = pt.samples_to_remove(population)
+
+            if population in pt.samples_to_remove:
+                times_to_ignore = pt.samples_to_remove[population]
+            else:
+                times_to_ignore = None
+
+
             if times_to_ignore != None:
                 times_to_ignore_idx=[np.where(times == t)[0] for t in times_to_ignore][0]
                 times = np.delete(times, times_to_ignore_idx)
@@ -87,18 +93,18 @@ def plot_allele_freqs_all_treats(strain):
     fig.text(0.05, 0.5, 'Allele frequency, ' + r'$f(t)$', ha='center', va='center', rotation='vertical',  fontsize=24)
 
     fig.suptitle(pt.latex_dict[strain], fontsize=28, fontweight='bold')
-    #fig_name = pt.get_path() + '/figs/mut_trajectories_%s.png'
-    fig_name = pt.get_path() + '/figs/mut_trajectories_%s.pdf'
-    #fig.savefig(fig_name % strain, bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
-    fig.savefig(fig_name % strain, bbox_inches = "tight",format='pdf', pad_inches = 0.4)#, dpi = 600)
+    fig_name = pt.get_path() + '/figs/mut_trajectories_%s.png'
+    #fig_name = pt.get_path() + '/figs/mut_trajectories_%s.pdf'
+    fig.savefig(fig_name % strain, bbox_inches = "tight", pad_inches = 0.4)#, dpi = 600)
+    #fig.savefig(fig_name % strain, bbox_inches = "tight",format='png', pad_inches = 0.4)#, dpi = 600)
 
     plt.close()
 
 
 
+# ['B','D','F','J','P', 'S']:
 
-
-for taxon in ['B','D','F','J','P', 'S']:
+for taxon in ['C']:
     #plot_within_taxon_paralleliism(taxon)
     if (taxon != 'S'):
         plot_allele_freqs_all_treats(taxon)

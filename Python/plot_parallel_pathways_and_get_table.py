@@ -10,19 +10,23 @@ import pandas as pd
 import phylo_tools as pt
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+from matplotlib.lines import Line2D
 
 from sklearn.decomposition import PCA
+
 
 import ete3
 
 random.seed(123456789)
-np.seed(123456789)
+np.random.seed(123456789)
 
 significant_digits=3
 
 iter=10000
+#iter=100
 
 regression_permutations = 100000
+#regression_permutations = 100
 
 MCR = 1
 
@@ -167,17 +171,19 @@ for treatment in treatments:
 
         significant_genes.close()
 
-        kegg_taxon_treatment[treatment+taxon] = kegg_list
+        kegg_taxon_treatment[treatment+taxon] = list(set(kegg_list))
         maple_taxon_treatment[treatment+taxon] = list(set(maple_list))
 
 
 
 # randomly sample from the set of genes that CAN be mapped
-null_intersection_size_dict = {}
+null_intersection_size_maple_dict = {}
+null_intersection_size_kegg_dict = {}
 
 for treatment in treatments:
 
-    null_intersection_size_dict[treatment] = []
+    null_intersection_size_maple_dict[treatment] = []
+    null_intersection_size_kegg_dict[treatment] = []
 
     if (treatment == '1'):
         taxa_ =  ['B','C','D','F','P']
@@ -186,10 +192,8 @@ for treatment in treatments:
     else:
         taxa_ =  pt.taxa
 
-    #for i in range(1, len(taxa_)+1):
-    #    null_intersection_size_dict[treatment][i] = []
-
     for i in range(iter):
+        null_kegg_dict = {}
         null_maple_dict = {}
 
         for taxon_ in taxa_:
@@ -197,31 +201,40 @@ for treatment in treatments:
             N = len(kegg_taxon_treatment[treatment+taxon_])
             sample_kegg = random.sample(list(kegg_to_maple_all[taxon_].keys()), N)
             sample_maple = list(set([kegg_to_maple_all[taxon_][kegg_] for kegg_ in sample_kegg]))
+            null_kegg_dict[taxon_] = sample_kegg
             null_maple_dict[taxon_] = sample_maple
 
-        null_decay_curve = []
+        null_decay_curve_kegg = []
+        null_decay_curve_maple = []
         for j in range(1, len(taxa_)+1):
 
             comb_taxa = list(itertools.combinations(taxa_, j))
-            sum_j = 0
+            sum_j_kegg = 0
+            sum_j_maple = 0
 
             for comb_taxa_j in comb_taxa:
 
+                all_kegg_modules = []
                 all_maple_modules = []
                 for comb_taxa_j_k in comb_taxa_j:
+                    all_kegg_modules.extend(null_kegg_dict[comb_taxa_j_k])
                     all_maple_modules.extend(null_maple_dict[comb_taxa_j_k])
+
+                kegg_count = Counter(all_kegg_modules)
                 maple_count = Counter(all_maple_modules)
 
-                intersection_size = list(dict(maple_count).values()).count(j)
+                intersection_size_kegg = list(dict(kegg_count).values()).count(j)
+                intersection_size_maple = list(dict(maple_count).values()).count(j)
 
-                sum_j += intersection_size
+                sum_j_kegg += intersection_size_kegg
+                sum_j_maple += intersection_size_maple
 
             #null_intersection_size_dict[treatment][j].append(sum_j)
+            null_decay_curve_kegg.append(sum_j_kegg)
+            null_decay_curve_maple.append(sum_j_maple)
 
-            null_decay_curve.append(sum_j)
-
-        null_intersection_size_dict[treatment].append(null_decay_curve)
-
+        null_intersection_size_kegg_dict[treatment].append(null_decay_curve_kegg)
+        null_intersection_size_maple_dict[treatment].append(null_decay_curve_maple)
 
 
 observed_intersection_dict = {}
@@ -263,6 +276,14 @@ for key, value in maple_taxon_treatment.items():
         maple_taxon_treatment_dict[key][value_i] = 1
 
 
+kegg_taxon_treatment_dict = {}
+for key, value in kegg_taxon_treatment.items():
+    kegg_taxon_treatment_dict[key] = {}
+    for value_i in value:
+        kegg_taxon_treatment_dict[key][value_i] = 1
+
+
+
 maple_matrix = pd.DataFrame.from_dict(maple_taxon_treatment_dict)
 maple_matrix = maple_matrix.fillna(0)
 maple_matrix = maple_matrix.T
@@ -290,7 +311,7 @@ for treatment_idx, treatment in enumerate(treatments):
 
     #ax = fig.add_subplot(gs[treatment_idx, 0])
 
-    for null_i in null_intersection_size_dict[treatment]:
+    for null_i in null_intersection_size_maple_dict[treatment]:
         ax.plot(range(1, len(null_i)+1), null_i, '-', alpha=0.1, zorder=1, c = pt.get_colors(treatment))
 
     ax.plot(range(1, len(observed_intersection_dict[treatment])+1), observed_intersection_dict[treatment], 'o-', alpha=1, c='k',lw=2,zorder=2)
@@ -307,9 +328,21 @@ for treatment_idx, treatment in enumerate(treatments):
         ax.set_xlabel('Number of taxa', fontsize = 14)
     else:
         continue
-    ax.text(0.62, 0.85, title, fontsize=10, transform=ax.transAxes)
+    #ax.text(0.62, 0.85, title, fontsize=10, transform=ax.transAxes)
 
-    ax.text(0, 1.1, sub_plot_labels[treatment_idx], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
+    ax.text(0, 1.1, sub_plot_labels[treatment_idx], fontsize=10, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
+
+
+
+    #legend_elements = [Line2D([0], [0], color='k', ls='-', lw=1.5, label='Observed'),
+    #                Line2D([0], [0], color=pt.get_colors(treatment), ls='-', lw=1.5, label='Null')]
+    legend_elements = [Line2D([0], [0], marker='o', color='k', markerfacecolor='k', markersize=6, label='Observed'),
+                    Line2D([0], [0], color=pt.get_colors(treatment), ls='-', lw=1.5, label='Null')]
+
+    ax.legend(handles=legend_elements, loc='upper right',  prop={'size': 8})
+
+    ax.set_title(title, fontdict={'fontsize': 10 })
+    # 'fontweight': 'medium'
 
 
 # now plot PCA
@@ -317,7 +350,7 @@ for treatment_idx, treatment in enumerate(treatments):
 
 ax_phylo = fig.add_subplot(gs[0:3, 2:])
 
-ax_phylo.text(0, 1.05, 'd', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_phylo.transAxes)
+ax_phylo.text(0, 1.05, 'd', fontsize=10, fontweight='bold', ha='center', va='center', transform=ax_phylo.transAxes)
 
 treatment_distance_dict = {}
 
@@ -339,6 +372,8 @@ for treatment_idx, treatment in enumerate(treatments):
 
     for taxa_pair in combinations(taxa_iter, 2):
 
+        #maple_1 = set(maple_taxon_treatment[treatment+taxa_pair[0]])
+        #maple_2 = set(maple_taxon_treatment[treatment+taxa_pair[1]])
         maple_1 = set(maple_taxon_treatment[treatment+taxa_pair[0]])
         maple_2 = set(maple_taxon_treatment[treatment+taxa_pair[1]])
 
@@ -516,7 +551,7 @@ ax_pca.text(0.77, 0.9, r'$F$=' + str(round(rounded_F,3)), fontsize = 11, transfo
 #ax_pca.text(0.8, 0.8, r'$P\nless 0.05$', fontsize = 11, transform=ax_pca.transAxes)
 ax_pca.text(0.765, 0.8, r'$P=$' +str(round(rounded_P,3)), fontsize = 11, transform=ax_pca.transAxes)
 
-ax_pca.text(0, 1.05, 'e', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
+ax_pca.text(0, 1.05, 'e', fontsize=10, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
 
 fig.text(0.05, 0.5, 'Number of intersecting MAPLE modules\nwith significant multiplicity', ha='center', va='center', rotation='vertical', fontsize=14)
 
