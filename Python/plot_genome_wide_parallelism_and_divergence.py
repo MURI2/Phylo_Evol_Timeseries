@@ -1,5 +1,5 @@
 from __future__ import division
-import os, sys, pickle
+import os, sys, pickle, random
 import numpy as np
 
 import  matplotlib.pyplot as plt
@@ -21,8 +21,7 @@ import phik
 
 np.random.seed(123456789)
 
-subsamples=10000
-#subsamples=10
+
 permutations_divergence = 10000
 
 # permutations for anova
@@ -30,305 +29,148 @@ n_permutations = 100000
 
 
 
+def calculate_IWR(array_1, array_2):
 
-def calculate_parallelism_statistics_partition(taxon, treatment, fmax_partition=0.5):
+    # mutual information / joing entropy
+    joint_entropy =  stats.entropy(array_1,array_2)
 
-    convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
 
-    populations = [treatment+taxon + replicate for replicate in pt.replicates ]
 
-    significant_genes = []
+standardized_gene_overlap = {}
+for taxon in pt.taxa:
 
-    significant_multiplicity_taxon_path = pt.get_path() + '/data/timecourse_final/parallel_genes_%s.txt' % (treatment+taxon)
-    #if os.path.exists(significant_multiplicity_taxon_path) == False:
+    #if taxon == 'J':
     #    continue
-    significant_multiplicity_taxon = open(significant_multiplicity_taxon_path, "r")
-    for i, line in enumerate( significant_multiplicity_taxon ):
-        if i == 0:
-            continue
-        line = line.strip()
-        items = line.split(",")
-        if items[0] not in significant_genes:
-            significant_genes.append(items[0])
 
-    # Now calculate gene counts
-    #Ltot = 0
-    #Ngenes = 0
-    ntot_less = 0
-    ntot_greater = 0
-    fmax_true_false = []
-    positions = [0]
-    n_greater_all = []
-    n_less_all = []
-    for gene_name in sorted(convergence_matrix.keys()):
+    gene_dict = {}
+    N_significant_genes_dict = {}
 
-        if gene_name not in significant_genes:
-            continue
+    gene_data = parse_file.parse_gene_list(taxon)
+    gene_names, gene_start_positions, gene_end_positions, promoter_start_positions, promoter_end_positions, gene_sequences, strands, genes, features, protein_ids = gene_data
 
-        #L = max([convergence_matrix[gene_name]['length'],Lmin])
-        n_less = 0
-        n_greater = 0
-        #num_pops = 0
+    #locus_tag_to_gene_dict = {}
+    #for gene_name_idx, gene_name in enumerate(gene_names):
+    #    gene = genes[gene_name_idx]
+    #    if gene == '':
+    #        continue
+    #    locus_tag_to_gene_dict[gene_name] = genes[gene_name_idx]
 
-        for population in populations:
 
-            # filter by cutoff for maximum allele Frequency
-            convergence_matrix_mutations_population_filtered_greater = [k for k in convergence_matrix[gene_name]['mutations'][population] if (k[-1] >= fmax_partition ) ]
-            convergence_matrix_mutations_population_filtered_less = [k for k in convergence_matrix[gene_name]['mutations'][population] if (k[-1] < fmax_partition ) ]
-
-            new_muts_greater = len(convergence_matrix_mutations_population_filtered_greater)
-            new_muts_less = len(convergence_matrix_mutations_population_filtered_less)
-
-            #fmax_greater =
-
-            if (new_muts_greater > 0) and (new_muts_less > 0):
-
-                n_greater += new_muts_greater
-                n_less += new_muts_less
-
-                #num_pops += 1
-                #n += new_muts
-                #for t,l,f,f_max in convergence_matrix_mutations_population_filtered_greater:
-                #    times.append(t)
-                #    # get maximum allele frequency
-
-        if (n_greater == 0) or (new_muts_less == 0):
-            continue
-
-        fmax_true_false.extend([True] * n_greater)
-        fmax_true_false.extend([False] * n_less)
-
-        ntot_less += n_less
-        ntot_greater += n_greater
-
-
-        n_greater_all.append(n_greater)
-        n_less_all.append(n_less)
-
-
-        positions.append(ntot_less+ntot_greater)
-
-
-    n_less_all = np.asarray(n_less_all)
-    n_greater_all = np.asarray(n_greater_all)
-    n_all = n_less_all + n_greater_all
-
-    positions = np.asarray(positions)
-    fmax_true_false = np.asarray(fmax_true_false)
-
-
-    ntot = ntot_less + ntot_greater
-
-    likelihood_partition = sum((n_less_all*np.log((n_less_all*ntot)/(ntot_less*n_all) )) + (n_greater_all*np.log((n_greater_all*ntot)/(ntot_greater*n_all) )))
-
-    print("likelihood", fmax_partition, likelihood_partition)
-
-    null_likelihood_partition = []
-
-    for i in range(1000):
-
-        fmax_true_false_permute = np.random.permutation(fmax_true_false)
-
-        n_less_permute_all = []
-        n_greater_permute_all = []
-
-        for gene_idx in range(len(positions)-1):
-
-            gene_fmax_permute = fmax_true_false_permute[positions[gene_idx]:positions[gene_idx+1]]
-
-            n_greater_permute = len(gene_fmax_permute[gene_fmax_permute==True])
-            n_less_permute = len(gene_fmax_permute[gene_fmax_permute!=True])
-
-            if (n_greater_permute > 0 ) and (n_less_permute > 0):
-
-                n_greater_permute_all.append(n_greater_permute)
-                n_less_permute_all.append(n_less_permute)
-
-        n_less_permute_all = np.asarray(n_less_permute_all)
-        n_greater_permute_all = np.asarray(n_greater_permute_all)
-
-        n_permute_all = n_less_permute_all + n_greater_permute_all
-
-        ntot_less_permute = len(n_less_permute_all)
-        ntot_greater_permute = len(n_greater_permute_all)
-
-        ntot_permute = ntot_less_permute + ntot_greater_permute
-
-
-        likelihood_partition_permute = sum((n_less_permute_all*np.log((n_less_permute_all*ntot_permute)/(ntot_less_permute*n_permute_all) )) + (n_greater_permute_all*np.log((n_greater_permute_all*ntot_permute)/(ntot_greater_permute*n_permute_all) )))
-
-        null_likelihood_partition.append(likelihood_partition_permute)
-
-    null_likelihood_partition = np.asarray(null_likelihood_partition)
-
-
-
-
-
-def likelihood_subsample(taxon, treatment, ntot_subsample=50, fmax_cutoff=0.8, fmin_cutoff=0.0, subsamples=10000):
-    # ntot_subsample minimum number of mutations
-
-    # Load convergence matrix
-    convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
-
-    populations = [treatment+taxon + replicate for replicate in pt.replicates ]
-
-    gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations, fmax_min=fmax_cutoff)
-
-    G_subsample_list = []
-    for i in range(subsamples):
-
-        G_subsample = mutation_spectrum_utils.calculate_subsampled_total_parallelism(gene_parallelism_statistics, ntot_subsample=ntot_subsample)
-
-        G_subsample_list.append(G_subsample)
-
-    G_subsample_list.sort()
-
-    G_CIs_dict = {}
-
-    G_subsample_mean = np.mean(G_subsample_list)
-    G_subsample_025 = G_subsample_list[ int( 0.025 * subsamples)  ]
-    G_subsample_975 = G_subsample_list[ int( 0.975 * subsamples)  ]
-
-    G_CIs_dict['G_mean'] = G_subsample_mean
-    G_CIs_dict['G_025'] = G_subsample_025
-    G_CIs_dict['G_975'] = G_subsample_975
-
-    return G_CIs_dict
-
-
-
-def calculate_likelihood_ratio_fmax(taxon, treatment, ntot_subsample=50, fmax_partition=0.8, subsamples=10000):
-
-    convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % (treatment+taxon)))
-
-    populations = [treatment+taxon + replicate for replicate in pt.replicates ]
-
-    gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations, fmax_min=fmax_cutoff)
-
-    G_subsample_list = []
-
-
-
-
-#fmax_cutoffs = np.asarray([0,0.2,0.4,0.6])
-#fmax_cutoffs = np.asarray([0,0.1,0.2,0.3,0.4,0.5])
-fmax_cutoffs = np.asarray([0.05, 0.1, 0.15,0.2,0.25,0.3])
-
-G_dict_all = {}
-taxa=['B','C','D','F','J','P']
-treatments = ['0','1']
-#for taxon in taxa:
-
-#    sys.stdout.write("Sub-sampling taxon: %s\n" % (taxon))
-
-#    for treatment in treatments:
-
-#        if treatment+taxon in pt.treatment_taxa_to_ignore:
-#            continue
-
-#        for fmax_cutoff in fmax_cutoffs:
-#
-#            calculate_parallelism_statistics_partition(taxon, treatment, fmax_partition=fmax_cutoff)
-
-
-
-ntotal_dict = {}
-for taxon in taxa:
-
-    sys.stdout.write("Sub-sampling taxon: %s\n" % (taxon))
-
-    G_dict_all[taxon] = {}
     if taxon == 'J':
-        ntotal = 50
+        treatments_convergence = ['0', '1']
+
     else:
-        # calculate ntot for all frequency cutoffs
-        convergence_matrix = parse_file.parse_convergence_matrix(pt.get_path() + '/data/timecourse_final/' +("%s_convergence_matrix.txt" % ('1'+taxon)))
-        populations = ['1'+taxon + replicate for replicate in pt.replicates ]
-        gene_parallelism_statistics = mutation_spectrum_utils.calculate_parallelism_statistics(convergence_matrix,populations,fmax_min=max(fmax_cutoffs))
-        ntotal = 0
-        for gene_i, gene_parallelism_statistics_i in gene_parallelism_statistics.items():
-            ntotal+=gene_parallelism_statistics_i['observed']
-    ntotal_dict[taxon] = ntotal
-    for treatment in treatments:
-        if treatment+taxon in pt.treatment_taxa_to_ignore:
+        treatments_convergence = ['0', '1', '2']
+
+
+    for treatment in treatments_convergence:
+
+        genes_significant_file_path = pt.get_path() +'/data/timecourse_final/' +  ("parallel_%ss_%s.txt" % ('gene', treatment+taxon))
+        genes_nonsignificant_file_path = pt.get_path() +'/data/timecourse_final/' +  ("parallel_not_significant_%ss_%s.txt" % ('gene', treatment+taxon))
+
+        if os.path.exists(genes_significant_file_path) == False:
             continue
 
-        G_dict_all[taxon][treatment] = {}
+        genes_significant_file = open(genes_significant_file_path, 'r')
+        first_line_significant = genes_significant_file.readline()
 
-        for fmax_cutoff in fmax_cutoffs:
+        N_significant_genes = 0
 
-            fmax_cutoff_dict = likelihood_subsample(taxon, treatment, ntot_subsample=ntotal,fmax_cutoff=fmax_cutoff, subsamples=subsamples)
+        genes = []
 
-            G_dict_all[taxon][treatment][fmax_cutoff] = fmax_cutoff_dict
+        for line in genes_significant_file:
+            line_split = line.strip().split(', ')
+            gene_name = line_split[0]
+            genes.append(gene_name)
+            N_significant_genes += 1
 
+        genes_significant_file.close()
 
-
-
-
-
-fig = plt.figure(figsize = (7, 16))
-#gs = gridspec.GridSpec(nrows=4, ncols=3)
-gs = gridspec.GridSpec(nrows=4, ncols=2)
-ax_count=0
-
-for taxon_list_idx, taxon_list in enumerate([['B','C'],['J','D'],['F','P']]):
-    for taxon_idx, taxon in enumerate(taxon_list):
-        if taxon == '':
-            continue
-        ax = fig.add_subplot(gs[taxon_list_idx, taxon_idx])
-        #ax.set_xlim([-0.05,max(fmax_cutoffs)+0.05])
-        ax.set_xlim([-0.03,max(fmax_cutoffs)+0.05])
-        ax.text(-0.1, 1.07, pt.sub_plot_labels[ax_count], fontsize=10, fontweight='bold', ha='center', va='center', transform=ax.transAxes)
-        ax.set_title(pt.latex_genus_bold_dict[taxon] + ' ('+ r'$n_{total}=$' + str(ntotal_dict[taxon]) + ')' , fontsize=12)
-
-        #fig.text(0.5, 0.485, "Maximum allele frequency (" + r'$f_{max}$' + ") cutoff", ha='center', va='center', fontsize=16)
-        #fig.text(0.05, 0.7 ,"Net increase in log-likelihood, " r'$\Delta \ell$' , ha='center', va='center', rotation='vertical', fontsize=16)
-        ax.set_xlabel("Maximum allele frequency cutoff, " + r'$f_{max}$', fontsize = 11)
-        #ax.set_ylabel("Net increase in log-likelihood, " + r'$\Delta \ell$', fontsize = 11)
-        ax.set_ylabel("Degree of parallel evolution, " + r'$\Delta \ell$', fontsize = 11)
+        N_significant_genes_dict[treatment] = N_significant_genes
+        gene_dict[treatment] = set(genes)
 
 
-        ##if ax_count == 0:
-        #     ax.legend(handles=legend_elements, loc='upper left',  prop={'size': 8})
+    print(gene_dict)
 
-
-        ax_count+=1
-
+    # add zero for genes that you couldn't test
+    for gene, gene_dict_i in gene_dict.items():
         for treatment in treatments:
-            if treatment+taxon in pt.treatment_taxa_to_ignore:
-                continue
-
-            delta_l_list = []
-            delta_025 = []
-            delta_975 = []
-
-            for fmax_cutoff in fmax_cutoffs:
-                delta_l_list.append(G_dict_all[taxon][treatment][fmax_cutoff]['G_mean'])
-                delta_025.append(G_dict_all[taxon][treatment][fmax_cutoff]['G_025'])
-                delta_975.append(G_dict_all[taxon][treatment][fmax_cutoff]['G_975'])
-
-            delta_l_list = np.asarray(delta_l_list)
-            delta_025 = np.asarray(delta_025)
-            delta_975 = np.asarray(delta_975)
-
-            ax.errorbar(fmax_cutoffs, delta_l_list, yerr = [ delta_l_list-delta_025,  delta_975-delta_l_list] , \
-                    fmt = 'o', alpha = 1, barsabove = True, marker = pt.plot_species_marker(taxon), \
-                    mfc = 'white', mec = 'white', lw=2, c = 'k', zorder=1, ms=17)
-
-            ax.scatter(fmax_cutoffs, delta_l_list, marker=pt.plot_species_marker(taxon), s = 150, \
-                linewidth=3, facecolors=pt.get_scatter_facecolor(taxon, treatment), edgecolors=pt.get_colors(treatment), alpha=1, zorder=2)
-
-            if taxon == 'P':
-                marker_size_legend=16
-            else:
-                marker_size_legend=10
+            if treatment not in gene_dict_i:
+                gene_dict_i[treatment ] = 0
 
 
-            legend_elements = [Line2D([0], [0], color='w', markerfacecolor=pt.get_colors('0'), marker=pt.plot_species_marker(taxon), markersize=marker_size_legend, label='1-Day'),
-                            Line2D([0], [0], color='w', markerfacecolor=pt.get_colors('1'), marker=pt.plot_species_marker(taxon), markersize=marker_size_legend, label='10-Days')]
+    N_genes = len(gene_names)
 
-            ax.legend(handles=legend_elements, loc='upper left')
+    intersect_1_10_100 = []
+    intersect_1_10 = []
+    intersect_1_100 = []
+    intersect_10_100 = []
+
+    for i in range(iter):
+
+        # without replacement
+        sample_1 = random.sample(set(range(N_genes)), N_significant_genes['0'])
+        sample_10 = random.sample(set(range(N_genes)), N_significant_genes['1'])
+        sample_100 = random.sample(set(range(N_genes)), N_significant_genes['2'])
+
+        jaccard_1_10_100 = len(set(sample_1) & set(sample_10) & set(sample_100)) / len(set(sample_1) | set(sample_10) | set(sample_100))
+        jaccard_1_10 = len(set(sample_1) & set(sample_10)) / len(set(sample_1) | set(sample_10))
+        jaccard_1_100 = len(set(sample_1) & set(sample_100)) / len(set(sample_1) | set(sample_100))
+        jaccard_10_100 = len(set(sample_10) & set(sample_100)) / len(set(sample_10) | set(sample_100))
+
+        intersect_1_10_100.append(jaccard_1_10_100)
+        intersect_1_10.append(jaccard_1_10)
+        intersect_1_100.append(jaccard_1_100)
+        intersect_10_100.append(jaccard_10_100)
+
+
+    intersect_1_10_100 = np.asarray(intersect_1_10_100)
+    intersect_1_10 = np.asarray(intersect_1_10)
+    intersect_1_100 = np.asarray(intersect_1_100)
+    intersect_10_100 = np.asarray(intersect_10_100)
+
+    Z_intersect_1_10_100 =
+
+
+    intersect_result_1_10 = len([key for key, value in gene_dict.items() if (gene_dict[key]['0']==2) and (gene_dict[key]['1']==2) ])
+    intersect_result_1_100 = len([key for key, value in gene_dict.items() if (gene_dict[key]['0']==2) and (gene_dict[key]['2']==2) ])
+    intersect_result_10_100 = len([key for key, value in gene_dict.items() if (gene_dict[key]['1']==2) and (gene_dict[key]['2']==2) ])
+    intersect_result_1_10_100 = len([key for key, value in gene_dict.items() if (gene_dict[key]['0']==2) and (gene_dict[key]['1']==2) and (gene_dict[key]['2']==2)])
+
+
+
+
+    gene_dict_copy = copy.deepcopy(gene_dict)
+    # remove genes if it's only significant in one treatment
+    for gene in list(gene_dict_copy):
+        if list(gene_dict_copy[gene].values()).count(2) < 2:
+            del gene_dict_copy[gene]
+
+
+    if taxon == 'J':
+        for gene in list(gene_dict_copy):
+            gene_dict_copy[gene]['1'] = -1
+
+    #if taxon == 'F':
+    #    for gene in list(gene_dict_copy):
+    #        gene_dict_copy[gene]['2'] = -1
+
+    gene_values = []
+    gene_names = []
+    for gene, gene_dict_i in sorted(gene_dict_copy.items()):
+
+        #gene_dict_i_keys, gene_dict_i_values = sorted(gene_dict_i.items())
+        gene_values.append(list( [gene_dict_i['0'], gene_dict_i['1'], gene_dict_i['2']]  ))
+        if gene in locus_tag_to_gene_dict:
+            gene_names.append(locus_tag_to_gene_dict[gene])
+        else:
+            gene_names.append(gene)
+
+    taxon_gene_dict[taxon] = [gene_names,gene_values]
+
+
+
+
 
 
 # now do divergence
@@ -379,15 +221,6 @@ for taxon in pt.taxa:
             significant_n_mut_dict[taxon][items[0]][treatment] = float(items[-4])
 
 
-
-#fig.text(0.5, 0.485, "Maximum allele frequency (" + r'$f_{max}$' + ") cutoff", ha='center', va='center', fontsize=16)
-#fig.text(0.05, 0.7 ,"Net increase in log-likelihood, " r'$\Delta \ell$' , ha='center', va='center', rotation='vertical', fontsize=16)
-
-
-
-
-
-#record_strs = [",".join(['treatment_pair', 'taxon', 'tree_name', 'slope', 'slope_standard_error'])]
 
 
 
@@ -474,12 +307,17 @@ with open(pt.get_path()+'/data/divergence_pearsons.pickle', 'rb') as handle:
 sys.stderr.write("Runing permutational ANOVA....\n")
 
 
-taxa_to_test = ['B','C','D','F','P']
+#taxa_to_test = ['B','C','D','F','P','J']
 within_sum = 0
 all_divergenes_to_test = []
 all_mean_divergenes = []
 all_n_divergences = []
 for treatment_pair in divergence_dict.keys():
+
+    if '1' in treatment_pair:
+        taxa_to_test = ['B','C','D','F','P']
+    else:
+        taxa_to_test = pt.taxa
 
     divergences_treatment_pair = [divergence_dict[treatment_pair][taxon]['Z_corr'] for taxon in taxa_to_test]
     all_divergenes_to_test.extend(divergences_treatment_pair)
@@ -508,15 +346,30 @@ for i in range(n_permutations):
     vs_1_100 = []
     vs_10_100 = []
 
-    for taxon in taxa_to_test:
+    for taxon in taxa:
 
-        taxon_standardized_corr = []
-        treatment_pairs_list = divergence_dict.keys()
-        divergences_taxon = np.asarray([divergence_dict[l][taxon]['Z_corr'] for l in treatment_pairs_list])
-        divergences_taxon_permute = np.random.permutation(divergences_taxon)
-        vs_1_10.append(divergences_taxon_permute[0])
-        vs_1_100.append(divergences_taxon_permute[1])
-        vs_10_100.append(divergences_taxon_permute[2])
+        if taxon == 'J':
+
+            #treatment_assignment = random.randrange(0,3)
+            treatment_assignment = np.random.randint(0,3)
+            J_div = divergence_dict[('0','2')][taxon]['Z_corr']
+
+            if treatment_assignment == 0:
+                vs_1_10.append(J_div)
+            elif treatment_assignment == 1:
+                vs_1_100.append(J_div)
+            else:
+                vs_10_100.append(J_div)
+
+        else:
+
+            taxon_standardized_corr = []
+            treatment_pairs_list = divergence_dict.keys()
+            divergences_taxon = np.asarray([divergence_dict[l][taxon]['Z_corr'] for l in treatment_pairs_list])
+            divergences_taxon_permute = np.random.permutation(divergences_taxon)
+            vs_1_10.append(divergences_taxon_permute[0])
+            vs_1_100.append(divergences_taxon_permute[1])
+            vs_10_100.append(divergences_taxon_permute[2])
 
     vs_1_10 = np.asarray(vs_1_10)
     vs_1_100 = np.asarray(vs_1_100)
@@ -547,9 +400,22 @@ sys.stderr.write("Mean divergence: F = %.3f, P = %.4f \n" % (F, P_F))
 
 
 
+
+fig = plt.figure(figsize = (7, 16))
+#gs = gridspec.GridSpec(nrows=4, ncols=3)
+gs = gridspec.GridSpec(nrows=2, ncols=1)
+ax_count=0
+
+
+ax_divergence_gene = fig.add_subplot(gs[0, 0])
+
+
+
+
+
 treatment_pairs = [['0','1'],['0','2'],['1','2']]
 #ax_divergence = fig.add_subplot(gs[2:4, 0:3])
-ax_divergence = fig.add_subplot(gs[3:4, 0:2])
+ax_divergence = fig.add_subplot(gs[0, 0])
 ax_divergence.axhline( y=0, color='k', lw=3, linestyle=':', alpha = 1, zorder=1)
 ax_count_divergence=0
 slopes_dict = {}
@@ -715,12 +581,10 @@ ax_divergence.text(0.84, -0.04, '10-days vs. 100-days', fontsize=11, fontweight=
 
 #ax_divergence.legend(handles=legend_elements, loc='lower right')
 
-print('%.3f' % P_F)
-
 
 
 ax_divergence.text(0.865, 0.17, r'$F=%s$' % "{0:.3g}".format(F), fontsize=14, ha='center', va='center', transform=ax_divergence.transAxes)
-ax_divergence.text(0.89, 0.08, r'$P=%s$' % "{0:.6g}".format(P_F), fontsize=14, ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.89, 0.08, r'$P=%s$' % "{0:.3g}".format(P_F), fontsize=14, ha='center', va='center', transform=ax_divergence.transAxes)
 
 
 

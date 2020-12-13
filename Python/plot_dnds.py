@@ -149,7 +149,7 @@ gs = gridspec.GridSpec(nrows=2, ncols=3)
 dn_ds_count = 0
 all_subplot_counts = 0
 fmax_min = 0.1
-fmax_max = 0.45
+fmax_max = 0.42
 fmax_max_range = np.linspace(fmax_min, fmax_max, num=1000)
 fmax_cutoff_dict = {}
 #for taxon in taxa:
@@ -218,9 +218,11 @@ plt.close()
 
 
 
-ks_dict = {}
-treatment_pairs = []
-p_values = []
+
+
+record_strs = [",".join(['treatment_pair', 'taxon', 'tree_name', 'mean_absolute_difference'])]
+
+msd_dict = {}
 for taxon in taxa:
 
     if taxon == 'J':
@@ -230,22 +232,41 @@ for taxon in taxa:
 
     for treatment_pair in combinations(treatments, 2):
 
-        if treatment_pair not in ks_dict:
-            ks_dict[treatment_pair] = {}
-            ks_dict[treatment_pair]['D'] = []
-
+        if treatment_pair not in msd_dict:
+            msd_dict[treatment_pair] = {}
 
         sample_1 = fmax_cutoff_dict[taxon][treatment_pair[0]]
         sample_2 = fmax_cutoff_dict[taxon][treatment_pair[1]]
 
-        D, p_value = stats.ks_2samp(sample_1, sample_2)
+        mean_absolute_difference = np.mean(np.absolute(sample_1 - sample_2))
 
-        ks_dict[treatment_pair][taxon] = {}
-        ks_dict[treatment_pair][taxon]['D'] = D
-        #ks_dict[treatment_pair]['D'] .append() = D
-        #ks_dict[treatment_pair][taxon]['p_value'] = p_value
+        msd_dict[treatment_pair][taxon] = {}
+        msd_dict[treatment_pair][taxon]['mean_absolute_difference'] = mean_absolute_difference
 
-        #ks_dict[treatment_pair]['D'].append(D)
+
+        record_str = ",".join(['%s_%s' % treatment_pair,  str(taxon), pt.tree_name_dict[taxon], str(mean_absolute_difference)])
+        record_strs.append(record_str)
+
+
+
+
+sys.stderr.write("Writing intermediate file for phylogenetic ANOVA...\n")
+file = open(pt.get_path()+'/data/pNpS_mean_absolute_differences.csv',"w")
+record_str = "\n".join(record_strs)
+file.write(record_str)
+file.close()
+sys.stderr.write("Done!\n")
+
+
+for treatment_pair in combinations(pt.treatments, 2):
+
+    mean_absolute_difference_list = [msd_dict[treatment_pair][taxon_i]['mean_absolute_difference'] for taxon_i in msd_dict[treatment_pair].keys()]
+
+    mean_absolute_difference_mean = np.mean(mean_absolute_difference_list)
+    mean_absolute_difference_se =  np.std(mean_absolute_difference_list) / np.sqrt(len(mean_absolute_difference_list))
+
+    sys.stderr.write("%d vs. %d Mean MAD = %f, SE MAD = %f\n" % (10**int(treatment_pair[0]), 10**int(treatment_pair[1]), mean_absolute_difference_mean, mean_absolute_difference_se))
+
 
 
 
@@ -256,9 +277,9 @@ within_sum = 0
 all_divergenes_to_test = []
 all_mean_divergenes = []
 all_n_divergences = []
-for treatment_pair in ks_dict.keys():
+for treatment_pair in msd_dict.keys():
 
-    divergences_treatment_pair = [ks_dict[treatment_pair][taxon]['D'] for taxon in taxa_to_test]
+    divergences_treatment_pair = [msd_dict[treatment_pair][taxon]['mean_absolute_difference'] for taxon in taxa_to_test]
     all_divergenes_to_test.extend(divergences_treatment_pair)
 
     divergences_treatment_pair = np.asarray(divergences_treatment_pair)
@@ -276,8 +297,8 @@ F_numerator = sum(all_n_divergences*((all_mean_divergenes - np.mean(all_divergen
 
 F_denominator = within_sum / (len(all_divergenes_to_test) - len(all_mean_divergenes))
 F = F_numerator/F_denominator
-# write code to permute while controlling for taxon identiy
-# hacky, but gets the job done
+
+
 F_permute_all = []
 for i in range(n_permutations):
 
@@ -288,8 +309,8 @@ for i in range(n_permutations):
     for taxon in taxa_to_test:
 
         taxon_standardized_corr = []
-        treatment_pairs_list = ks_dict.keys()
-        divergences_taxon = np.asarray([ks_dict[l][taxon]['D'] for l in treatment_pairs_list])
+        treatment_pairs_list = msd_dict.keys()
+        divergences_taxon = np.asarray([msd_dict[l][taxon]['mean_absolute_difference'] for l in treatment_pairs_list])
         divergences_taxon_permute = np.random.permutation(divergences_taxon)
         vs_1_10.append(divergences_taxon_permute[0])
         vs_1_100.append(divergences_taxon_permute[1])
@@ -319,7 +340,117 @@ for i in range(n_permutations):
 
 F_permute_all = np.asarray(F_permute_all)
 P_F = len(F_permute_all[F_permute_all>F]) / n_permutations
-sys.stderr.write("Mean divergence: F = %.3f, P = %.4f \n" % (F, P_F))
+sys.stderr.write("Mean MAD: F = %.3f, P = %.4f \n" % (F, P_F))
+
+
+
+
+
+
+def get_ks_distance():
+
+    ks_dict = {}
+    treatment_pairs = []
+    p_values = []
+    for taxon in taxa:
+
+        if taxon == 'J':
+            treatments = ['0','2']
+        else:
+            treatments = pt.treatments
+
+        for treatment_pair in combinations(treatments, 2):
+
+            if treatment_pair not in ks_dict:
+                ks_dict[treatment_pair] = {}
+                ks_dict[treatment_pair]['D'] = []
+
+
+            sample_1 = fmax_cutoff_dict[taxon][treatment_pair[0]]
+            sample_2 = fmax_cutoff_dict[taxon][treatment_pair[1]]
+
+            D, p_value = stats.ks_2samp(sample_1, sample_2)
+
+            ks_dict[treatment_pair][taxon] = {}
+            ks_dict[treatment_pair][taxon]['D'] = D
+            #ks_dict[treatment_pair]['D'] .append() = D
+            #ks_dict[treatment_pair][taxon]['p_value'] = p_value
+
+            #ks_dict[treatment_pair]['D'].append(D)
+
+
+
+
+    taxa_to_test = ['B','C','D','F','P']
+
+    within_sum = 0
+    all_divergenes_to_test = []
+    all_mean_divergenes = []
+    all_n_divergences = []
+    for treatment_pair in ks_dict.keys():
+
+        divergences_treatment_pair = [ks_dict[treatment_pair][taxon]['D'] for taxon in taxa_to_test]
+        all_divergenes_to_test.extend(divergences_treatment_pair)
+
+        divergences_treatment_pair = np.asarray(divergences_treatment_pair)
+
+        within_sum += sum((divergences_treatment_pair - np.mean(divergences_treatment_pair))**2)
+
+        all_mean_divergenes.append(np.mean(divergences_treatment_pair))
+        all_n_divergences.append(len(divergences_treatment_pair))
+
+
+    all_divergenes_to_test = np.asarray(all_divergenes_to_test)
+    all_mean_divergenes = np.asarray(all_mean_divergenes)
+    all_n_divergences = np.asarray(all_n_divergences)
+    F_numerator = sum(all_n_divergences*((all_mean_divergenes - np.mean(all_divergenes_to_test))**2)) /( len(all_mean_divergenes)-1 )
+
+    F_denominator = within_sum / (len(all_divergenes_to_test) - len(all_mean_divergenes))
+    F = F_numerator/F_denominator
+    # write code to permute while controlling for taxon identiy
+    # hacky, but gets the job done
+    F_permute_all = []
+    for i in range(n_permutations):
+
+        vs_1_10 = []
+        vs_1_100 = []
+        vs_10_100 = []
+
+        for taxon in taxa_to_test:
+
+            taxon_standardized_corr = []
+            treatment_pairs_list = ks_dict.keys()
+            divergences_taxon = np.asarray([ks_dict[l][taxon]['D'] for l in treatment_pairs_list])
+            divergences_taxon_permute = np.random.permutation(divergences_taxon)
+            vs_1_10.append(divergences_taxon_permute[0])
+            vs_1_100.append(divergences_taxon_permute[1])
+            vs_10_100.append(divergences_taxon_permute[2])
+
+        vs_1_10 = np.asarray(vs_1_10)
+        vs_1_100 = np.asarray(vs_1_100)
+        vs_10_100 = np.asarray(vs_10_100)
+
+        vs_all = np.concatenate((vs_1_10, vs_1_100, vs_10_100))
+        vs_arrays = [vs_1_10, vs_1_100, vs_10_100]
+        within_sum_permute = 0
+        all_means_permute = []
+        all_n_divergences_permute = []
+        for vs_array in vs_arrays:
+            within_sum_permute += sum((vs_array - np.mean(vs_array))**2)
+            all_means_permute.append(np.mean(vs_array))
+            all_n_divergences_permute.append(len(vs_array))
+
+        means_all_permute = np.asarray(all_means_permute)
+
+        F_permute_numerator = sum((all_n_divergences_permute*((all_means_permute - np.mean(all_means_permute))**2)))/ (len(all_means_permute)-1)
+        F_permute_denominator = within_sum_permute/ (len(vs_all) - len(all_means_permute))
+
+        F_permute = F_permute_numerator/F_permute_denominator
+        F_permute_all.append(F_permute)
+
+    F_permute_all = np.asarray(F_permute_all)
+    P_F = len(F_permute_all[F_permute_all>F]) / n_permutations
+    sys.stderr.write("Mean divergence: F = %.3f, P = %.4f \n" % (F, P_F))
 
 
 

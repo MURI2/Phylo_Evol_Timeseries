@@ -167,8 +167,7 @@ for taxon in taxa:
         # observed GREATER THAN expected
         intersect_result_1_100_p_value = (len([i for i in intersect_1_100 if i > intersect_result_1_100])+1) / (iter+1)
 
-        sys.stderr.write("%s: 1-day & 100-day %d genes, p = %f\n" % (pt.genus_dict[taxon] ,intersect_result_1_100, intersect_result_1_100_p_value) )
-
+        sys.stderr.write("%s: 1-day & 100-day %d genes, P = %f\n" % (pt.genus_dict[taxon] ,intersect_result_1_100, intersect_result_1_100_p_value) )
 
 
     gene_dict_copy = copy.deepcopy(gene_dict)
