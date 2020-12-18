@@ -31,8 +31,8 @@ permutations_gene_content_divergence = 10000
 permutations_divergence = 10000
 
 # permutations for anova
-#n_permutations = 100000
-n_permutations = 10000
+n_permutations = 100000
+#n_permutations = 10
 treatment_pairs = [['0','1'],['0','2'],['1','2']]
 
 
@@ -569,9 +569,9 @@ for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
 #ax_divergence.set_xticklabels([2,7.5,13], ['1-day vs. 10-days', '1-day vs. 100-days', '10-days vs. 100-days'], fontsize=13)
 ax_divergence_gene.set_xticklabels( [], fontsize=12)
 
-ax_divergence_gene.text(0.18, -0.04, '1-day vs. 10-days', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
-ax_divergence_gene.text(0.52, -0.04, '1-day vs. 100-days', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
-ax_divergence_gene.text(0.85, -0.04, '10-days vs. 100-days', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+ax_divergence_gene.text(0.18, -0.04, '1-day vs. 10-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+ax_divergence_gene.text(0.52, -0.04, '1-day vs. 100-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+ax_divergence_gene.text(0.85, -0.04, '10-days vs. 100-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
 ax_divergence_gene.set_xlim([-0.5, 2.5])
 ax_divergence_gene.set_ylim([30, 68])
@@ -582,13 +582,17 @@ ax_divergence_gene.set_ylim([30, 68])
 
 ax_divergence_gene.tick_params(axis='x', labelsize=14, length = 0)
 
-ax_divergence_gene.set_ylabel("Mean standardized Jaccard similarity of all taxa", fontsize = 14)
+ax_divergence_gene.set_ylabel("Mean standardized Jaccard\nsimilarity of all taxa", fontsize = 16)
 
 ax_divergence_gene.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
 
 
-ax_divergence_gene.set_title("Convergent/divergent evolution as the\nproportion of shared enriched genes ", fontsize=15, fontweight='bold')
+ax_divergence_gene.set_title("Convergent/divergent evolution as the\nproportion of shared enriched genes ", fontsize=16, fontweight='bold')
+
+ax_divergence_gene.arrow(0.06, 0.65, 0.0, 0.2, width=0.012,fc='k', ec='k', transform=ax_divergence_gene.transAxes)
+
+ax_divergence_gene.text(0.06, 0.5, 'Increasing\nconvergence', fontsize=12, fontweight='bold', ha='center', va='center', rotation=90, transform=ax_divergence_gene.transAxes)
 
 
 ax_divergence_gene.text(0.865, 0.17, r'$F=%s$' % "{0:.3g}".format(F_gene), fontsize=14, ha='center', va='center', transform=ax_divergence_gene.transAxes)
@@ -788,9 +792,9 @@ ax_divergence.text(0.865, 0.1, r'$P=%s$' % "{0:.3g}".format(P_F), fontsize=14, h
 #ax_divergence.set_xticklabels([2,7.5,13], ['1-day vs. 10-days', '1-day vs. 100-days', '10-days vs. 100-days'], fontsize=13)
 ax_divergence.set_xticklabels( [], fontsize=12)
 
-ax_divergence.text(0.18, -0.04, '1-day vs. 10-days', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
-ax_divergence.text(0.52, -0.04, '1-day vs. 100-days', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
-ax_divergence.text(0.85, -0.04, '10-days vs. 100-days', fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.18, -0.04, '1-day vs. 10-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.52, -0.04, '1-day vs. 100-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.85, -0.04, '10-days vs. 100-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
 
 
 
@@ -803,12 +807,12 @@ ax_divergence.text(0.115, 0.85, 'Divergence', fontsize=14, fontweight='bold', ha
 
 ax_divergence.tick_params(axis='x', labelsize=14, length = 0)
 
-ax_divergence.set_ylabel("Mean standardized corr. of all taxa, "+ r'$\bar{Z}_{\rho^{2}}$' , fontsize = 15)
+ax_divergence.set_ylabel("Mean standardized\ncorrelation of all taxa, "+ r'$\bar{Z}_{\rho^{2}}$' , fontsize = 16)
 
 ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
 
 
-ax_divergence.set_title("Convergent/divergent evolution as the\ncorrelation in mutation counts across genes", fontsize=15, fontweight='bold')
+ax_divergence.set_title("Convergent/divergent evolution as the\ncorrelation in mutation counts across enriched genes", fontsize=16, fontweight='bold')
 
 #ax_divergence_gene.set_title("Convergent/divergent evolution as gene identity", fontsize=15, fontweight='bold')
 

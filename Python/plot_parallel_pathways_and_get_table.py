@@ -426,7 +426,7 @@ for treatment_idx, treatment in enumerate(treatments):
     #    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P \nless 0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
     rounded_p_value_permuted =  round(p_value_permuted, significant_digits - int(math.floor(math.log10(abs(p_value_permuted)))) - 1)
 
-    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P = {{{}}}$'.format(str( round(slope, 3) ),  str(rounded_p_value_permuted) ) , fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \proptox^{{{}}} \; P = {{{}}}$'.format(str( round(slope, 3) ),  str(rounded_p_value_permuted) ) , fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
 
 
 
