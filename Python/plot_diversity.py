@@ -498,6 +498,109 @@ ins_ks.set_ylim([0.05,0.25])
 
 
 
+sys.stderr.write("Runing permutational ANOVA for f_max distance....\n")
+
+n_permutations=10000
+
+#taxa_to_test = ['B','C','D','F','P','J']
+within_sum = 0
+all_divergenes_to_test = []
+all_mean_divergenes = []
+all_n_divergences = []
+for treatment_pair in ks_dict.keys():
+
+    if '1' in treatment_pair:
+        taxa_to_test = ['B','C','D','F','P']
+    else:
+        taxa_to_test = pt.taxa
+
+    divergences_treatment_pair = [ks_dict[treatment_pair][taxon]['D'] for taxon in taxa_to_test]
+    all_divergenes_to_test.extend(divergences_treatment_pair)
+
+    divergences_treatment_pair = np.asarray(divergences_treatment_pair)
+
+    within_sum += sum((divergences_treatment_pair - np.mean(divergences_treatment_pair))**2)
+
+    all_mean_divergenes.append(np.mean(divergences_treatment_pair))
+    all_n_divergences.append(len(divergences_treatment_pair))
+
+
+all_divergenes_to_test = np.asarray(all_divergenes_to_test)
+all_mean_divergenes = np.asarray(all_mean_divergenes)
+all_n_divergences = np.asarray(all_n_divergences)
+F_numerator = sum(all_n_divergences*((all_mean_divergenes - np.mean(all_divergenes_to_test))**2)) /( len(all_mean_divergenes)-1 )
+
+F_denominator = within_sum / (len(all_divergenes_to_test) - len(all_mean_divergenes))
+F = F_numerator/F_denominator
+# write code to permute while controlling for taxon identiy
+# hacky, but gets the job done
+F_permute_all = []
+for i in range(n_permutations):
+
+    vs_1_10 = []
+    vs_1_100 = []
+    vs_10_100 = []
+
+    for taxon in pt.taxa:
+
+        if taxon == 'J':
+
+            #treatment_assignment = random.randrange(0,3)
+            treatment_assignment = np.random.randint(0,3)
+            J_div = ks_dict[('0','2')][taxon]['D']
+
+            if treatment_assignment == 0:
+                vs_1_10.append(J_div)
+            elif treatment_assignment == 1:
+                vs_1_100.append(J_div)
+            else:
+                vs_10_100.append(J_div)
+
+        else:
+
+            taxon_standardized_corr = []
+            treatment_pairs_list = ks_dict.keys()
+            divergences_taxon = np.asarray([ks_dict[l][taxon]['D'] for l in treatment_pairs_list])
+            divergences_taxon_permute = np.random.permutation(divergences_taxon)
+            vs_1_10.append(divergences_taxon_permute[0])
+            vs_1_100.append(divergences_taxon_permute[1])
+            vs_10_100.append(divergences_taxon_permute[2])
+
+    vs_1_10 = np.asarray(vs_1_10)
+    vs_1_100 = np.asarray(vs_1_100)
+    vs_10_100 = np.asarray(vs_10_100)
+
+    vs_all = np.concatenate((vs_1_10, vs_1_100, vs_10_100))
+    vs_arrays = [vs_1_10, vs_1_100, vs_10_100]
+    within_sum_permute = 0
+    all_means_permute = []
+    all_n_divergences_permute = []
+    for vs_array in vs_arrays:
+        within_sum_permute += sum((vs_array - np.mean(vs_array))**2)
+        all_means_permute.append(np.mean(vs_array))
+        all_n_divergences_permute.append(len(vs_array))
+
+    means_all_permute = np.asarray(all_means_permute)
+
+    F_permute_numerator = sum((all_n_divergences_permute*((all_means_permute - np.mean(all_means_permute))**2)))/ (len(all_means_permute)-1)
+    F_permute_denominator = within_sum_permute/ (len(vs_all) - len(all_means_permute))
+
+    F_permute = F_permute_numerator/F_permute_denominator
+    F_permute_all.append(F_permute)
+
+
+F_permute_all = np.asarray(F_permute_all)
+P_F = len(F_permute_all[F_permute_all>F]) / n_permutations
+sys.stderr.write("Mean divergence: F = %.3f, P = %.4f \n" % (F, P_F))
+
+
+ins_ks.set_ylim([0.05,0.25])
+ins_ks.text(0.3, 0.23, r'$F=%s$' % "{0:.3g}".format(F), fontsize=9, ha='center', va='center', transform=ins_ks.transAxes)
+ins_ks.text(0.35, 0.1, r'$P=%s0$' % "{0:.4g}".format(P_F), fontsize=9, ha='center', va='center', transform=ins_ks.transAxes)
+
+
+sys.stderr.write("Saving figure....\n")
+
 fig.subplots_adjust(hspace=1.8, wspace=0.5) #hspace=0.3, wspace=0.5
 fig_name = pt.get_path() + "/figs/mutation_regression.pdf"
 fig.savefig(fig_name, format='pdf', bbox_inches = "tight", pad_inches = 0.5, dpi = 600)

@@ -596,7 +596,7 @@ ax_divergence_gene.text(0.06, 0.5, 'Increasing\nconvergence', fontsize=12, fontw
 
 
 ax_divergence_gene.text(0.865, 0.17, r'$F=%s$' % "{0:.3g}".format(F_gene), fontsize=14, ha='center', va='center', transform=ax_divergence_gene.transAxes)
-ax_divergence_gene.text(0.865, 0.1, r'$P=%s0$' % "{0:.4g}".format(P_F_gene), fontsize=14, ha='center', va='center', transform=ax_divergence_gene.transAxes)
+ax_divergence_gene.text(0.865, 0.1, r'$P=%s$' % "{0:.3g}".format(P_F_gene), fontsize=14, ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
 
 
