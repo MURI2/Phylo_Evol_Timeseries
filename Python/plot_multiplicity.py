@@ -27,8 +27,8 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
     ax_mult_freq = plt.subplot2grid((2, 3), (0, 1), colspan=1)
     ax_venn = plt.subplot2grid((2, 3), (0, 2), colspan=1)
 
-    ax_multiplicity.set_xscale('log', basex=10)
-    ax_multiplicity.set_yscale('log', basey=10)
+    ax_multiplicity.set_xscale('log', base=10)
+    ax_multiplicity.set_yscale('log', base=10)
     ax_multiplicity.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
     ax_multiplicity.set_ylabel('Fraction mutations ' + r'$\geq m$', fontsize=14)
     ax_multiplicity.text(-0.1, 1.07, pt.sub_plot_labels[0], fontsize=18, fontweight='bold', ha='center', va='center', transform=ax_multiplicity.transAxes)
@@ -38,8 +38,8 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
     ax_multiplicity.set_xlim([0.07, 130])
 
 
-    ax_mult_freq.set_xscale('log', basex=10)
-    ax_mult_freq.set_yscale('log', basey=10)
+    ax_mult_freq.set_xscale('log', base=10)
+    ax_mult_freq.set_yscale('log', base=10)
     ax_mult_freq.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
     ax_mult_freq.set_ylabel('Mean maximum allele frequency, ' + r'$\overline{f}_{max}$', fontsize=11)
     ax_mult_freq.text(-0.1, 1.07, pt.sub_plot_labels[1], fontsize=18, fontweight='bold', ha='center', va='center', transform=ax_mult_freq.transAxes)
@@ -211,8 +211,8 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
         for j in range(i+1, len(treatments_in_taxon)):
 
             ax_mult_i_j = plt.subplot2grid((2, 3), (1, i+j-1), colspan=1)
-            ax_mult_i_j.set_xscale('log', basex=10)
-            ax_mult_i_j.set_yscale('log', basey=10)
+            ax_mult_i_j.set_xscale('log', base=10)
+            ax_mult_i_j.set_yscale('log', base=10)
             ax_mult_i_j.set_xlabel( str( 10** int( treatments_in_taxon[i] ) ) + '-day gene multiplicity, ' + r'$m$', fontsize=14)
             ax_mult_i_j.set_ylabel(str( 10** int( treatments_in_taxon[j] ) ) + '-day gene multiplicity, ' + r'$m$', fontsize=14)
             ax_mult_i_j.plot([   0.05, 200  ], [   0.05, 200   ], lw = 3, c='grey', ls = '--', zorder=1 )
@@ -258,11 +258,9 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
                 y_fit_range = 10 ** (slope_mult*x_log10_fit_range + intercept_mult)
                 ax_mult_i_j.plot(10**x_log10_fit_range, y_fit_range, c='k', lw=3, linestyle='--', zorder=4)
 
-
-
-            ax_mult_i_j.text(0.05, 0.9, r'$\beta_{1}=$'+str(round(slope_mult,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
-            ax_mult_i_j.text(0.05, 0.82, r'$r^{2}=$'+str(round(r_value_mult**2,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
-            ax_mult_i_j.text(0.05, 0.74, pt.get_p_value_latex(p_value_mult_new_null), fontsize=12, transform=ax_mult_i_j.transAxes)
+            #ax_mult_i_j.text(0.05, 0.9, r'$\beta_{1}=$'+str(round(slope_mult,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
+            #ax_mult_i_j.text(0.05, 0.82, r'$r^{2}=$'+str(round(r_value_mult**2,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
+            #ax_mult_i_j.text(0.05, 0.74, pt.get_p_value_latex(p_value_mult_new_null), fontsize=12, transform=ax_mult_i_j.transAxes)
 
     #if taxon == 'F':
     #    subset_tuple = (len( significant_multiplicity_dict['0']), \
