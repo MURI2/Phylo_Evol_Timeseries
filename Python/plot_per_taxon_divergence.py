@@ -823,7 +823,7 @@ ax_divergence.text(0.115, 0.85, 'Divergence', fontsize=14, fontweight='bold', ha
 
 ax_divergence.tick_params(axis='x', labelsize=14, length = 0)
 
-ax_divergence.set_ylabel("Mean standardized\ncorrelation of all taxa, "+ r'$\bar{Z}_{\rho^{2}}$' , fontsize = 16)
+ax_divergence.set_ylabel("Mean standardized\ncorrelation of all taxa, "+ r'$\bar{Z}_{\rho}$' , fontsize = 16)
 
 ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
 
