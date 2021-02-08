@@ -24,4 +24,4 @@ Put all reads from SRA under the folder `Phylo_Evol_Timeseries/data/illumina_run
 
 
 
-Just run `run_everything.sh`. This script contains commands for all data processing and analyses, including mutation calling. You will need to rework the paths in the script to get it working on your machine. All bash scripts are written to be run on a cluster. I do not recommend running them on your local machine.
+Just run `run_everything.sh`. This script contains commands for all data processing and analyses, including mutation calling. You will need to rework the paths in the scripts listed in `run_everything.sh` to get it working on your machine. All bash scripts are written to be run on a cluster. I do not recommend running them on your local machine.
