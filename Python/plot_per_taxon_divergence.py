@@ -187,6 +187,7 @@ for taxon in pt.taxa:
 sys.stderr.write("Runing permutational ANOVA for gene content....\n")
 
 
+
 def gene_content_permutational_anova():
 
 
@@ -598,7 +599,8 @@ ax_divergence_gene.set_ylim([30, 68])
 
 ax_divergence_gene.tick_params(axis='x', labelsize=14, length = 0)
 
-ax_divergence_gene.set_ylabel("Mean standardized Jaccard\nsimilarity of all taxa", fontsize = 16)
+#ax_divergence_gene.set_ylabel("Mean standardized Jaccard\nsimilarity of all taxa", fontsize = 16)
+ax_divergence_gene.set_ylabel("Mean proportion of shared\nenriched genes of all taxa", fontsize = 16)
 
 ax_divergence_gene.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 

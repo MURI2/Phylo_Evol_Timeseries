@@ -7,6 +7,7 @@
 
 mkdir -p /N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/illumina_runs_rename/
 
+
 while read -r first second; do
     old="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/illumina_runs/${first}"
     new="/N/dc2/projects/muri2/Task2/Phylo_Evol_Timeseries/data/illumina_runs_rename/${second}"

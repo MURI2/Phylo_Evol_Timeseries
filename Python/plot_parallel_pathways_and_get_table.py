@@ -414,8 +414,11 @@ for treatment_idx, treatment in enumerate(treatments):
 
     y_position_labels = [0.9,0.73,0.56]
 
-    position_dict_x = {'0':0.71, '1':0.73, '2':0.74}
-    position_dict_y = {'0':0.92, '1':0.80, '2':0.68}
+    position_dict_x_beta = {'0':0.54, '1':0.53, '2':0.55}
+    position_dict_y_beta = {'0':0.90 , '1':0.78, '2':0.66}
+
+    position_dict_x_P = {'0':0.83, '1':0.81, '2':0.81}
+    position_dict_y_P = {'0':0.90 , '1':0.78, '2':0.66}
 
     if p_value_permuted < 0.05:
         ax_phylo.plot(x_range, y_fit_range, c=pt.get_colors(treatment), lw=2.5, linestyle='--', zorder=2)
@@ -426,7 +429,9 @@ for treatment_idx, treatment in enumerate(treatments):
     #    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \sim x^{{{}}} \; P \nless 0.05$'.format(str( round(slope, 3) )), fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
     rounded_p_value_permuted =  round(p_value_permuted, significant_digits - int(math.floor(math.log10(abs(p_value_permuted)))) - 1)
 
-    ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$y \proptox^{{{}}} \; P = {{{}}}$'.format(str( round(slope, 3) ),  str(rounded_p_value_permuted) ) , fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    #ax_phylo.text(position_dict_x[treatment], position_dict_y[treatment], r'$\beta_{{1}} = {{{}}} \; P = {{{}}}$'.format(str( round(slope, 3) ),  str(rounded_p_value_permuted) ) , fontsize=11, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    ax_phylo.text(position_dict_x_beta[treatment], position_dict_y_beta[treatment], r'$\beta_{{1}} = {{{}}}$'.format(str( round(slope, 3) ) ) , fontsize=10, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
+    ax_phylo.text(position_dict_x_P[treatment], position_dict_y_P[treatment], r'$P = {{{}}}$'.format( str(rounded_p_value_permuted) ) , fontsize=10, color=pt.get_colors(treatment), ha='center', va='center', transform=ax_phylo.transAxes  )
 
 
 
@@ -438,7 +443,7 @@ for treatment_idx, treatment in enumerate(treatments):
 
 
 ax_phylo.set_xlabel('Phylogenetic distance' , fontsize = 10)
-ax_phylo.set_ylabel('Jaccard index of MAPLE modules' , fontsize = 10)
+ax_phylo.set_ylabel('Proportion of shared MAPLE modules' , fontsize = 9)
 
 treatments_all = np.asarray(treatments_all)
 relative_intersection_size_all = np.asarray(relative_intersection_size_all)
@@ -553,7 +558,7 @@ ax_pca.text(0.765, 0.8, r'$P=$' +str(round(rounded_P,3)), fontsize = 11, transfo
 
 ax_pca.text(0, 1.05, 'e', fontsize=10, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
 
-fig.text(0.05, 0.5, 'Number of intersecting MAPLE modules\nwith significant multiplicity', ha='center', va='center', rotation='vertical', fontsize=14)
+fig.text(0.05, 0.5, 'Number of shared MAPLE modules\nenriched for nonsynonymous mutations', ha='center', va='center', rotation='vertical', fontsize=14)
 
 fig_name = pt.get_path() + '/figs/convergence_decay.pdf'
 fig.subplots_adjust(wspace=1, hspace=1.2)

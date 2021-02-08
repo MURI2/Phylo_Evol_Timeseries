@@ -117,6 +117,7 @@ def calculate_g_scores(gene_statistics, allowed_genes=None):
 
     return gene_g_scores
 
+
 def calculate_G_scores(gene_statistics, allowed_genes=None):
     # Calculates the G score for the whole gene, i.e.
     # n*g
