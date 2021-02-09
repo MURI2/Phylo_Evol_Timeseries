@@ -409,7 +409,7 @@ ax_fmax.set_yscale('log', base=10)
 ax_fmax.set_xlabel('Maximum observed allele frequency, ' + r'$f_{max}$', fontsize=12)
 ax_fmax.set_ylabel('Fraction of mutations ' + r'$\geq f_{max}$', fontsize=13)
 ax_fmax.text(-0.1, 1.01, sub_plot_labels[sub_plot_counts], fontsize=10, fontweight='bold', ha='center', va='center', transform=ax_fmax.transAxes)
-
+sub_plot_counts+=1
 
 ins_ks = inset_axes(ax_fmax, width="100%", height="100%", loc='lower right', bbox_to_anchor=(0.12,0.07,0.4,0.38), bbox_transform=ax_fmax.transAxes)
 #ins_ks.set_xlabel('Max.' + r'$\left \langle x(t) \right \rangle$', fontsize=8)
@@ -492,6 +492,9 @@ ins_ks.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 ins_ks.set_xlim([-0.04,1.92])
 ins_ks.set_ylim([0.05,0.25])
 
+
+# ins_ks
+ins_ks.text(-0.1, 1.1, sub_plot_labels[sub_plot_counts], fontsize=9, fontweight='bold', ha='center', va='center', transform=ins_ks.transAxes)
 
 # permutational anova
 

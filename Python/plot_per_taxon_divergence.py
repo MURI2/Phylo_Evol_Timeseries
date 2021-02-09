@@ -187,6 +187,7 @@ for taxon in pt.taxa:
 sys.stderr.write("Runing permutational ANOVA for gene content....\n")
 
 
+
 def gene_content_permutational_anova():
 
 
@@ -327,6 +328,7 @@ def calculate_divergence_correlations():
             pearsons_corr = np.corrcoef(rel_mult_matrix[0,:], rel_mult_matrix[1,:])[1,0]
             pearsons_corr_squared = pearsons_corr**2
 
+            pearsons_corr_null = []
             pearsons_corr_squared_null = []
             for k in range(permutations_divergence):
 
@@ -340,20 +342,33 @@ def calculate_divergence_correlations():
                 pearsons_corr_random = np.corrcoef(rel_mult_matrix_random[0,:], rel_mult_matrix_random[1,:])[1,0]
                 pearsons_corr_squared_random = pearsons_corr_random**2
 
+                pearsons_corr_null.append(pearsons_corr_random)
                 pearsons_corr_squared_null.append(pearsons_corr_squared_random)
 
+            pearsons_corr_null = np.asarray(pearsons_corr_null)
             pearsons_corr_squared_null = np.asarray(pearsons_corr_squared_null)
 
-            Z_corr = (pearsons_corr_squared - np.mean(pearsons_corr_squared_null)) / np.std(pearsons_corr_squared_null)
+            pearsons_corr_null_abs = np.absolute(pearsons_corr_null)
+            pearsons_corr_squared_null_abs = np.absolute(pearsons_corr_squared_null)
 
-            P_corr = (len(pearsons_corr_squared_null[pearsons_corr_squared_null<pearsons_corr_squared])+1) / (permutations_divergence+1)
+            Z_corr_squared = (pearsons_corr_squared - np.mean(pearsons_corr_squared_null)) / np.std(pearsons_corr_squared_null)
+            Z_corr = (pearsons_corr - np.mean(pearsons_corr_null)) / np.std(pearsons_corr_null)
+
+            P_corr_squared = (len(pearsons_corr_squared_null_abs[pearsons_corr_squared_null_abs < np.absolute(pearsons_corr_squared)]) +1) / (permutations_divergence+1)
+            P_corr = (len(pearsons_corr_null_abs[pearsons_corr_null_abs < np.absolute(pearsons_corr)]) +1) / (permutations_divergence+1)
+
 
             divergence_dict[treatment_pair_set][taxon] = {}
             divergence_dict[treatment_pair_set][taxon]['pearsons_corr_squared'] = pearsons_corr_squared
-            divergence_dict[treatment_pair_set][taxon]['P_value'] = P_corr
+            divergence_dict[treatment_pair_set][taxon]['P_value_corr_squared'] = P_corr_squared
+            divergence_dict[treatment_pair_set][taxon]['Z_corr_squared'] = Z_corr_squared
+
+            divergence_dict[treatment_pair_set][taxon]['pearsons_corr'] = pearsons_corr
+            divergence_dict[treatment_pair_set][taxon]['P_value_corr'] = P_corr
             divergence_dict[treatment_pair_set][taxon]['Z_corr'] = Z_corr
 
-            sys.stdout.write("%d vs %d-day, %s: rho^2=%f, P=%f, Z=%f\n" % (10**int(treatment_pair[0]), 10**int(treatment_pair[1]), taxon, pearsons_corr_squared, P_corr, Z_corr))
+
+            sys.stdout.write("%d vs %d-day, %s: rho=%f, P=%f, Z=%f\n" % (10**int(treatment_pair[0]), 10**int(treatment_pair[1]), taxon, pearsons_corr, P_corr, Z_corr))
 
 
     sys.stdout.write("Dumping pickle......\n")
@@ -363,6 +378,8 @@ def calculate_divergence_correlations():
 
 
 #calculate_divergence_correlations()
+
+
 
 with open(pt.get_path()+'/data/divergence_pearsons.pickle', 'rb') as handle:
     divergence_dict = pickle.load(handle)
@@ -582,7 +599,8 @@ ax_divergence_gene.set_ylim([30, 68])
 
 ax_divergence_gene.tick_params(axis='x', labelsize=14, length = 0)
 
-ax_divergence_gene.set_ylabel("Mean standardized Jaccard\nsimilarity of all taxa", fontsize = 16)
+#ax_divergence_gene.set_ylabel("Mean standardized Jaccard\nsimilarity of all taxa", fontsize = 16)
+ax_divergence_gene.set_ylabel("Mean proportion of shared\nenriched genes of all taxa", fontsize = 16)
 
 ax_divergence_gene.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
@@ -807,7 +825,7 @@ ax_divergence.text(0.115, 0.85, 'Divergence', fontsize=14, fontweight='bold', ha
 
 ax_divergence.tick_params(axis='x', labelsize=14, length = 0)
 
-ax_divergence.set_ylabel("Mean standardized\ncorrelation of all taxa, "+ r'$\bar{Z}_{\rho^{2}}$' , fontsize = 16)
+ax_divergence.set_ylabel("Mean standardized\ncorrelation of all taxa, "+ r'$\bar{Z}_{\rho}$' , fontsize = 16)
 
 ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
 
@@ -817,7 +835,7 @@ ax_divergence.set_title("Convergent/divergent evolution as the\ncorrelation in m
 #ax_divergence_gene.set_title("Convergent/divergent evolution as gene identity", fontsize=15, fontweight='bold')
 
 fig.subplots_adjust(hspace=0.25,wspace=0.2) #hspace=0.3, wspace=0.5
-fig_name = pt.get_path() + "/figs/per_taxon _divergence.pdf"
+fig_name = pt.get_path() + "/figs/per_taxon_divergence.pdf"
 fig.savefig(fig_name, format='pdf', bbox_inches = "tight", pad_inches = 0.4, dpi = 600)
 plt.close()
 

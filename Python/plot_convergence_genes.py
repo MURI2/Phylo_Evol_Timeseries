@@ -16,9 +16,10 @@ random.seed(123456789)
 
 iter=1000
 
-taxa=pt.taxa
+#taxa=pt.taxa
+taxa = ['J']
 
-treatments=pt.treatments
+#treatments=pt.treatments
 #treatments = ['0', '1', '2']
 
 taxon_gene_dict = {}
@@ -26,7 +27,9 @@ taxon_gene_dict = {}
 for taxon in taxa:
 
     if taxon == 'J':
-        continue
+        treatments = ['0', '2']
+    else:
+        treatments=pt.treatments
 
     gene_dict = {}
     N_significant_genes = {}
@@ -217,13 +220,14 @@ legend_elements = [Patch(color='lightgrey', label=r'$n_{mut} < 3$'),
                     Patch(color='deepskyblue', label=r'$P < P^{*}$')]
 # Patch(color='black', label="No data")
 
-for taxon in pt.taxa:
+for taxon in taxa:
 
     if taxon in pt.treatment_taxa_to_ignore:
         continue
 
     if taxon == 'J':
         continue
+
 
     if (taxon == 'C') or (taxon == 'P'):
         gene_name_fs = 10
@@ -238,8 +242,17 @@ for taxon in pt.taxa:
     gene_names,gene_values = taxon_gene_dict[taxon]
     gene_names_zipped = list(zip(gene_names,gene_values))
 
+    print(gene_names_zipped)
+
     gene_names_zipped_1 = gene_names_zipped[:int(len(gene_names_zipped)/2)]
     gene_names_zipped_2 = gene_names_zipped[int(len(gene_names_zipped)/2):]
+
+    if taxon == 'J':
+        for x in gene_names_zipped_1:
+            del x[1][1]
+
+        for x in gene_names_zipped_2:
+            del x[1][1]
 
 
     gene_names_1 = [x[0] for x in gene_names_zipped_1]
@@ -254,13 +267,19 @@ for taxon in pt.taxa:
     ax1.set_xticks(np.arange(data_1.shape[1])+0.5, minor=False)
     ax1.set_yticks(np.arange(data_1.shape[0])+0.5, minor=False)
     ax1.set_yticklabels(gene_names_1, minor=False, fontsize=gene_name_fs)
-    ax1.set_xticklabels(['1-Day', '10-Days', '100-Days'], minor=False, fontsize=14)
+
+    if taxon == 'J':
+        xticklabels_ = ['1-Day', '100-Days']
+    else:
+        xticklabels_ = ['1-Day', '10-Days', '100-Days']
+
+    ax1.set_xticklabels(xticklabels_, minor=False, fontsize=14)
 
     ax2.xaxis.tick_top()
     ax2.set_xticks(np.arange(data_2.shape[1])+0.5, minor=False)
     ax2.set_yticks(np.arange(data_2.shape[0])+0.5, minor=False)
     ax2.set_yticklabels(gene_names_2, minor=False, fontsize=gene_name_fs)
-    ax2.set_xticklabels(['1-Day', '10-Days', '100-Days'], minor=False, fontsize=14)
+    ax2.set_xticklabels(xticklabels_, minor=False, fontsize=14)
 
 
     ax1.legend(handles=legend_elements, bbox_to_anchor=(-0.65,1.12), loc="upper left", fontsize=16)

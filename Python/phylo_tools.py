@@ -37,6 +37,9 @@ tree_name_dict = {'B':'Bacillus', 'C':'Caulobacter_crescentus_NA1000',
                 'J': 'Janthinobacterium_sp_KBS0711', 'P':'KBS0710'}
 
 
+treatment_label_dict = {'0': '1-day', '1':'10-days', '2':'100-days'}
+
+
 samples_to_remove = {'1B4':[900],
                         '1B5':[1000],
                         '0C1':[900],

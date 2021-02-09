@@ -1,42 +1,27 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4517573.svg)](https://doi.org/10.5281/zenodo.4517573)
+
+
+
 # Phylo_Evol_Timeseries
 
 
+Repository for code associated with the preprint: "Molecular evolutionary dynamics of energy limited microorganisms"
 
-setup environment
+https://doi.org/10.1101/2021.02.08.430186
 
-packages
+## Dependencies
+All code was written in Python 3.6. The conda environment is detailed in `environment.yml`. Set up the repo under a folder named Github: `~/GitHub/Phylo_Evol_Timeseries/`.
 
-phik, numoy
+## Getting the data
 
-
-
-steps
-
-Python/clean_file_names.py
-
-bash bash/rename_reads.sh
-
-bash bash/reads_clean.sh
-
-bash bash/breseq.sh
-
-bash bash/breseq_jc.sh
-
-bash bash/rebreseq.sh
-
-bash bash/create_timecourse.sh
-
-bash bash/create_merged_timecourse.sh
-
-bash bash/annotate_pvalues.sh
+Assembled genomes are available on NCBI and accession numbers listed in the preprint. Raw reads are available on SRA under BioProject PRJNA639414. All other data is on Zenodo data repository doi:10.5281/zenodo.4517573.
 
 
-Process mutation trajectories
+## Running the analyses
+
+Put all reads from SRA under the folder `Phylo_Evol_Timeseries/data/illumina_runs`.
 
 
 
 
-
-
-
-Analyze mutation trajectories
+Just run `run_everything.sh`. This script contains commands for all data processing and analyses, including mutation calling. You will need to rework the paths in the scripts listed in `run_everything.sh` to get it working on your machine. All bash scripts are written to be run on a cluster. I do not recommend running them on your local machine.

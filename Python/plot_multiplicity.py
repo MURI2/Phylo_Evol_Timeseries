@@ -27,8 +27,8 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
     ax_mult_freq = plt.subplot2grid((2, 3), (0, 1), colspan=1)
     ax_venn = plt.subplot2grid((2, 3), (0, 2), colspan=1)
 
-    ax_multiplicity.set_xscale('log', basex=10)
-    ax_multiplicity.set_yscale('log', basey=10)
+    ax_multiplicity.set_xscale('log', base=10)
+    ax_multiplicity.set_yscale('log', base=10)
     ax_multiplicity.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
     ax_multiplicity.set_ylabel('Fraction mutations ' + r'$\geq m$', fontsize=14)
     ax_multiplicity.text(-0.1, 1.07, pt.sub_plot_labels[0], fontsize=18, fontweight='bold', ha='center', va='center', transform=ax_multiplicity.transAxes)
@@ -38,8 +38,8 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
     ax_multiplicity.set_xlim([0.07, 130])
 
 
-    ax_mult_freq.set_xscale('log', basex=10)
-    ax_mult_freq.set_yscale('log', basey=10)
+    ax_mult_freq.set_xscale('log', base=10)
+    ax_mult_freq.set_yscale('log', base=10)
     ax_mult_freq.set_xlabel('Gene multiplicity, ' + r'$m$', fontsize=14)
     ax_mult_freq.set_ylabel('Mean maximum allele frequency, ' + r'$\overline{f}_{max}$', fontsize=11)
     ax_mult_freq.text(-0.1, 1.07, pt.sub_plot_labels[1], fontsize=18, fontweight='bold', ha='center', va='center', transform=ax_mult_freq.transAxes)
@@ -178,7 +178,9 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
 
         ax_multiplicity.plot(theory_ms, theory_survivals, lw=3, color=pt.get_colors(treatment), alpha=0.8, ls=':',  zorder=1)
 
-        ax_multiplicity.plot(predictors, (len(predictors)-np.arange(0,len(predictors)))*1.0/len(predictors), lw=3, color=pt.get_colors(treatment),alpha=0.8, ls='--', label= str(int(10**int(treatment))) + '-day', drawstyle='steps', zorder=2)
+
+        # str(int(10**int(treatment)))
+        ax_multiplicity.plot(predictors, (len(predictors)-np.arange(0,len(predictors)))*1.0/len(predictors), lw=3, color=pt.get_colors(treatment),alpha=0.8, ls='--', label=pt.treatment_label_dict[treatment]  + '-day', drawstyle='steps', zorder=2)
 
         #ax_multiplicity.text(0.2, 0.3, g_score_p_label_dict['0'], fontsize=25, fontweight='bold', ha='center', va='center', transform=ax_multiplicity.transAxes)
         #ax_multiplicity.text(0.2, 0.2, g_score_p_label_dict['1'], fontsize=25, fontweight='bold', ha='center', va='center', transform=ax_multiplicity.transAxes)
@@ -211,10 +213,12 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
         for j in range(i+1, len(treatments_in_taxon)):
 
             ax_mult_i_j = plt.subplot2grid((2, 3), (1, i+j-1), colspan=1)
-            ax_mult_i_j.set_xscale('log', basex=10)
-            ax_mult_i_j.set_yscale('log', basey=10)
-            ax_mult_i_j.set_xlabel( str( 10** int( treatments_in_taxon[i] ) ) + '-day gene multiplicity, ' + r'$m$', fontsize=14)
-            ax_mult_i_j.set_ylabel(str( 10** int( treatments_in_taxon[j] ) ) + '-day gene multiplicity, ' + r'$m$', fontsize=14)
+            ax_mult_i_j.set_xscale('log', base=10)
+            ax_mult_i_j.set_yscale('log', base=10)
+
+
+            ax_mult_i_j.set_xlabel('Gene multiplicity, ' +  pt.treatment_label_dict[treatments_in_taxon[i]], fontsize=14)
+            ax_mult_i_j.set_ylabel('Gene multiplicity, ' + pt.treatment_label_dict[treatments_in_taxon[j]], fontsize=14)
             ax_mult_i_j.plot([   0.05, 200  ], [   0.05, 200   ], lw = 3, c='grey', ls = '--', zorder=1 )
             ax_mult_i_j.set_xlim([   0.05, 200  ])
             ax_mult_i_j.set_ylim([   0.05, 200  ])
@@ -240,29 +244,46 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
             mult_i = [x[0] for x in multiplicity_pair]
             mult_j = [x[1] for x in multiplicity_pair]
 
+            print(pt.get_colors(str(treatments_in_taxon[i])), pt.get_colors(str(treatments_in_taxon[j])))
+            marker_style_non_significant = dict(color='None',
+                        markerfacecoloralt=pt.get_colors(str(treatments_in_taxon[i])),
+                        markerfacecolor=pt.get_colors(str( treatments_in_taxon[j] ) ) )
+
+            marker_style_significant = dict(color='k',
+                        markerfacecoloralt=pt.get_colors( str(treatments_in_taxon[i])),
+                        markerfacecolor=pt.get_colors( str( treatments_in_taxon[j] ) ) )
+
             ax_mult_i_j.scatter(mult_i, mult_j, marker=pt.plot_species_marker(taxon), facecolors=mix_color, edgecolors='none', alpha=0.8,s=90, zorder=2)
+            #ax_mult_i_j.scatter(mult_i, mult_j, marker=pt.plot_species_marker(taxon), alpha=0.8,s=90, zorder=2, **marker_style_non_significant)
+            #ax_mult_i_j.plot(mult_i, mult_j, fillstyle='left', linestyle='None', marker=pt.plot_species_marker(taxon), alpha=0.8, markersize = 8, zorder=2, **marker_style_non_significant)
+
 
             mult_significant_i = [x[0] for x in significant_multiplicity_pair]
             mult_significant_j = [x[1] for x in significant_multiplicity_pair]
-            ax_mult_i_j.scatter(mult_significant_i, mult_significant_j, marker=pt.plot_species_marker(taxon), facecolors=mix_color, edgecolors='k', lw=1.5, alpha=0.7,s=90, zorder=3)
+            #ax_mult_i_j.plot(mult_significant_i, mult_significant_j, fillstyle='left', linestyle='None', marker=pt.plot_species_marker(taxon), alpha=0.8, markersize = 8, zorder=2, **marker_style_significant)
 
-            slope_mult, intercept_mult, r_value_mult, p_value_mult, std_err_mult = stats.linregress(np.log10(mult_significant_i), np.log10(mult_significant_j))
+            ax_mult_i_j.scatter(mult_significant_i, mult_significant_j, marker=pt.plot_species_marker(taxon), facecolors=mix_color, edgecolors='k', lw=1.5, alpha=0.7,s=90, zorder=3)
+            #ax_mult_i_j.scatter(mult_significant_i, mult_significant_j, marker=pt.plot_species_marker(taxon), lw=1.5, alpha=0.7,s=90, zorder=3, **marker_style_significant)
+
+            #slope_mult, intercept_mult, r_value_mult, p_value_mult, std_err_mult = stats.linregress(np.log10(mult_significant_i), np.log10(mult_significant_j))
+            mult_ij = mult_significant_i+mult_significant_j + mult_i + mult_j
+
+            ax_mult_i_j.set_xlim([min(mult_ij)*0.5, max(mult_ij)*1.5])
+            ax_mult_i_j.set_ylim([min(mult_ij)*0.5, max(mult_ij)*1.5])
 
             # null slope of 1
-            ratio = (slope_mult - slope_null) / std_err_mult
-            p_value_mult_new_null = stats.t.sf(np.abs(ratio), len(mult_significant_j)-2)*2
+            #ratio = (slope_mult - slope_null) / std_err_mult
+            #p_value_mult_new_null = stats.t.sf(np.abs(ratio), len(mult_significant_j)-2)*2
 
-            if p_value_mult_new_null < 0.05:
-                x_log10_fit_range =  np.linspace(np.log10(min(mult_i) * 0.5), np.log10(max(mult_i) * 1.5), 10000)
+            #if p_value_mult_new_null < 0.05:
+            #    x_log10_fit_range =  np.linspace(np.log10(min(mult_i) * 0.5), np.log10(max(mult_i) * 1.5), 10000)
 
-                y_fit_range = 10 ** (slope_mult*x_log10_fit_range + intercept_mult)
-                ax_mult_i_j.plot(10**x_log10_fit_range, y_fit_range, c='k', lw=3, linestyle='--', zorder=4)
+            #    y_fit_range = 10 ** (slope_mult*x_log10_fit_range + intercept_mult)
+            #    ax_mult_i_j.plot(10**x_log10_fit_range, y_fit_range, c='k', lw=3, linestyle='--', zorder=4)
 
-
-
-            ax_mult_i_j.text(0.05, 0.9, r'$\beta_{1}=$'+str(round(slope_mult,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
-            ax_mult_i_j.text(0.05, 0.82, r'$r^{2}=$'+str(round(r_value_mult**2,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
-            ax_mult_i_j.text(0.05, 0.74, pt.get_p_value_latex(p_value_mult_new_null), fontsize=12, transform=ax_mult_i_j.transAxes)
+            #ax_mult_i_j.text(0.05, 0.9, r'$\beta_{1}=$'+str(round(slope_mult,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
+            #ax_mult_i_j.text(0.05, 0.82, r'$r^{2}=$'+str(round(r_value_mult**2,3)), fontsize=12, transform=ax_mult_i_j.transAxes)
+            #ax_mult_i_j.text(0.05, 0.74, pt.get_p_value_latex(p_value_mult_new_null), fontsize=12, transform=ax_mult_i_j.transAxes)
 
     #if taxon == 'F':
     #    subset_tuple = (len( significant_multiplicity_dict['0']), \
