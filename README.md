@@ -1,5 +1,4 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4517573.svg)](https://doi.org/10.5281/zenodo.4517573)
-[![DOI](https://www.biorxiv.org/content/10.1101/2021.02.08.430186v1)](https://doi.org/10.1101/2021.02.08.430186)
 
 
 
