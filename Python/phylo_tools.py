@@ -352,6 +352,18 @@ def plot_species_marker(taxon):
     return plot_species_marker_dict[taxon]
 
 
+def plot_species_marker_size(taxon):
+
+    plot_species_marker_dict = {"B": 24,
+                                "C": 24,
+                                "D": 22,
+                                "F": 28,
+                                "J": 22,
+                                "P": 28}
+
+    return plot_species_marker_dict[taxon]
+
+
 def plot_species_fillstyle(taxon):
 
     plot_species_fillstyle_dict = {"B": "full",

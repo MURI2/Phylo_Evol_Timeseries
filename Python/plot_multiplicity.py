@@ -205,6 +205,8 @@ def plot_within_taxon_paralleliism(taxon, slope_null=1):
         #slope, intercept, r_value, p_value, std_err = stats.linregress(np.log10(ax_mult_freqs_x), np.log10(ax_mult_freqs_y))
         #print(slope, p_value)
 
+    ax_multiplicity.legend(loc='center left', fontsize=8)
+
     # make treatment pairs
     treatments_in_taxon.sort(key=float)
 

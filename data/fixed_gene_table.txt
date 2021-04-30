@@ -1,0 +1,335 @@
+Taxon, Treatment, Locus tag, Number fixed mutations, Number mutations f_max > 0.8, Annotation
+Bacillus, 1-day, B4U62_RS00170, 1, 1, 23S ribosomal RNA
+Bacillus, 1-day, B4U62_RS00390, 1, 1, stage II sporulation protein E
+Bacillus, 1-day, B4U62_RS00585, 1, 1, DNA integrity scanning protein DisA
+Bacillus, 1-day, B4U62_RS00685, 1, 1, DNA-directed RNA polymerase subunit beta
+Bacillus, 1-day, B4U62_RS01310, 1, 3, APC family permease
+Bacillus, 1-day, B4U62_RS01735, 1, 3, DUF475 domain-containing protein
+Bacillus, 1-day, B4U62_RS01940, 1, 1, assimilatory nitrate reductase catalytic subunit
+Bacillus, 1-day, B4U62_RS01950, 1, 1, NarK/NasA family nitrate transporter
+Bacillus, 1-day, B4U62_RS02045, 1, 1, surfactin biosynthesis thioesterase SrfAD
+Bacillus, 1-day, B4U62_RS02495, 2, 2, divalent metal cation transporter
+Bacillus, 1-day, B4U62_RS02855, 1, 1, endopeptidase
+Bacillus, 1-day, B4U62_RS03535, 1, 1, tetratricopeptide repeat protein
+Bacillus, 1-day, B4U62_RS03840, 1, 1, diacylglycerol kinase
+Bacillus, 1-day, B4U62_RS04785, 1, 1, glycosyltransferase
+Bacillus, 1-day, B4U62_RS04835, 1, 1, aromatic acid exporter family protein
+Bacillus, 1-day, B4U62_RS04860, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS04890, 1, 1, tRNA-Glu
+Bacillus, 1-day, B4U62_RS05145, 1, 1, cold-shock protein
+Bacillus, 1-day, B4U62_RS05175, 1, 2, YhcN/YlaJ family sporulation lipoprotein
+Bacillus, 1-day, B4U62_RS05315, 1, 1, citrate synthase/methylcitrate synthase
+Bacillus, 1-day, B4U62_RS05375, 1, 1, MerR family transcriptional regulator
+Bacillus, 1-day, B4U62_RS05430, 2, 2, Na+/H+ antiporter NhaC
+Bacillus, 1-day, B4U62_RS05510, 1, 1, cation:proton antiporter
+Bacillus, 1-day, B4U62_RS05555, 1, 1, 3'-5' exoribonuclease YhaM
+Bacillus, 1-day, B4U62_RS06285, 1, 1, beta-ketoacyl-[acyl-carrier-protein] synthase II
+Bacillus, 1-day, B4U62_RS06330, 2, 3, peptide ABC transporter substrate-binding protein
+Bacillus, 1-day, B4U62_RS06345, 1, 1, ABC transporter ATP-binding protein
+Bacillus, 1-day, B4U62_RS06650, 1, 1, BglG family transcription antiterminator
+Bacillus, 1-day, B4U62_RS06735, 1, 1, DUF4309 domain-containing protein
+Bacillus, 1-day, B4U62_RS06775, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS07360, 1, 1, MerR family transcriptional regulator
+Bacillus, 1-day, B4U62_RS07420, 1, 1, DedA family protein
+Bacillus, 1-day, B4U62_RS07740, 1, 1, chemotaxis protein CheV
+Bacillus, 1-day, B4U62_RS07750, 1, 2, MFS transporter
+Bacillus, 1-day, B4U62_RS08325, 1, 1, 16S rRNA (cytosine(1402)-N(4))-methyltransferase
+Bacillus, 1-day, B4U62_RS08410, 1, 1, sigma-E processing peptidase SpoIIGA
+Bacillus, 1-day, B4U62_RS08450, 1, 1, cell division protein SepF
+Bacillus, 1-day, B4U62_RS08580, 1, 1, calcium-translocating P-type ATPase, SERCA-type
+Bacillus, 1-day, B4U62_RS08605, 1, 1, bifunctional phosphopantothenoylcysteine decarboxylase/phosphopantothenate--cysteine ligase CoaBC
+Bacillus, 1-day, B4U62_RS08680, 1, 1, L-serine ammonia-lyase, iron-sulfur-dependent, subunit beta
+Bacillus, 1-day, B4U62_RS08785, 1, 1, ribonuclease HII
+Bacillus, 1-day, B4U62_RS08870, 1, 1, flagellar assembly protein FliH
+Bacillus, 1-day, B4U62_RS08950, 1, 1, flagellar biosynthesis protein FlhB
+Bacillus, 1-day, B4U62_RS08955, 1, 1, flagellar biosynthesis protein FlhA
+Bacillus, 1-day, B4U62_RS09075, 1, 1, translation initiation factor IF-2
+Bacillus, 1-day, B4U62_RS09090, 1, 1, tRNA pseudouridine(55) synthase TruB
+Bacillus, 1-day, B4U62_RS09270, 1, 1, DNA mismatch repair protein MutS
+Bacillus, 1-day, B4U62_RS09345, 1, 1, amino acid adenylation domain-containing protein
+Bacillus, 1-day, B4U62_RS09350, 1, 1, SDR family NAD(P)-dependent oxidoreductase
+Bacillus, 1-day, B4U62_RS09485, 1, 1, transcriptional repressor GlnR
+Bacillus, 1-day, B4U62_RS09645, 1, 1, SRPBCC domain-containing protein
+Bacillus, 1-day, B4U62_RS09965, 1, 1, amino acid adenylation domain-containing protein
+Bacillus, 1-day, B4U62_RS10230, 1, 1, DUF3221 domain-containing protein
+Bacillus, 1-day, B4U62_RS10440, 1, 1, GNAT family N-acetyltransferase
+Bacillus, 1-day, B4U62_RS11410, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS11595, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS12015, 1, 1, 2-dehydro-3-deoxygluconokinase
+Bacillus, 1-day, B4U62_RS12140, 1, 1, endonuclease III
+Bacillus, 1-day, B4U62_RS12150, 1, 1, asparagine--tRNA ligase
+Bacillus, 1-day, B4U62_RS12315, 1, 1, chorismate mutase
+Bacillus, 1-day, B4U62_RS12420, 1, 2, 30S ribosomal protein S1
+Bacillus, 1-day, B4U62_RS12755, 1, 1, transcriptional repressor
+Bacillus, 1-day, B4U62_RS12770, 1, 1, NAD-dependent malic enzyme
+Bacillus, 1-day, B4U62_RS13010, 1, 1, multidrug efflux MFS transporter Bmr
+Bacillus, 1-day, B4U62_RS13070, 1, 1, citrate synthase
+Bacillus, 1-day, B4U62_RS13110, 3, 3, sporulation transcription factor Spo0A
+Bacillus, 1-day, B4U62_RS13470, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS13740, 1, 1, 50S ribosomal protein L11 methyltransferase
+Bacillus, 1-day, B4U62_RS14145, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS14390, 4, 4, cation transporter
+Bacillus, 1-day, B4U62_RS14670, 1, 2, TetR/AcrR family transcriptional regulator
+Bacillus, 1-day, B4U62_RS14745, 1, 1, transcription elongation factor GreA
+Bacillus, 1-day, B4U62_RS14830, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS14905, 2, 2, adenine phosphoribosyltransferase
+Bacillus, 1-day, B4U62_RS15030, 1, 1, quinolinate synthase NadA
+Bacillus, 1-day, B4U62_RS15150, 1, 1, valine--tRNA ligase
+Bacillus, 1-day, B4U62_RS15605, 1, 1, putative sporulation protein YtxC
+Bacillus, 1-day, B4U62_RS15715, 1, 1, pyruvate kinase
+Bacillus, 1-day, B4U62_RS15720, 1, 1, ATP-dependent 6-phosphofructokinase
+Bacillus, 1-day, B4U62_RS15770, 2, 2, CBS domain-containing protein
+Bacillus, 1-day, B4U62_RS15990, 1, 1, acetate--CoA ligase
+Bacillus, 1-day, B4U62_RS16050, 1, 1, DNA translocase SftA
+Bacillus, 1-day, B4U62_RS16120, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS16215, 1, 1, extracellular solute-binding protein
+Bacillus, 1-day, B4U62_RS16880, 1, 1, bifunctional aldolase/short-chain dehydrogenase
+Bacillus, 1-day, B4U62_RS16995, 1, 1, Lrp/AsnC family transcriptional regulator
+Bacillus, 1-day, B4U62_RS17250, 1, 1, PucR family transcriptional regulator
+Bacillus, 1-day, B4U62_RS17290, 1, 1, 2,3-dihydro-2,3-dihydroxybenzoate dehydrogenase
+Bacillus, 1-day, B4U62_RS17510, 1, 1, purine permease
+Bacillus, 1-day, B4U62_RS17950, 1, 1, YvrJ family protein
+Bacillus, 1-day, B4U62_RS18090, 1, 1, cadmium-translocating P-type ATPase
+Bacillus, 1-day, B4U62_RS18215, 1, 1, ATP-binding cassette domain-containing protein
+Bacillus, 1-day, B4U62_RS18230, 1, 1, sporulation-delaying protein SdpB
+Bacillus, 1-day, B4U62_RS18305, 1, 2, 2,3-bisphosphoglycerate-independent phosphoglycerate mutase
+Bacillus, 1-day, B4U62_RS18430, 1, 1, sugar ABC transporter permease
+Bacillus, 1-day, B4U62_RS18445, 1, 1, FadR family transcriptional regulator
+Bacillus, 1-day, B4U62_RS18495, 2, 2, pyruvyl transferase
+Bacillus, 1-day, B4U62_RS18630, 1, 1, ATP-dependent Clp protease proteolytic subunit
+Bacillus, 1-day, B4U62_RS18815, 1, 1, imidazoleglycerol-phosphate dehydratase HisB
+Bacillus, 1-day, B4U62_RS18945, 1, 1, excinuclease ABC subunit UvrA
+Bacillus, 1-day, B4U62_RS18975, 1, 1, serine protease
+Bacillus, 1-day, B4U62_RS19580, 1, 1, hypothetical protein
+Bacillus, 1-day, B4U62_RS19840, 1, 1, F0F1 ATP synthase subunit beta
+Bacillus, 1-day, B4U62_RS20050, 2, 3, ABC transporter ATP-binding protein
+Bacillus, 1-day, B4U62_RS20225, 1, 1, MarR family transcriptional regulator
+Bacillus, 1-day, B4U62_RS20360, 1, 1, dTDP-4-dehydrorhamnose reductase
+Bacillus, 1-day, B4U62_RS20790, 1, 1, MFS transporter
+Bacillus, 1-day, B4U62_RS20905, 1, 1, YbhB/YbcL family Raf kinase inhibitor-like protein
+Bacillus, 1-day, B4U62_RS20970, 1, 1, GntP family permease
+Bacillus, 1-day, B4U62_RS21155, 1, 1, histidine ammonia-lyase
+Bacillus, 1-day, B4U62_RS21195, 1, 1, sugar-binding transcriptional regulator
+Bacillus, 1-day, B4U62_RS21335, 1, 1, MFS transporter
+Bacillus, 1-day, B4U62_RS21795, 1, 1, DUF2232 domain-containing protein
+Bacillus, 1-day, B4U62_RS22065, 1, 1, 16S rRNA (guanine(527)-N(7))-methyltransferase RsmG
+Bacillus, 1-day, B4U62_RS22410, 1, 1, replicative DNA helicase
+Bacillus, 10-day, B4U62_RS06875, 1, 1, ATP-dependent metallopeptidase FtsH/Yme1/Tma family protein
+Bacillus, 10-day, B4U62_RS09275, 1, 2, DNA mismatch repair endonuclease MutL
+Bacillus, 10-day, B4U62_RS12480, 1, 1, LysM peptidoglycan-binding domain-containing protein
+Bacillus, 10-day, B4U62_RS13565, 1, 2, YitT family protein
+Bacillus, 10-day, B4U62_RS14390, 1, 2, cation transporter
+Bacillus, 10-day, B4U62_RS15625, 1, 1, transcriptional regulator NrdR
+Bacillus, 100-day, B4U62_RS08860, 1, 1, flagellar basal body M-ring protein FliF
+Deinococcus, 1-day, DR_0403, 1, 2, inosine-uridine preferring nucleoside hydrolase
+Deinococcus, 1-day, DR_0544, 1, 1, hypothetical protein
+Deinococcus, 1-day, DR_0958, 1, 2, peptide ABC transporter permease
+Deinococcus, 1-day, DR_0986, 1, 1, extracellular solute-binding protein
+Deinococcus, 1-day, DR_1670, 1, 2, cysteinyl-tRNA synthetase
+Deinococcus, 1-day, DR_2024, 1, 1, hypothetical protein
+Deinococcus, 1-day, DR_2033, 1, 3, glutamine synthase
+Deinococcus, 1-day, DR_2168, 1, 2, 16S rRNA m5C967 methyltransferase
+Deinococcus, 1-day, DR_2286, 1, 1, hypothetical protein
+Deinococcus, 1-day, DR_A0283, 1, 2, serine protease
+Deinococcus, 10-day, DR_0008, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_0167, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_0198, 1, 1, recombination protein RecR
+Deinococcus, 10-day, DR_0349, 1, 1, ATP-dependent protease LA
+Deinococcus, 10-day, DR_0613, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_0698, 1, 1, v-type ATP synthase subunit C
+Deinococcus, 10-day, DR_0877, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_0878, 4, 4, adenine phosphoribosyltransferase
+Deinococcus, 10-day, DR_0879, 2, 2, hypothetical protein
+Deinococcus, 10-day, DR_0907, 1, 1, CSD family cold shock protein
+Deinococcus, 10-day, DR_0912, 3, 3, DNA-directed RNA polymerase subunit beta
+Deinococcus, 10-day, DR_0932, 1, 1, polyprenyl synthase
+Deinococcus, 10-day, DR_1089, 1, 1, recombination protein F
+Deinococcus, 10-day, DR_1229, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_1237, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_1352, 1, 1, dihydrolipoamide acetyltransferase-like protein
+Deinococcus, 10-day, DR_1501, 1, 1, NADH dehydrogenase I subunit E
+Deinococcus, 10-day, DR_1514, 1, 1, 2-phosphoglycerate kinase
+Deinococcus, 10-day, DR_1567, 1, 1, peptide ABC transporter ATP-binding protein
+Deinococcus, 10-day, DR_1568, 1, 1, peptide ABC transporter ATP-binding protein
+Deinococcus, 10-day, DR_1597, 1, 1, glucose 6-phosphate dehydrogenase assembly protein OpcA
+Deinococcus, 10-day, DR_1705, 1, 1, hydrolase family protein
+Deinococcus, 10-day, DR_1707, 1, 1, DNA-directed DNA polymerase
+Deinococcus, 10-day, DR_1976, 1, 1, DNA mismatch repair protein MutS
+Deinococcus, 10-day, DR_2059, 1, 1, glycyl-tRNA synthetase
+Deinococcus, 10-day, DR_2134, 1, 1, ABC transporter ATP-binding protein
+Deinococcus, 10-day, DR_2224, 1, 1, tellurium resistance protein TerZ
+Deinococcus, 10-day, DR_2234, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_2248, 1, 1, dipeptidyl peptidase IV-like protein
+Deinococcus, 10-day, DR_2370, 1, 1, pyruvate dehydrogenase complex, dihydrolipoamide dehydrogenase E3 component
+Deinococcus, 10-day, DR_2583, 1, 1, malate dehydrogenase
+Deinococcus, 10-day, DR_B0051, 2, 2, hypothetical protein
+Deinococcus, 10-day, DR_B0052, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_C0007, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_C0008, 1, 1, hypothetical protein
+Deinococcus, 10-day, DR_r09, 1, 1, 23S ribosomal RNA
+Deinococcus, 100-day, DR_1301, 1, 1, hypothetical protein
+Deinococcus, 100-day, DR_A0073, 1, 1, cation-transporting P-type ATPase
+Caulobacter, 1-day, CCNA_00028, 4, 6, TonB-dependent receptor
+Caulobacter, 1-day, CCNA_00099, 1, 1, FtsZ-binding protein FzlC
+Caulobacter, 1-day, CCNA_01011, 1, 1, imidazolonepropionase
+Caulobacter, 1-day, CCNA_01393, 1, 2, soluble lytic murein transglycosylase
+Caulobacter, 1-day, CCNA_01556, 1, 1, LacI-family transcriptional regulator
+Caulobacter, 1-day, CCNA_01816, 1, 1, nitrogen regulation protein ntrY
+Caulobacter, 1-day, CCNA_03177, 1, 1, methylmalonyl-CoA mutase MeaA-like protein
+Caulobacter, 1-day, CCNA_03879, 1, 1, uroporphyrinogen decarboxylase
+Caulobacter, 10-day, CCNA_00083, 1, 1, phosphoglucomutase/phosphomannomutase
+Caulobacter, 10-day, CCNA_00313, 1, 1, peptidase, M14 family
+Caulobacter, 10-day, CCNA_00798, 1, 1, ABC transporter, ATP-binding protein cydC
+Caulobacter, 10-day, CCNA_00851, 1, 2, periplasmic multidrug efflux lipoprotein precursor
+Caulobacter, 10-day, CCNA_01395, 1, 1, electron transfer flavoprotein-ubiquinone oxidoreductase FzeA
+Caulobacter, 10-day, CCNA_02039, 2, 2, ATP-dependent endopeptidase clp, ATP-binding subunit ClpX
+Caulobacter, 10-day, CCNA_02157, 1, 1, HipB-family transcriptional regulator
+Caulobacter, 10-day, CCNA_03878, 1, 5, ferrochelatase
+Caulobacter, 100-day, CCNA_02867, 1, 1, phage tail length tape measure-related protein
+Caulobacter, 100-day, CCNA_03123, 2, 5, ArsR-family transcriptional regulator
+Caulobacter, 100-day, CCNA_03125, 2, 3, melibiose carrier protein
+Caulobacter, 100-day, CCNA_03243, 1, 1, NADP+-dependent gamma-glutamyl-gamma-aminobutyraldehyde dehydrogenase
+Janthinobacterium, 100-day, FFI39_RS05855, 1, 1, cell division protein ZapD
+Janthinobacterium, 100-day, FFI39_RS10710, 1, 1, flagellar transcriptional regulator FlhC
+Janthinobacterium, 100-day, FFI39_RS13510, 1, 1, efflux RND transporter periplasmic adaptor subunit
+Janthinobacterium, 100-day, FFI39_RS18515, 1, 3, response regulator transcription factor
+Pedobacter, 1-day, FFJ24_RS00155, 1, 1, SDR family NAD(P)-dependent oxidoreductase
+Pedobacter, 1-day, FFJ24_RS00415, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS00495, 2, 2, TonB-dependent siderophore receptor
+Pedobacter, 1-day, FFJ24_RS00550, 1, 1, LptF/LptG family permease
+Pedobacter, 1-day, FFJ24_RS00930, 1, 1, family 43 glycosylhydrolase
+Pedobacter, 1-day, FFJ24_RS00995, 1, 1, endo-1,4-beta-xylanase
+Pedobacter, 1-day, FFJ24_RS01675, 1, 1, glycoside hydrolase
+Pedobacter, 1-day, FFJ24_RS02155, 1, 1, GntR family transcriptional regulator
+Pedobacter, 1-day, FFJ24_RS02245, 1, 1, DNA repair protein RadC
+Pedobacter, 1-day, FFJ24_RS02305, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS02465, 1, 1, DNA-directed RNA polymerase subunit beta
+Pedobacter, 1-day, FFJ24_RS02835, 1, 1, DUF695 domain-containing protein
+Pedobacter, 1-day, FFJ24_RS03050, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS03145, 1, 1, imidazole glycerol phosphate synthase subunit HisF
+Pedobacter, 1-day, FFJ24_RS03420, 1, 1, SusC/RagA family TonB-linked outer membrane protein
+Pedobacter, 1-day, FFJ24_RS03975, 1, 1, aspartate aminotransferase family protein
+Pedobacter, 1-day, FFJ24_RS04035, 1, 1, glycosyltransferase
+Pedobacter, 1-day, FFJ24_RS04060, 1, 1, response regulator
+Pedobacter, 1-day, FFJ24_RS04100, 1, 1, FtsX-like permease family protein
+Pedobacter, 1-day, FFJ24_RS04310, 1, 1, glycosyltransferase family 9 protein
+Pedobacter, 1-day, FFJ24_RS05090, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS05445, 1, 1, ferritin
+Pedobacter, 1-day, FFJ24_RS05455, 3, 4, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS05480, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS05605, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS06370, 1, 1, metallophosphoesterase
+Pedobacter, 1-day, FFJ24_RS06605, 1, 1, glycoside hydrolase family 92 protein
+Pedobacter, 1-day, FFJ24_RS07700, 1, 1, Bcr/CflA family efflux MFS transporter
+Pedobacter, 1-day, FFJ24_RS07770, 1, 1, hydrolase
+Pedobacter, 1-day, FFJ24_RS08480, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS08640, 1, 1, glutamate synthase large subunit
+Pedobacter, 1-day, FFJ24_RS08735, 1, 1, substrate-binding domain-containing protein
+Pedobacter, 1-day, FFJ24_RS08820, 1, 1, replicative DNA helicase
+Pedobacter, 1-day, FFJ24_RS08870, 1, 1, S8 family serine peptidase
+Pedobacter, 1-day, FFJ24_RS08915, 1, 2, glucose-6-phosphate dehydrogenase
+Pedobacter, 1-day, FFJ24_RS09040, 3, 3, TonB-dependent receptor
+Pedobacter, 1-day, FFJ24_RS09195, 1, 1, DUF4959 domain-containing protein
+Pedobacter, 1-day, FFJ24_RS09365, 1, 1, phosphate acetyltransferase
+Pedobacter, 1-day, FFJ24_RS09730, 1, 1, glycosyltransferase
+Pedobacter, 1-day, FFJ24_RS10145, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS11945, 1, 1, efflux RND transporter permease subunit
+Pedobacter, 1-day, FFJ24_RS12005, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS12035, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS12235, 2, 2, DNA polymerase IV
+Pedobacter, 1-day, FFJ24_RS12250, 1, 1, Crp/Fnr family transcriptional regulator
+Pedobacter, 1-day, FFJ24_RS12770, 1, 1, SusC/RagA family TonB-linked outer membrane protein
+Pedobacter, 1-day, FFJ24_RS12900, 1, 1, anthranilate phosphoribosyltransferase
+Pedobacter, 1-day, FFJ24_RS14800, 1, 1, tetratricopeptide repeat protein
+Pedobacter, 1-day, FFJ24_RS14945, 1, 1, biopolymer transporter ExbD
+Pedobacter, 1-day, FFJ24_RS15010, 1, 1, DUF808 family protein
+Pedobacter, 1-day, FFJ24_RS15120, 1, 1, T9SS type B sorting domain-containing protein
+Pedobacter, 1-day, FFJ24_RS15465, 1, 1, alpha/beta fold hydrolase
+Pedobacter, 1-day, FFJ24_RS15515, 1, 1, amino acid permease
+Pedobacter, 1-day, FFJ24_RS15765, 1, 1, TonB-dependent receptor
+Pedobacter, 1-day, FFJ24_RS16325, 1, 1, response regulator
+Pedobacter, 1-day, FFJ24_RS16620, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS17420, 1, 1, DNA-directed RNA polymerase subunit alpha
+Pedobacter, 1-day, FFJ24_RS17480, 1, 1, 50S ribosomal protein L6
+Pedobacter, 1-day, FFJ24_RS17705, 1, 1, sensor histidine kinase
+Pedobacter, 1-day, FFJ24_RS18050, 1, 1, TraR/DksA family transcriptional regulator
+Pedobacter, 1-day, FFJ24_RS18195, 1, 1, N-acetylglucosamine kinase
+Pedobacter, 1-day, FFJ24_RS18645, 1, 1, cupin-like domain-containing protein
+Pedobacter, 1-day, FFJ24_RS18690, 1, 1, metallophosphoesterase
+Pedobacter, 1-day, FFJ24_RS19145, 1, 1, type IX secretion system outer membrane channel protein PorV
+Pedobacter, 1-day, FFJ24_RS19365, 1, 1, UMP kinase
+Pedobacter, 1-day, FFJ24_RS19400, 1, 1, outer membrane beta-barrel protein
+Pedobacter, 1-day, FFJ24_RS19550, 1, 1, 23S rRNA pseudouridine(2604) synthase RluF
+Pedobacter, 1-day, FFJ24_RS19635, 1, 1, PAS domain S-box protein
+Pedobacter, 1-day, FFJ24_RS19660, 2, 2, undecaprenyl-phosphate glucose phosphotransferase
+Pedobacter, 1-day, FFJ24_RS20015, 1, 1, DUF3109 family protein
+Pedobacter, 1-day, FFJ24_RS20170, 1, 1, oligosaccharide flippase family protein
+Pedobacter, 1-day, FFJ24_RS20285, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS20380, 1, 1, superoxide dismutase
+Pedobacter, 1-day, FFJ24_RS21080, 1, 1, SusC/RagA family TonB-linked outer membrane protein
+Pedobacter, 1-day, FFJ24_RS21100, 1, 1, SusD/RagB family nutrient-binding outer membrane lipoprotein
+Pedobacter, 1-day, FFJ24_RS21105, 3, 3, SusC/RagA family TonB-linked outer membrane protein
+Pedobacter, 1-day, FFJ24_RS21215, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS21495, 1, 1, AAA family ATPase
+Pedobacter, 1-day, FFJ24_RS22585, 1, 1, GHKL domain-containing protein
+Pedobacter, 1-day, FFJ24_RS22905, 1, 1, type VI secretion system needle protein Hcp
+Pedobacter, 1-day, FFJ24_RS22945, 2, 2, histidine ammonia-lyase
+Pedobacter, 1-day, FFJ24_RS23285, 1, 1, HAD-IB family phosphatase
+Pedobacter, 1-day, FFJ24_RS23720, 1, 1, TonB family protein
+Pedobacter, 1-day, FFJ24_RS24340, 1, 1, lauroyl acyltransferase
+Pedobacter, 1-day, FFJ24_RS24430, 1, 1, fumarate hydratase
+Pedobacter, 1-day, FFJ24_RS25035, 1, 1, TonB-dependent receptor
+Pedobacter, 1-day, FFJ24_RS25180, 1, 1, hypothetical protein
+Pedobacter, 1-day, FFJ24_RS25285, 1, 1, DUF2723 domain-containing protein
+Pedobacter, 10-day, FFJ24_RS02470, 1, 1, DNA-directed RNA polymerase subunit beta'
+Pedobacter, 10-day, FFJ24_RS07475, 1, 1, PAS domain S-box protein
+Pedobacter, 10-day, FFJ24_RS12525, 1, 1, SusC/RagA family TonB-linked outer membrane protein
+Pedobacter, 10-day, FFJ24_RS14495, 1, 1, RluA family pseudouridine synthase
+Pedobacter, 10-day, FFJ24_RS14735, 1, 1, RelA/SpoT family protein
+Pedobacter, 10-day, FFJ24_RS17085, 1, 1, acetate--CoA ligase
+Pedobacter, 10-day, FFJ24_RS18905, 1, 1, WYL domain-containing protein
+Pedobacter, 10-day, FFJ24_RS25295, 1, 1, ribose-phosphate pyrophosphokinase
+Pseudomonas, 1-day, FFI16_RS00020, 1, 1, hypothetical protein
+Pseudomonas, 1-day, FFI16_RS00110, 1, 1, penicillin-binding protein 2
+Pseudomonas, 1-day, FFI16_RS00275, 1, 1, response regulator
+Pseudomonas, 1-day, FFI16_RS01100, 1, 1, ketol-acid reductoisomerase
+Pseudomonas, 1-day, FFI16_RS01890, 1, 1, protein translocase subunit SecD
+Pseudomonas, 1-day, FFI16_RS02020, 1, 1, 2-isopropylmalate synthase
+Pseudomonas, 1-day, FFI16_RS03235, 1, 1, methyltransferase domain-containing protein
+Pseudomonas, 1-day, FFI16_RS04725, 1, 1, 2-methylaconitate cis-trans isomerase PrpF
+Pseudomonas, 1-day, FFI16_RS05035, 1, 1, fumarate/nitrate reduction transcriptional regulator Fnr
+Pseudomonas, 1-day, FFI16_RS05325, 1, 1, mechanosensitive ion channel
+Pseudomonas, 1-day, FFI16_RS06520, 1, 1, RraA family protein
+Pseudomonas, 1-day, FFI16_RS07235, 1, 1, ribokinase
+Pseudomonas, 1-day, FFI16_RS08175, 1, 1, fimbria/pilus outer membrane usher protein
+Pseudomonas, 1-day, FFI16_RS08470, 1, 1, FtsX-like permease family protein
+Pseudomonas, 1-day, FFI16_RS09450, 1, 1, ABC transporter permease
+Pseudomonas, 1-day, FFI16_RS09640, 1, 2, filamentous hemagglutinin N-terminal domain-containing protein
+Pseudomonas, 1-day, FFI16_RS10080, 1, 1, nuclear transport factor 2 family protein
+Pseudomonas, 1-day, FFI16_RS11460, 1, 1, c-type cytochrome
+Pseudomonas, 1-day, FFI16_RS12840, 1, 1, ribonucleotide-diphosphate reductase subunit beta
+Pseudomonas, 1-day, FFI16_RS13190, 1, 1, hypothetical protein
+Pseudomonas, 1-day, FFI16_RS14060, 1, 1, precorrin-4 C(11)-methyltransferase
+Pseudomonas, 1-day, FFI16_RS15085, 1, 1, zinc-binding dehydrogenase
+Pseudomonas, 1-day, FFI16_RS15585, 1, 1, UvrY/SirA/GacA family response regulator transcription factor
+Pseudomonas, 1-day, FFI16_RS15740, 1, 1, PAS domain S-box protein
+Pseudomonas, 1-day, FFI16_RS16780, 1, 1, dipeptidase
+Pseudomonas, 1-day, FFI16_RS17515, 1, 1, DEAD/DEAH box helicase
+Pseudomonas, 1-day, FFI16_RS18145, 1, 1, phage tail protein
+Pseudomonas, 1-day, FFI16_RS19225, 1, 1, L-threonine dehydrogenase
+Pseudomonas, 1-day, FFI16_RS19430, 1, 1, 4-carboxymuconolactone decarboxylase
+Pseudomonas, 1-day, FFI16_RS20030, 1, 1, methyltransferase domain-containing protein
+Pseudomonas, 1-day, FFI16_RS22765, 1, 1, ferrochelatase
+Pseudomonas, 1-day, FFI16_RS23125, 1, 1, gluconate transporter
+Pseudomonas, 1-day, FFI16_RS23555, 1, 1, methyl-accepting chemotaxis protein
+Pseudomonas, 1-day, FFI16_RS24090, 1, 2, DNA mismatch repair endonuclease MutL
+Pseudomonas, 1-day, FFI16_RS24375, 2, 2, bifunctional [glutamate--ammonia ligase]-adenylyl-L-tyrosine phosphorylase/[glutamate--ammonia-ligase] adenylyltransferase
+Pseudomonas, 1-day, FFI16_RS26360, 1, 1, catalase HPII
+Pseudomonas, 1-day, FFI16_RS27220, 1, 2, phosphate signaling complex protein PhoU
+Pseudomonas, 1-day, FFI16_RS27470, 1, 2, tonB-system energizer ExbB
+Pseudomonas, 1-day, FFI16_RS27910, 1, 2, exopolyphosphatase
+Pseudomonas, 1-day, FFI16_RS27965, 1, 1, transcription termination factor Rho
+Pseudomonas, 1-day, FFI16_RS29190, 1, 1, 3-keto-5-aminohexanoate cleavage protein
+Pseudomonas, 1-day, FFI16_RS29735, 1, 1, autotransporter domain-containing protein
+Pseudomonas, 1-day, FFI16_RS29785, 1, 1, SDR family NAD(P)-dependent oxidoreductase
+Pseudomonas, 10-day, FFI16_RS27875, 1, 2, c-type cytochrome

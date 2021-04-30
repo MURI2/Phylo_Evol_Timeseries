@@ -558,6 +558,30 @@ ax_pca.text(0.765, 0.8, r'$P=$' +str(round(rounded_P,3)), fontsize = 11, transfo
 
 ax_pca.text(0, 1.05, 'e', fontsize=10, fontweight='bold', ha='center', va='center', transform=ax_pca.transAxes)
 
+
+
+legend_elements = [Line2D([0], [0],  color = 'none', marker=pt.plot_species_marker('B'), label=pt.latex_genus_dict['B'],
+                    markerfacecolor='k', markersize=7),
+                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('C'), label=pt.latex_genus_dict['C'],
+                    markerfacecolor='k', markersize=6),
+                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('D'), label=pt.latex_genus_dict['D'],
+                    markerfacecolor='k', markersize=6),
+                Line2D([0], [0],  color = 'none', marker=pt.plot_species_marker('F'), label=pt.latex_genus_dict['F'],
+                    markerfacecolor='k', markersize=7),
+                Line2D([0], [0],  color = 'none', marker=pt.plot_species_marker('J'), label=pt.latex_genus_dict['J'],
+                    markerfacecolor='k', markersize=6),
+                Line2D([0], [0],  color = 'none', marker=pt.plot_species_marker('P'), label=pt.latex_genus_dict['P'],
+                    markerfacecolor='k', markersize=8)]
+
+
+# Create the figure
+ax_pca.legend(handles=legend_elements, loc='upper left', fontsize=6)
+
+ax_pca.set_xlim([-4,4])
+ax_pca.set_ylim([-2,3])
+
+
+
 fig.text(0.05, 0.5, 'Number of shared MAPLE modules\nenriched for nonsynonymous mutations', ha='center', va='center', rotation='vertical', fontsize=14)
 
 fig_name = pt.get_path() + '/figs/convergence_decay.pdf'
