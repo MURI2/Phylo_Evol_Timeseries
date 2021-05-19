@@ -9,7 +9,6 @@ import matplotlib.gridspec as gridspec
 from matplotlib.colors import ColorConverter
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 import scipy.stats as stats
 import statsmodels.api as sm
@@ -493,10 +492,44 @@ gs = gridspec.GridSpec(nrows=2, ncols=1)
 
 fig = plt.figure(figsize = (10, 13))
 ax_divergence_gene = fig.add_subplot(gs[0, 0])
+#fig, axes = plt.subplots(nrows=2, sharex=True)
+#ax_divergence_gene_lower = axes[0]
+#divider = make_axes_locatable(ax_divergence_gene_lower)
+#ax_divergence_gene_upper = divider.new_vertical(size="100%", pad=0.1)
+#fig.add_axes(ax_divergence_gene_upper)
 
-ins_ax_divergenc_gene = inset_axes(ax_divergence_gene, width="100%", height="100%", loc='lower right', bbox_to_anchor=(0.18,0.68,0.3,0.3), bbox_transform=ax_divergence_gene.transAxes)
+#ax_divergence_gene_upper = fig.add_subplot(gs[0, 0])
+#ax_divergence_gene_lower = fig.add_subplot(gs[1, 0])
+
+#ylim_upper  = [30, 65]
+#ylim_lower = [-1, 1]
 
 
+
+#gs = gridspec.GridSpec(nrows=4, ncols=3)
+#gs = gridspec.GridSpec(nrows=2, ncols=1)
+#ax_divergence_gene = fig.add_subplot(gs[1, 0])
+
+#ax_divergence_gene = brokenaxes(ylims=((-2, 3),(30, 65)), subplot_spec=gs[0, 0])
+
+
+#fig, axes = plt.subplots(nrows=2, sharex=True)
+#ax_divergence_gene = axes[0]
+#ax_divergence_gene_lower = axes[0]
+#divider = make_axes_locatable(ax_divergence_gene_lower)
+#ax_divergence_gene_upper = divider.new_vertical(size="100%", pad=0.1)
+#ax_divergence_gene_divider = divider.new_vertical(size="100%", pad=0.1)
+#ax_divergence_gene = divider.new_vertical(size="100%", pad=0.1)
+
+#fig.add_axes(ax_divergence_gene_upper)
+
+#ylim_upper  = [30, 65]
+#ylim_lower = [-1, 1]
+
+
+
+#ax_divergence_gene = fig.add_subplot(gs[0, 0])
+#ax_divergence_gene_break = fig.add_subplot(gs[1, 0], sharex=ax_divergence_gene)
 ax_count=0
 ax_count_divergence_gene=0
 
@@ -504,7 +537,9 @@ for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
 
     treatment_pair_set = (treatment_pair[0], treatment_pair[1])
 
-
+    marker_style = dict(color='k', marker='o',
+                markerfacecoloralt=pt.get_colors(treatment_pair[1]),
+                markerfacecolor=pt.get_colors(treatment_pair[0]) )
 
     #standardized_gene_overlap_treatment_pair = standardized_gene_overlap[treatment_pair_set]
 
@@ -513,58 +548,35 @@ for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
     else:
         taxa_to_test = pt.taxa
 
-
-    #standardized_gene_overlap_copy = standardized_gene_overlap.copy()
-
-    #print(treatment_pair_set)
-    #print(standardized_gene_overlap.keys())
-    #print(standardized_gene_overlap[treatment_pair_set])
-
     standardized_gene_overlap_treatment_pair = [standardized_gene_overlap[treatment_pair_set][taxon]['Z_jaccard'] for taxon in taxa_to_test]
-
-    #standardized_gene_overlap_treatment_pair = []
-
-    #for taxon in taxa_to_test:
-    #    standardized_gene_overlap_treatment_pair.append(standardized_gene_overlap[treatment_pair_set][taxon]['Z_jaccard'] )
-
-
-    #print(standardized_gene_overlap_treatment_pair)
-    #standardized_gene_overlap_treatment_pair = []
-
-
-    for taxon_i_idx, taxon_i in enumerate(taxa_to_test):
-
-        marker_style = dict(color='k', marker=pt.plot_species_marker(taxon_i),
-                    markerfacecoloralt=pt.get_colors(treatment_pair[1]),
-                    markerfacecolor=pt.get_colors(treatment_pair[0]) )
-
-
-        standardized_gene_overlap_i = standardized_gene_overlap_treatment_pair[taxon_i_idx]
-
-
-        ax_divergence_gene.plot(ax_count_divergence_gene, standardized_gene_overlap_i, markersize = pt.plot_species_marker_size(taxon_i),   \
-            linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style)
-
-        #standardized_gene_overlap_treatment_pair.append(standardized_gene_overlap)
-
-        ax_count_divergence_gene+=1
-
-
-    marker_style_ins = dict(color='k', marker='o',
-                markerfacecoloralt=pt.get_colors(treatment_pair[1]),
-                markerfacecolor=pt.get_colors(treatment_pair[0]) )
-
 
     divergence_gene_Z_mean = np.mean(standardized_gene_overlap_treatment_pair)
     divergence_gene_Z_se = np.std(standardized_gene_overlap_treatment_pair) / np.sqrt(len(standardized_gene_overlap_treatment_pair))
 
-    ins_ax_divergenc_gene.errorbar(treatment_pair_idx, divergence_gene_Z_mean, yerr =divergence_gene_Z_se, \
+    ax_divergence_gene.errorbar(treatment_pair_idx, divergence_gene_Z_mean, yerr =divergence_gene_Z_se, \
             fmt = 'o', alpha = 1, barsabove = True, marker = 'o', \
-            mfc = 'white', mec = 'white', lw=3.5, c = 'k', zorder=2, ms=15)
+            mfc = 'white', mec = 'white', lw=3.5, c = 'k', zorder=2, ms=17)
 
-    ins_ax_divergenc_gene.plot(treatment_pair_idx, np.mean(divergence_gene_Z_mean), markersize = 18,   \
-        linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style_ins)
+    ax_divergence_gene.plot(treatment_pair_idx, np.mean(divergence_gene_Z_mean), markersize = 28,   \
+        linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style)
 
+
+    #ax_divergence_gene_upper.errorbar(treatment_pair_idx, divergence_gene_Z_mean, yerr =divergence_gene_Z_se, \
+    #        fmt = 'o', alpha = 1, barsabove = True, marker = 'o', \
+    #        mfc = 'white', mec = 'white', lw=3.5, c = 'k', zorder=2, ms=17)
+
+
+    #ax_divergence_gene_upper.plot(treatment_pair_idx, np.mean(divergence_gene_Z_mean), markersize = 25,   \
+    #    linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style)
+
+
+    #ax_divergence_gene_lower.errorbar(treatment_pair_idx, divergence_gene_Z_mean, yerr =divergence_gene_Z_se, \
+    #        fmt = 'o', alpha = 1, barsabove = True, marker = 'o', \
+    #        mfc = 'white', mec = 'white', lw=3.5, c = 'k', zorder=2, ms=17)
+
+
+    #ax_divergence_gene_lower.plot(treatment_pair_idx, np.mean(divergence_gene_Z_mean), markersize = 25,   \
+    #    linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style)
 
 
 
@@ -578,13 +590,19 @@ ax_divergence_gene.text(0.18, -0.04, '1-day vs. 10-days', fontsize=13, fontweigh
 ax_divergence_gene.text(0.52, -0.04, '1-day vs. 100-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 ax_divergence_gene.text(0.85, -0.04, '10-days vs. 100-days', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
+ax_divergence_gene.set_xlim([-0.5, 2.5])
+ax_divergence_gene.set_ylim([30, 68])
+
+#ax_divergence_gene.text(0.13, 0.945, 'Convergence', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+#ax_divergence_gene.text(0.115, 0.83, 'Divergence', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
 
 ax_divergence_gene.tick_params(axis='x', labelsize=14, length = 0)
 
-ax_divergence_gene.set_ylabel("Standardized proportion\nof shared enriched genes", fontsize = 16)
+#ax_divergence_gene.set_ylabel("Mean standardized Jaccard\nsimilarity of all taxa", fontsize = 16)
+ax_divergence_gene.set_ylabel("Mean proportion of shared\nenriched genes of all taxa", fontsize = 16)
 
-ax_divergence_gene.text(-0.05, 1.07, pt.sub_plot_labels[0], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+ax_divergence_gene.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
 
 
@@ -595,46 +613,129 @@ ax_divergence_gene.arrow(0.06, 0.65, 0.0, 0.2, width=0.012,fc='k', ec='k', trans
 ax_divergence_gene.text(0.06, 0.5, 'Increasing\nconvergence', fontsize=12, fontweight='bold', ha='center', va='center', rotation=90, transform=ax_divergence_gene.transAxes)
 
 
-#ins_ax_divergenc_gene.set_xlim([-0, 2.5])
-ax_divergence_gene.set_ylim([25 , 77])
+ax_divergence_gene.text(0.865, 0.17, r'$F=%s$' % "{0:.3g}".format(F_gene), fontsize=14, ha='center', va='center', transform=ax_divergence_gene.transAxes)
+ax_divergence_gene.text(0.865, 0.1, r'$P=%s$' % "{0:.3g}".format(P_F_gene), fontsize=14, ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
 
 
-legend_elements = [Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('B'), label=pt.latex_genus_dict['B'],
-                    markerfacecolor='w', markersize=11),
-                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('C'), label=pt.latex_genus_dict['C'],
-                    markerfacecolor='w', markersize=10),
-                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('D'), label=pt.latex_genus_dict['D'],
-                    markerfacecolor='w', markersize=10),
-                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('F'), label=pt.latex_genus_dict['F'],
-                    markerfacecolor='w', markersize=11),
-                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('J'), label=pt.latex_genus_dict['J'],
-                    markerfacecolor='w', markersize=10),
-                Line2D([0], [0], color = 'none', marker=pt.plot_species_marker('P'), label=pt.latex_genus_dict['P'],
-                    markerfacecolor='w', markersize=11)]
 
-# Create the figure
-ax_divergence_gene.legend(handles=legend_elements, loc='lower right', fontsize=10)
+#ax_divergence_gene.plot()
+
+
+#ax_divergence_gene_upper.set_ylim(ylim)
+#ax_divergence_gene_lower.set_ylim(ylim2)
+
+#ax_divergence_gene_upper.spines['bottom'].set_visible(False)
+#ax_divergence_gene_lower.spines['top'].set_visible(False)
+#ax_divergence_gene_upper.xaxis.tick_top()
+#ax_divergence_gene_upper.tick_params(labeltop='off')
+#ax_divergence_gene_lower.xaxis.tick_bottom()
 
 
 
-#ins_ax_divergenc_gene.axhline( y=0, color='k', lw=3, linestyle=':', alpha = 1, zorder=1)
-ins_ax_divergenc_gene.set_ylabel("Mean std. prop.",  fontsize = 12)
-ins_ax_divergenc_gene.set_xticklabels( [], fontsize=12)
-ins_ax_divergenc_gene.tick_params(axis='x', labelsize=14, length = 0)
+#ax_divergence_gene_upper.set_ylim(ylim_upper)
+#ax_divergence_gene_lower.set_ylim(ylim_lower)
 
-ins_ax_divergenc_gene.text(0.18, -0.08, '1 vs. 10', fontsize=9, fontweight='bold', ha='center', va='center', transform=ins_ax_divergenc_gene.transAxes)
-ins_ax_divergenc_gene.text(0.52, -0.08, '1 vs. 100', fontsize=9, fontweight='bold', ha='center', va='center', transform=ins_ax_divergenc_gene.transAxes)
-ins_ax_divergenc_gene.text(0.85, -0.08, '10 vs. 100', fontsize=9, fontweight='bold', ha='center', va='center', transform=ins_ax_divergenc_gene.transAxes)
+#kwargs = dict(color='k', clip_on=False)
+#xlim = ax_divergence_gene_upper.get_xlim()
+#dx = .02*(xlim[1]-xlim[0])
+#dy = .01*(ylim[1]-ylim[0])/ylimratio
+#ax_divergence_gene_upper.plot((xlim[0]-dx,xlim[0]+dx), (ylim[0]-dy,ylim[0]+dy), **kwargs)
+#ax_divergence_gene_upper.plot((xlim[1]-dx,xlim[1]+dx), (ylim[0]-dy,ylim[0]+dy), **kwargs)
+#dy = .01*(ylim2[1]-ylim2[0])/ylim2ratio
+#ax_divergence_gene_lower.plot((xlim[0]-dx,xlim[0]+dx), (ylim2[1]-dy,ylim2[1]+dy), **kwargs)
+#ax_divergence_gene_lower.plot((xlim[1]-dx,xlim[1]+dx), (ylim2[1]-dy,ylim2[1]+dy), **kwargs)
+#ax_divergence_gene_upper.set_xlim(xlim)
+#ax_divergence_gene_lower.set_xlim(xlim)
 
-ins_ax_divergenc_gene.set_xlim([-0.5, 2.5])
-ins_ax_divergenc_gene.set_ylim([25 , 72])
 
-ins_ax_divergenc_gene.text(0.2, 0.87, r'$F=%s$' % "{0:.3g}".format(F_gene), fontsize=12, ha='center', va='center', transform=ins_ax_divergenc_gene.transAxes)
-ins_ax_divergenc_gene.text(0.23, 0.65, r'$P=%s$' % "{0:.3g}".format(P_F_gene), fontsize=12, ha='center', va='center', transform=ins_ax_divergenc_gene.transAxes)
+#ax_divergence_gene_upper.spines['bottom'].set_visible(False)
+#ax_divergence_gene_lower.spines['top'].set_visible(False)
 
 
-ins_ax_divergenc_gene.text(-0.26, 0.93, pt.sub_plot_labels[1], fontsize=12, fontweight='bold', ha='center', va='center', transform=ins_ax_divergenc_gene.transAxes)
+
+
+
+
+#axis_break1 = 2
+#axis_break2 = 30
+#x_min = -0.75
+#x_max = len(list(enumerate(treatment_pairs))) +0.5
+#l = 0.2  # "break" line length
+#kwargs = dict(color="k", clip_on=False, linewidth=1)
+#ax_divergence_gene_upper.plot((x_min - l, x_min + l), (axis_break2, axis_break2), **kwargs)# top-left
+#ax_divergence_gene_upper.plot((x_max - l, x_max + l), (axis_break2, axis_break2), **kwargs)# top-right
+#ax_divergence_gene_lower.plot((x_min - l, x_min + l), (axis_break1, axis_break1), **kwargs)# bottom-left
+#ax_divergence_gene_lower.plot((x_max - l, x_max + l), (axis_break1, axis_break1), **kwargs)# bottom-right
+
+
+#ylim_ratio_upper = (ylim_upper[1]-ylim_upper[0])/(ylim_lower[1]-ylim_lower[0]+ylim_upper[1]-ylim_upper[0])
+#ylim_ratio_lower = (ylim_lower[1]-ylim_lower[0])/(ylim_lower[1]-ylim_lower[0]+ylim_upper[1]-ylim_upper[0])
+
+#kwargs = dict(color='k', clip_on=False)
+#xlim = ax_divergence_gene_upper.get_xlim()
+#dx = .02*(xlim[1]-xlim[0])
+#dy = .01*(ylim_upper[1]-ylim_upper[0])/ylim_ratio_upper
+#ax_divergence_gene_upper.plot((xlim[0]-dx,xlim[0]+dx), (ylim_upper[0]-dy,ylim_upper[0]+dy), **kwargs)
+#ax_divergence_gene_upper.plot((xlim[1]-dx,xlim[1]+dx), (ylim_upper[0]-dy,ylim_upper[0]+dy), **kwargs)
+#dy = .01*(ylim_lower[1]-ylim_lower[0])/ylim_ratio_lower
+#ax_divergence_gene_lower.plot((xlim[0]-dx,xlim[0]+dx), (ylim_lower[1]-dy,ylim_lower[1]+dy), **kwargs)
+#ax_divergence_gene_lower.plot((xlim[1]-dx,xlim[1]+dx), (ylim_lower[1]-dy,ylim_lower[1]+dy), **kwargs)
+
+#ax_divergence_gene_upper.set_xlim(xlim)
+#ax_divergence_gene_lower.set_xlim(xlim)
+
+# From https://matplotlib.org/examples/pylab_examples/broken_axis.html
+#d = .015  # how big to make the diagonal lines in axes coordinates
+# arguments to pass to plot, just so we don't keep repeating them
+
+
+#d = .25  # proportion of vertical to horizontal extent of the slanted line
+#kwargs = dict(marker=[(-1, -d), (1, d)], markersize=12,
+#              linestyle="none", color='k', mec='k', mew=1, clip_on=False)
+#ax_divergence_gene_upper.plot([0, 1], [0, 0], transform=ax_divergence_gene_upper.transAxes, **kwargs)
+#ax_divergence_gene_lower.plot([0, 1], [1, 1], transform=ax_divergence_gene_lower.transAxes, **kwargs)
+
+
+#
+#break_y_axis = 0.5
+#kwargs = dict(transform=ax_divergence_gene_upper.transAxes, color='k', clip_on=False)
+#ax_divergence_gene_upper.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
+#ax_divergence_gene_upper.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
+
+#kwargs.update(transform=ax_divergence_gene_lower.transAxes)  # switch to the bottom axes
+#ax_divergence_gene_lower.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
+#ax_divergence_gene_lower.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)  # bottom-right diagonal
+
+
+
+#ax_divergence_gene.spines['bottom'].set_visible(False)
+#ax_divergence_gene.xaxis.tick_top()
+#ax_divergence_gene.tick_params(labeltop='off')  # don't put tick labels at the top
+
+#ax_divergence_gene_break.spines['top'].set_visible(False)
+#ax_divergence_gene_break.xaxis.tick_bottom()
+
+
+#ax_divergence_gene.set_xticklabels( [], fontsize=12)
+
+#ax_divergence_gene.text(0.15, -0.04, '1-day vs. 10-days', fontsize=11, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+#ax_divergence_gene.text(0.5, -0.04, '1-day vs. 100-days', fontsize=11, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+#ax_divergence_gene.text(0.84, -0.04, '10-days vs. 100-days', fontsize=11, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
+
+#ax_divergence_gene.set_xlim([-0.5, 2.5])
+#ax_divergence_gene.set_ylim([-12, 1.5])
+
+#ax_divergence_gene_lower.text(0.13, 0.945, 'Convergence', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene_lower.transAxes)
+#ax_divergence_gene_lower.text(0.115, 0.83, 'Divergence', fontsize=13, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene_lower.transAxes)
+
+#ax_divergence_gene_lower.axhline( y=0, color='k', lw=3, linestyle=':', alpha = 1, zorder=1)
+
+#ax_divergence_gene.tick_params(axis='x', labelsize=14, length = 0)
+
+#ax_divergence_gene.set_ylabel("Mean standardized Jaccard index of enriched genes, "+ r'$\bar{Z}_{\rho^{2}}$' , fontsize = 15)
+
+#ax_divergence_gene.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence_gene.transAxes)
 
 
 
@@ -642,10 +743,6 @@ ins_ax_divergenc_gene.text(-0.26, 0.93, pt.sub_plot_labels[1], fontsize=12, font
 
 #ax_divergence = fig.add_subplot(gs[2:4, 0:3])
 ax_divergence = fig.add_subplot(gs[1, 0])
-
-ins_ax_divergence = inset_axes(ax_divergence, width="100%", height="100%", loc='lower right', bbox_to_anchor=(0.68,0.09,0.3,0.3), bbox_transform=ax_divergence.transAxes)
-
-
 #ax_divergence = axes[1]
 ax_divergence.axhline( y=0, color='k', lw=3, linestyle=':', alpha = 1, zorder=1)
 ax_count_divergence=0
@@ -667,54 +764,42 @@ for treatment_pair_idx, treatment_pair in enumerate(treatment_pairs):
 
     for taxon in taxa:
 
-        marker_style = dict(color='k', marker=pt.plot_species_marker(taxon),
-                    markerfacecoloralt=pt.get_colors(treatment_pair[1]),
-                    markerfacecolor=pt.get_colors(treatment_pair[0]) )
-
         standardized_correlation = divergence_dict[treatment_pair_set][taxon]['Z_corr']
-
-        ax_divergence.plot(ax_count_divergence, standardized_correlation, markersize = pt.plot_species_marker_size(taxon),   \
-            linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style)
 
         divergence_Z_pearsons_pair.append(standardized_correlation)
 
 
         ax_count_divergence+=1
 
-
+    marker_style = dict(color='k', marker='o',
+                markerfacecoloralt=pt.get_colors(treatment_pair[1]),
+                markerfacecolor=pt.get_colors(treatment_pair[0]) )
 
     divergence_Z_mean = np.mean(divergence_Z_pearsons_pair)
     divergence_Z_se = np.std(divergence_Z_pearsons_pair) / np.sqrt(len(divergence_Z_pearsons_pair))
 
-
-    marker_style_ins = dict(color='k', marker='o',
-                markerfacecoloralt=pt.get_colors(treatment_pair[1]),
-                markerfacecolor=pt.get_colors(treatment_pair[0]) )
-
-
-    ins_ax_divergence.errorbar(treatment_pair_idx, divergence_Z_mean, yerr =divergence_Z_se, \
+    ax_divergence.errorbar(treatment_pair_idx, divergence_Z_mean, yerr =divergence_Z_se, \
             fmt = 'o', alpha = 1, barsabove = True, marker = 'o', \
-            mfc = 'white', mec = 'white', lw=3.5, c = 'k', zorder=2, ms=15)
+            mfc = 'white', mec = 'white', lw=3.5, c = 'k', zorder=2, ms=17)
 
 
-    ins_ax_divergence.plot(treatment_pair_idx, np.mean(divergence_Z_pearsons_pair), markersize = 17,   \
-        linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style_ins)
+    ax_divergence.plot(treatment_pair_idx, np.mean(divergence_Z_pearsons_pair), markersize = 28,   \
+        linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style)
 
-
-
-
-    #ax_divergence.errorbar(treatment_pair_idx, divergence_Z_mean, yerr =divergence_Z_se, \
-    #        fmt = 'o', alpha = 1, barsabove = True, marker = 'o', \
-    #        mfc = 'white', mec = 'white', lw=3.5, c = 'k', zorder=2, ms=17)
-
-
-    #ax_divergence.plot(treatment_pair_idx, np.mean(divergence_Z_pearsons_pair), markersize = 28,   \
-    #    linewidth=2,  alpha=1, zorder=3, fillstyle='left', **marker_style)
 
 
     #if treatment_pair_idx < 2:
 
     #    ax_divergence.axvline( x=ax_count_divergence-0.5, color='k', lw=2, linestyle='-', alpha = 1, zorder=2)
+
+
+
+
+
+
+
+ax_divergence.text(0.865, 0.17, r'$F=%s$' % "{0:.3g}".format(F), fontsize=14, ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.865, 0.1, r'$P=%s$' % "{0:.3g}".format(P_F), fontsize=14, ha='center', va='center', transform=ax_divergence.transAxes)
 
 
 
@@ -729,42 +814,23 @@ ax_divergence.text(0.85, -0.04, '10-days vs. 100-days', fontsize=13, fontweight=
 
 
 
-#ax_divergence.set_xlim([-0.5, 2.5])
-ax_divergence.set_ylim([-18, 3])
+ax_divergence.set_xlim([-0.5, 2.5])
+ax_divergence.set_ylim([-12, 1.5])
 
-ax_divergence.text(0.13, 0.89, 'Convergence', fontsize=14, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
-ax_divergence.text(0.115, 0.82, 'Divergence', fontsize=14, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.13, 0.925, 'Convergence', fontsize=14, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+ax_divergence.text(0.115, 0.85, 'Divergence', fontsize=14, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
 
 
 ax_divergence.tick_params(axis='x', labelsize=14, length = 0)
-ax_divergence.set_ylabel("Standardized correlation, "+ r'$\bar{Z}_{\rho}$' , fontsize = 16)
-ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[2], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+
+ax_divergence.set_ylabel("Mean standardized\ncorrelation of all taxa, "+ r'$\bar{Z}_{\rho}$' , fontsize = 16)
+
+ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[ax_count], fontsize=12, fontweight='bold', ha='center', va='center', transform=ax_divergence.transAxes)
+
 
 ax_divergence.set_title("Convergent/divergent evolution as the\ncorrelation in mutation counts across enriched genes", fontsize=16, fontweight='bold')
 
-
-
-
-ins_ax_divergence.axhline( y=0, color='k', lw=3, linestyle=':', alpha = 1, zorder=1)
-ins_ax_divergence.set_ylabel("Mean " + r'$\bar{Z}_{\rho}$',  fontsize = 14)
-
-ins_ax_divergence.set_xticklabels( [], fontsize=12)
-ins_ax_divergence.tick_params(axis='x', labelsize=14, length = 0)
-ins_ax_divergence.text(0.18, -0.08, '1 vs. 10', fontsize=9, fontweight='bold', ha='center', va='center', transform=ins_ax_divergence.transAxes)
-ins_ax_divergence.text(0.52, -0.08, '1 vs. 100', fontsize=9, fontweight='bold', ha='center', va='center', transform=ins_ax_divergence.transAxes)
-ins_ax_divergence.text(0.85, -0.08, '10 vs. 100', fontsize=9, fontweight='bold', ha='center', va='center', transform=ins_ax_divergence.transAxes)
-
-ins_ax_divergence.set_xlim([-0.5, 2.5])
-ins_ax_divergence.set_ylim([-13, 1.5])
-
-
-ins_ax_divergence.text(0.8, 0.5, r'$F=%s$' % "{0:.3g}".format(F), fontsize=12, ha='center', va='center', transform=ins_ax_divergence.transAxes)
-ins_ax_divergence.text(0.8, 0.3, r'$P=%s$' % "{0:.3g}".format(P_F), fontsize=12, ha='center', va='center', transform=ins_ax_divergence.transAxes)
-
-
-ins_ax_divergence.text(-0.05, 1.07, pt.sub_plot_labels[3], fontsize=12, fontweight='bold', ha='center', va='center', transform=ins_ax_divergence.transAxes)
-
-
+#ax_divergence_gene.set_title("Convergent/divergent evolution as gene identity", fontsize=15, fontweight='bold')
 
 fig.subplots_adjust(hspace=0.25,wspace=0.2) #hspace=0.3, wspace=0.5
 fig_name = pt.get_path() + "/figs/per_taxon_divergence.pdf"
